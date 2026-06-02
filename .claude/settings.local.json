@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/usamaashraf/**)",
+      "Bash(npx create-next-app@14 xlink --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --no-eslint)",
+      "Bash(npx create-next-app@14 . --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --no-eslint)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)"
+    ]
+  }
+}
