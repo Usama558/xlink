@@ -8,7 +8,21 @@ const PORT = process.env.PORT || 3000
 app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')))
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+// ─── Startup diagnostics ──────────────────────────────────────────────────────
+console.log('--- XLink startup ---')
+console.log('Node version:', process.version)
+console.log('PORT:', PORT)
+console.log('ANTHROPIC_API_KEY present:', !!process.env.ANTHROPIC_API_KEY)
+if (process.env.ANTHROPIC_API_KEY) {
+  console.log('ANTHROPIC_API_KEY prefix:', process.env.ANTHROPIC_API_KEY.slice(0, 10) + '...')
+}
+
+// ─── Lazy Anthropic client (created per-request so env var is always read live)
+function getClient() {
+  const key = process.env.ANTHROPIC_API_KEY
+  if (!key) throw new Error('ANTHROPIC_API_KEY environment variable is not set')
+  return new Anthropic({ apiKey: key })
+}
 
 // ─── Viral framework system prompt ───────────────────────────────────────────
 function buildSystemPrompt(platform, outputType) {
@@ -58,16 +72,20 @@ app.post('/api/generate', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' })
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY is not set on the server.' })
+  const systemPrompt = buildSystemPrompt(platform, outputType)
+  const userMessage = `Niche: ${niche}\nPlatform: ${platform}\nGenerate exactly ${count} post(s).`
+
+  let client
+  try {
+    client = getClient()
+  } catch (err) {
+    console.error('[config error]', err.message)
+    return res.status(500).json({ error: err.message })
   }
 
-  const systemPrompt = buildSystemPrompt(platform, outputType)
-  const userMessage = `Niche: ${niche}
-Platform: ${platform}
-Generate exactly ${count} post(s).`
-
   try {
+    console.log(`[generate] niche=${niche} platform=${platform} count=${count} outputType=${outputType}`)
+
     const message = await client.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 2048,
@@ -76,14 +94,40 @@ Generate exactly ${count} post(s).`
     })
 
     const raw = message.content[0].text.trim()
-    const posts = JSON.parse(raw)
+    console.log('[generate] raw response length:', raw.length)
+
+    let posts
+    try {
+      posts = JSON.parse(raw)
+    } catch (parseErr) {
+      console.error('[generate] JSON parse failed. Raw output was:\n', raw)
+      return res.status(500).json({ error: 'Model returned invalid JSON. Raw: ' + raw.slice(0, 200) })
+    }
+
+    console.log('[generate] success, posts returned:', posts.length)
     res.json({ posts })
+
   } catch (err) {
-    console.error('Generation error:', err)
-    res.status(500).json({ error: 'Failed to generate posts. Check server logs.' })
+    console.error('[generate] Anthropic API error:')
+    console.error('  message:', err.message)
+    console.error('  status:', err.status)
+    console.error('  error type:', err.constructor?.name)
+    if (err.error) console.error('  api error body:', JSON.stringify(err.error))
+    res.status(500).json({
+      error: `API error: ${err.message || 'unknown'}`,
+    })
   }
 })
 
+// ─── Health check ─────────────────────────────────────────────────────────────
+app.get('/health', (req, res) => {
+  res.json({
+    ok: true,
+    keySet: !!process.env.ANTHROPIC_API_KEY,
+    node: process.version,
+  })
+})
+
 app.listen(PORT, () => {
-  console.log(`XLink running on http://localhost:${PORT}`)
+  console.log(`XLink running on port ${PORT}`)
 })
