@@ -16,7 +16,10 @@
   .xl-voice-link{font-size:13px;font-weight:600;color:rgba(255,255,255,0.6);text-decoration:none}
   .xl-voice-link:hover{color:#fff}
 
-  .xl-speak-hint{font-size:11px;color:rgba(255,255,255,0.22);margin-top:5px;display:flex;align-items:center;gap:5px;font-weight:500}
+  .xl-speak-hint{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;font-weight:600;color:var(--accent-l);background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.28);border-radius:99px;padding:4px 11px;width:fit-content;max-width:100%}
+  .xl-speak-hint svg{flex-shrink:0}
+  .xl-speak-hint kbd{font-family:inherit;font-weight:800;background:rgba(37,99,235,0.22);border-radius:5px;padding:1px 5px}
+  html[data-theme="light"] .xl-speak-hint{color:#1d4ed8}
 
   .xl-pill{position:fixed;z-index:9000;display:flex;align-items:center;gap:8px;background:#16161d;border:1px solid rgba(255,255,255,0.14);border-radius:99px;padding:8px 14px;font-size:12px;font-weight:600;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.5);pointer-events:none}
   .xl-pill .xl-mic{width:9px;height:9px;border-radius:50%;background:#ef4444;animation:xlpulse 1s ease-in-out infinite}
@@ -137,7 +140,7 @@
       el.dataset.xlHinted = '1'
       const hint = document.createElement('div')
       hint.className = 'xl-speak-hint'
-      hint.innerHTML = 'Hold <span style="font-weight:700">&#8997; Option</span> to speak'
+      hint.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4"/></svg>Hold <kbd>&#8997; Option</kbd> and speak to write'
       el.insertAdjacentElement('afterend', hint)
     })
   }
