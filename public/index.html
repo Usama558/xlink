@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XLink — Viral Post Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #08080c;
+      --surface:  #111114;
+      --surface2: #18181f;
+      --border:   rgba(255,255,255,0.07);
+      --border2:  rgba(255,255,255,0.12);
+      --text:     #ffffff;
+      --muted:    rgba(255,255,255,0.45);
+      --dim:      rgba(255,255,255,0.18);
+      --accent:   #2563eb;
+      --accent-h: #1d4ed8;
+      --accent-l: #60a5fa;
+      --green:    #22c55e;
+      --red:      #ef4444;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+      background: rgba(8,8,12,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 18px; font-weight: 900; letter-spacing: -0.5px; color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-badge {
+      font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 99px;
+      background: rgba(37,99,235,0.15);
+      border: 1px solid rgba(37,99,235,0.3);
+      color: var(--accent-l);
+    }
+
+    /* ── Layout ── */
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 96px 24px 80px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 1.05;
+      margin-bottom: 14px;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, #2563eb, #60a5fa, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      pointer-events: none;
+    }
+
+    /* ── Controls panel ── */
+    .controls {
+      padding: 28px 32px 32px;
+      display: grid;
+      gap: 24px;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .control-row { grid-template-columns: 1fr; }
+      .controls { padding: 20px; }
+    }
+
+    /* ── Labels ── */
+    .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    /* ── Platform toggle ── */
+    .toggle-group {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      background: none; border: none;
+      padding: 9px 0;
+      border-radius: 9px;
+      font-size: 13px; font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.18s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .toggle-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 16px rgba(37,99,235,0.35);
+    }
+
+    /* ── Niche dropdown ── */
+    .dropdown-wrap {
+      position: relative;
+    }
+
+    .dropdown-trigger {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 14px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .dropdown-trigger:hover { border-color: var(--border2); }
+    .dropdown-trigger.open { border-color: var(--accent); }
+
+    .dropdown-trigger-text {
+      flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .dropdown-trigger-text.placeholder { color: var(--dim); }
+
+    .chevron {
+      width: 16px; height: 16px; flex-shrink: 0;
+      color: var(--dim);
+      transition: transform 0.2s;
+    }
+
+    .dropdown-trigger.open .chevron { transform: rotate(180deg); }
+
+    .dropdown-panel {
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 200;
+      background: #1a1a22;
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      display: none;
+      overflow: hidden;
+    }
+
+    .dropdown-panel.open { display: block; }
+
+    .dropdown-search-wrap {
+      padding: 10px 10px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dropdown-search {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .dropdown-search:focus { border-color: var(--accent); }
+    .dropdown-search::placeholder { color: var(--dim); }
+
+    .dropdown-list {
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 6px 6px;
+    }
+
+    .dropdown-category {
+      padding: 8px 10px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--dim);
+    }
+
+    .dropdown-option {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.12s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dropdown-option:hover { background: rgba(37,99,235,0.15); color: var(--text); }
+    .dropdown-option.selected { background: rgba(37,99,235,0.2); color: var(--accent-l); }
+
+    .dropdown-empty {
+      padding: 20px 12px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--dim);
+    }
+
+    /* ── Count selector ── */
+    .count-group {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .count-btn {
+      flex: 1;
+      background: none; border: none;
+      padding: 9px 0;
+      border-radius: 9px;
+      font-size: 13px; font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.18s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .count-btn.active {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+
+    /* ── Output type ── */
+    .output-group {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .output-btn {
+      flex: 1;
+      background: none; border: none;
+      padding: 9px 12px;
+      border-radius: 9px;
+      font-size: 13px; font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.18s;
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+    }
+
+    .output-btn.active {
+      background: rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+
+    /* ── Generate button ── */
+    .generate-btn {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 14px;
+      padding: 15px 20px;
+      font-size: 15px; font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 0 24px rgba(37,99,235,0.3);
+      letter-spacing: -0.2px;
+    }
+
+    .generate-btn:hover:not(:disabled) {
+      background: var(--accent-h);
+      box-shadow: 0 0 36px rgba(37,99,235,0.4);
+      transform: translateY(-1px);
+    }
+
+    .generate-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-icon {
+      width: 18px; height: 18px;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Framework bar ── */
+    .framework-bar {
+      padding: 14px 32px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .fw-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--dim); margin-right: 4px;
+    }
+
+    .fw-tag {
+      font-size: 10px; font-weight: 600;
+      padding: 3px 8px; border-radius: 99px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--dim);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Results ── */
+    .results-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 36px 0 16px;
+    }
+
+    .results-title {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+    }
+
+    .regen-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 14px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+    }
+
+    .regen-btn:hover { border-color: var(--border2); color: var(--text); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── Post card ── */
+    .post-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .post-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    }
+
+    .post-card:hover {
+      border-color: rgba(255,255,255,0.12);
+      transform: translateY(-2px);
+    }
+
+    .post-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .format-badge {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 4px 10px; border-radius: 99px;
+      background: rgba(37,99,235,0.12);
+      border: 1px solid rgba(37,99,235,0.2);
+      color: var(--accent-l);
+    }
+
+    .copy-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px 10px;
+      font-size: 11px; font-weight: 600;
+      color: var(--dim); cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.15s;
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    .copy-btn:hover { border-color: var(--border2); color: var(--text); }
+    .copy-btn.copied { border-color: rgba(34,197,94,0.3); color: var(--green); }
+
+    .post-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.82);
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 16px;
+    }
+
+    .post-reason {
+      font-size: 11px;
+      color: var(--dim);
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      line-height: 1.5;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--dim);
+    }
+
+    .empty-icon {
+      width: 48px; height: 48px;
+      margin: 0 auto 16px;
+      opacity: 0.25;
+    }
+
+    .empty-state p { font-size: 14px; }
+
+    /* ── Error ── */
+    .error-bar {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #fca5a5;
+      margin-top: 16px;
+      display: none;
+    }
+
+    /* ── Loading skeleton ── */
+    .skeleton {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      display: none;
+    }
+
+    .skel-line {
+      height: 12px; border-radius: 6px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.05) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      margin-bottom: 10px;
+    }
+
+    .skel-line:last-child { margin-bottom: 0; width: 60%; }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">XLink</a>
+    <span class="nav-badge">Viral Post Generator</span>
+  </nav>
+
+  <div class="page">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>Write posts that <span>actually spread</span></h1>
+      <p>Pick your niche. Generate viral-framework posts for X or LinkedIn in seconds.</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="card">
+      <div class="controls">
+
+        <!-- Row 1: Platform + Niche -->
+        <div class="control-row">
+          <div>
+            <span class="label">Platform</span>
+            <div class="toggle-group" id="platformGroup">
+              <button class="toggle-btn active" data-val="x">X (Twitter)</button>
+              <button class="toggle-btn" data-val="linkedin">LinkedIn</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="label">Niche</span>
+            <div class="dropdown-wrap" id="nicheWrap">
+              <button class="dropdown-trigger" id="nicheTrigger" type="button">
+                <span class="dropdown-trigger-text placeholder" id="nicheTriggerText">Select a niche</span>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              <div class="dropdown-panel" id="nichePanel">
+                <div class="dropdown-search-wrap">
+                  <input class="dropdown-search" id="nicheSearch" type="text" placeholder="Search niches..." autocomplete="off" />
+                </div>
+                <div class="dropdown-list" id="nicheList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Count + Output type -->
+        <div class="control-row">
+          <div>
+            <span class="label">Number of posts</span>
+            <div class="count-group" id="countGroup">
+              <button class="count-btn" data-val="1">1</button>
+              <button class="count-btn" data-val="2">2</button>
+              <button class="count-btn active" data-val="3">3</button>
+              <button class="count-btn" data-val="5">5</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="label">Output type</span>
+            <div class="output-group" id="outputGroup">
+              <button class="output-btn active" data-val="full">Full post</button>
+              <button class="output-btn" data-val="hook">Hook only</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generate -->
+        <button class="generate-btn" id="generateBtn" disabled>
+          <div class="spinner" id="spinner"></div>
+          <svg class="btn-icon" id="btnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <span id="btnLabel">Generate Posts</span>
+        </button>
+
+        <div class="error-bar" id="errorBar"></div>
+
+      </div>
+
+      <!-- Framework bar -->
+      <div class="framework-bar">
+        <span class="fw-label">Framework</span>
+        <span class="fw-tag">Stimulated</span>
+        <span class="fw-tag">Captivated</span>
+        <span class="fw-tag">Anticipation</span>
+        <span class="fw-tag">Validation</span>
+        <span class="fw-tag">Affection</span>
+        <span class="fw-tag">Revelation</span>
+      </div>
+    </div>
+
+    <!-- Loading skeletons -->
+    <div id="skeletons" style="display:none;">
+      <div class="results-header">
+        <span class="results-title">Generating...</span>
+      </div>
+      <div class="results-grid" id="skelGrid"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsWrap" style="display:none;">
+      <div class="results-header">
+        <span class="results-title" id="resultsLabel"></span>
+        <button class="regen-btn" id="regenBtn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+          </svg>
+          Regenerate
+        </button>
+      </div>
+      <div class="results-grid" id="resultsGrid"></div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+      <p>Select a niche and hit Generate</p>
+    </div>
+
+  </div>
+
+  <script>
+    // ─── Niche data ──────────────────────────────────────────────────────────
+    const NICHES = {
+      'Business': [
+        'Agency', 'Consulting', 'Freelancing', 'SaaS', 'Startup', 'E-commerce',
+        'Dropshipping', 'Amazon FBA', 'Real Estate', 'Investing', 'Crypto',
+        'Stock Market', 'Personal Finance', 'Insurance', 'Accounting',
+        'B2B Sales', 'Venture Capital', 'Side Hustles', 'Monetization', 'Private Equity'
+      ],
+      'Marketing': [
+        'SEO', 'Paid Ads', 'Email Marketing', 'Social Media', 'Content Marketing',
+        'Copywriting', 'Branding', 'PR', 'Influencer Marketing', 'Affiliate Marketing',
+        'Video Marketing', 'TikTok Growth', 'LinkedIn Growth', 'Community Building',
+        'Conversion Optimization'
+      ],
+      'Health & Fitness': [
+        'Weight Loss', 'Bodybuilding', 'Nutrition', 'Yoga', 'Mental Health',
+        'Meditation', 'Running', 'CrossFit', 'Biohacking', 'Longevity',
+        'Sleep Optimization', 'Fasting', 'Cycling', 'Martial Arts', 'Flexibility'
+      ],
+      'Creator Economy': [
+        'YouTube', 'Podcasting', 'Newsletter', 'Blogging', 'Twitch Streaming',
+        'Photography', 'Videography', 'Graphic Design', 'UI/UX', 'Substack',
+        'Course Creation', 'Personal Branding', 'Ghostwriting', 'Notion Templates'
+      ],
+      'Career': [
+        'Job Hunting', 'Remote Work', 'Productivity', 'Leadership', 'Management',
+        'Public Speaking', 'Personal Development', 'Career Coaching',
+        'Networking', 'Resume Writing', 'Executive Coaching', 'Negotiation'
+      ],
+      'Education': [
+        'Online Courses', 'Tutoring', 'Parenting', 'Homeschooling',
+        'Language Learning', 'E-Learning', 'EdTech', 'Study Skills'
+      ],
+      'Lifestyle': [
+        'Travel', 'Fashion', 'Food & Cooking', 'Relationships', 'Dating',
+        'Minimalism', 'Sustainability', 'Luxury Lifestyle', 'Parenting', 'Spirituality'
+      ],
+      'Tech': [
+        'AI Tools', 'No-Code', 'Web Development', 'Cybersecurity', 'Blockchain',
+        'Gaming', 'Data Science', 'DevOps', 'SaaS Tools', 'Automation',
+        'Prompt Engineering', 'AR/VR', 'Mobile Development', 'Cloud Computing'
+      ],
+      'Niche Professions': [
+        'Law', 'Medicine', 'Dentistry', 'Architecture', 'Interior Design',
+        'Wedding', 'Pets', 'Cars & Automotive', 'Sports Coaching',
+        'Finance Coaching', 'Therapy & Counseling', 'Chiropractic', 'Veterinary'
+      ],
+    }
+
+    // ─── State ───────────────────────────────────────────────────────────────
+    let selectedNiche = ''
+    let selectedPlatform = 'x'
+    let selectedCount = 3
+    let selectedOutput = 'full'
+    let lastParams = null
+
+    // ─── DOM refs ────────────────────────────────────────────────────────────
+    const nicheTrigger   = document.getElementById('nicheTrigger')
+    const nicheTriggerTx = document.getElementById('nicheTriggerText')
+    const nichePanel     = document.getElementById('nichePanel')
+    const nicheSearch    = document.getElementById('nicheSearch')
+    const nicheList      = document.getElementById('nicheList')
+    const generateBtn    = document.getElementById('generateBtn')
+    const btnLabel       = document.getElementById('btnLabel')
+    const btnIcon        = document.getElementById('btnIcon')
+    const spinner        = document.getElementById('spinner')
+    const errorBar       = document.getElementById('errorBar')
+    const resultsWrap    = document.getElementById('resultsWrap')
+    const resultsGrid    = document.getElementById('resultsGrid')
+    const resultsLabel   = document.getElementById('resultsLabel')
+    const skeletons      = document.getElementById('skeletons')
+    const skelGrid       = document.getElementById('skelGrid')
+    const emptyState     = document.getElementById('emptyState')
+    const regenBtn       = document.getElementById('regenBtn')
+
+    // ─── Build niche dropdown ────────────────────────────────────────────────
+    function buildNicheList(query = '') {
+      const q = query.toLowerCase().trim()
+      nicheList.innerHTML = ''
+      let hasAny = false
+
+      for (const [cat, items] of Object.entries(NICHES)) {
+        const filtered = q ? items.filter(i => i.toLowerCase().includes(q)) : items
+        if (!filtered.length) continue
+        hasAny = true
+
+        if (!q) {
+          const catEl = document.createElement('div')
+          catEl.className = 'dropdown-category'
+          catEl.textContent = cat
+          nicheList.appendChild(catEl)
+        }
+
+        for (const item of filtered) {
+          const el = document.createElement('div')
+          el.className = 'dropdown-option' + (item === selectedNiche ? ' selected' : '')
+          el.textContent = item
+          el.addEventListener('click', () => selectNiche(item))
+          nicheList.appendChild(el)
+        }
+      }
+
+      if (!hasAny) {
+        const empty = document.createElement('div')
+        empty.className = 'dropdown-empty'
+        empty.textContent = 'No niches match "' + query + '"'
+        nicheList.appendChild(empty)
+      }
+    }
+
+    function selectNiche(niche) {
+      selectedNiche = niche
+      nicheTriggerTx.textContent = niche
+      nicheTriggerTx.classList.remove('placeholder')
+      closeDropdown()
+      updateGenerateBtn()
+    }
+
+    function openDropdown() {
+      nichePanel.classList.add('open')
+      nicheTrigger.classList.add('open')
+      nicheSearch.value = ''
+      buildNicheList()
+      setTimeout(() => nicheSearch.focus(), 50)
+    }
+
+    function closeDropdown() {
+      nichePanel.classList.remove('open')
+      nicheTrigger.classList.remove('open')
+    }
+
+    nicheTrigger.addEventListener('click', e => {
+      e.stopPropagation()
+      nichePanel.classList.contains('open') ? closeDropdown() : openDropdown()
+    })
+
+    nicheSearch.addEventListener('input', () => buildNicheList(nicheSearch.value))
+    nicheSearch.addEventListener('click', e => e.stopPropagation())
+    nichePanel.addEventListener('click', e => e.stopPropagation())
+
+    document.addEventListener('click', () => closeDropdown())
+
+    // ─── Platform toggle ─────────────────────────────────────────────────────
+    document.getElementById('platformGroup').addEventListener('click', e => {
+      const btn = e.target.closest('.toggle-btn')
+      if (!btn) return
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      selectedPlatform = btn.dataset.val
+    })
+
+    // ─── Count selector ──────────────────────────────────────────────────────
+    document.getElementById('countGroup').addEventListener('click', e => {
+      const btn = e.target.closest('.count-btn')
+      if (!btn) return
+      document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      selectedCount = parseInt(btn.dataset.val)
+    })
+
+    // ─── Output type ─────────────────────────────────────────────────────────
+    document.getElementById('outputGroup').addEventListener('click', e => {
+      const btn = e.target.closest('.output-btn')
+      if (!btn) return
+      document.querySelectorAll('.output-btn').forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      selectedOutput = btn.dataset.val
+    })
+
+    // ─── Generate button state ────────────────────────────────────────────────
+    function updateGenerateBtn() {
+      generateBtn.disabled = !selectedNiche
+    }
+
+    // ─── Skeletons ────────────────────────────────────────────────────────────
+    function showSkeletons(count) {
+      skelGrid.innerHTML = ''
+      for (let i = 0; i < count; i++) {
+        const sk = document.createElement('div')
+        sk.className = 'skeleton'
+        sk.style.display = 'block'
+        sk.innerHTML = `
+          <div class="skel-line" style="width:30%; height:10px; margin-bottom:16px;"></div>
+          <div class="skel-line" style="width:100%;"></div>
+          <div class="skel-line" style="width:88%;"></div>
+          <div class="skel-line" style="width:94%;"></div>
+          <div class="skel-line" style="width:70%;"></div>
+          <div class="skel-line" style="width:55%; margin-top:16px;"></div>
+        `
+        skelGrid.appendChild(sk)
+      }
+      skeletons.style.display = 'block'
+      emptyState.style.display = 'none'
+      resultsWrap.style.display = 'none'
+    }
+
+    function hideSkeletons() {
+      skeletons.style.display = 'none'
+    }
+
+    // ─── Render posts ─────────────────────────────────────────────────────────
+    function renderPosts(posts, params) {
+      resultsGrid.innerHTML = ''
+
+      for (const post of posts) {
+        const card = document.createElement('div')
+        card.className = 'post-card'
+
+        card.innerHTML = `
+          <div class="post-card-header">
+            <span class="format-badge">${escHtml(post.format)}</span>
+            <button class="copy-btn" data-text="${escAttr(post.text)}">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <div class="post-text">${escHtml(post.text)}</div>
+          <div class="post-reason">${escHtml(post.reason)}</div>
+        `
+
+        const copyBtn = card.querySelector('.copy-btn')
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(post.text).then(() => {
+            copyBtn.classList.add('copied')
+            copyBtn.innerHTML = `
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Copied
+            `
+            setTimeout(() => {
+              copyBtn.classList.remove('copied')
+              copyBtn.innerHTML = `
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copy
+              `
+            }, 2000)
+          })
+        })
+
+        resultsGrid.appendChild(card)
+      }
+
+      resultsLabel.textContent = `${posts.length} post${posts.length !== 1 ? 's' : ''} for "${params.niche}" on ${params.platform === 'x' ? 'X' : 'LinkedIn'}`
+      resultsWrap.style.display = 'block'
+      emptyState.style.display = 'none'
+    }
+
+    // ─── Generate ─────────────────────────────────────────────────────────────
+    async function generate() {
+      if (!selectedNiche) return
+
+      const params = {
+        niche: selectedNiche,
+        platform: selectedPlatform,
+        count: selectedCount,
+        outputType: selectedOutput,
+      }
+      lastParams = params
+
+      errorBar.style.display = 'none'
+      showSkeletons(selectedCount)
+
+      generateBtn.disabled = true
+      spinner.style.display = 'block'
+      btnIcon.style.display = 'none'
+      btnLabel.textContent = 'Generating...'
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        })
+
+        const data = await res.json()
+        hideSkeletons()
+
+        if (!res.ok || data.error) {
+          throw new Error(data.error || 'Something went wrong')
+        }
+
+        renderPosts(data.posts, params)
+
+      } catch (err) {
+        hideSkeletons()
+        resultsWrap.style.display = 'none'
+        emptyState.style.display = 'block'
+        errorBar.textContent = err.message
+        errorBar.style.display = 'block'
+      } finally {
+        generateBtn.disabled = false
+        spinner.style.display = 'none'
+        btnIcon.style.display = 'block'
+        btnLabel.textContent = 'Generate Posts'
+      }
+    }
+
+    generateBtn.addEventListener('click', generate)
+    regenBtn.addEventListener('click', generate)
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+    }
+
+    function escAttr(str) {
+      return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+    }
+
+    // Init
+    buildNicheList()
+  </script>
+</body>
+</html>
