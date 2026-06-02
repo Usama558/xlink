@@ -1,999 +1,880 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>XLink — Viral Post Generator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:       #08080c;
-      --surface:  #111114;
-      --surface2: #18181f;
-      --border:   rgba(255,255,255,0.07);
-      --border2:  rgba(255,255,255,0.12);
-      --text:     #ffffff;
-      --muted:    rgba(255,255,255,0.45);
-      --dim:      rgba(255,255,255,0.18);
-      --accent:   #2563eb;
-      --accent-h: #1d4ed8;
-      --accent-l: #60a5fa;
-      --green:    #22c55e;
-      --red:      #ef4444;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      min-height: 100vh;
-    }
-
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
-
-    /* ── Nav ── */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      height: 60px;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 32px;
-      background: rgba(8,8,12,0.85);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .nav-logo {
-      font-size: 18px; font-weight: 900; letter-spacing: -0.5px; color: var(--text);
-      text-decoration: none;
-    }
-
-    .nav-badge {
-      font-size: 11px; font-weight: 600;
-      padding: 4px 10px; border-radius: 99px;
-      background: rgba(37,99,235,0.15);
-      border: 1px solid rgba(37,99,235,0.3);
-      color: var(--accent-l);
-    }
-
-    /* ── Layout ── */
-    .page {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 96px 24px 80px;
-    }
-
-    /* ── Hero ── */
-    .hero {
-      text-align: center;
-      margin-bottom: 56px;
-    }
-
-    .hero h1 {
-      font-size: clamp(32px, 5vw, 56px);
-      font-weight: 900;
-      letter-spacing: -1.5px;
-      line-height: 1.05;
-      margin-bottom: 14px;
-    }
-
-    .hero h1 span {
-      background: linear-gradient(135deg, #2563eb, #60a5fa, #93c5fd);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero p {
-      font-size: 16px;
-      color: var(--muted);
-      max-width: 480px;
-      margin: 0 auto;
-      line-height: 1.6;
-    }
-
-    /* ── Card ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      pointer-events: none;
-    }
-
-    /* ── Controls panel ── */
-    .controls {
-      padding: 28px 32px 32px;
-      display: grid;
-      gap: 24px;
-    }
-
-    .control-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 640px) {
-      .control-row { grid-template-columns: 1fr; }
-      .controls { padding: 20px; }
-    }
-
-    /* ── Labels ── */
-    .label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--dim);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 10px;
-    }
-
-    /* ── Platform toggle ── */
-    .toggle-group {
-      display: flex;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 4px;
-      gap: 4px;
-    }
-
-    .toggle-btn {
-      flex: 1;
-      background: none; border: none;
-      padding: 9px 0;
-      border-radius: 9px;
-      font-size: 13px; font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.18s;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .toggle-btn.active {
-      background: var(--accent);
-      color: #fff;
-      box-shadow: 0 0 16px rgba(37,99,235,0.35);
-    }
-
-    /* ── Niche dropdown ── */
-    .dropdown-wrap {
-      position: relative;
-    }
-
-    .dropdown-trigger {
-      width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 11px 14px;
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      cursor: pointer;
-      transition: border-color 0.15s;
-      color: var(--text);
-      font-size: 14px;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .dropdown-trigger:hover { border-color: var(--border2); }
-    .dropdown-trigger.open { border-color: var(--accent); }
-
-    .dropdown-trigger-text {
-      flex: 1; min-width: 0;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-
-    .dropdown-trigger-text.placeholder { color: var(--dim); }
-
-    .chevron {
-      width: 16px; height: 16px; flex-shrink: 0;
-      color: var(--dim);
-      transition: transform 0.2s;
-    }
-
-    .dropdown-trigger.open .chevron { transform: rotate(180deg); }
-
-    .dropdown-panel {
-      position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 200;
-      background: #1a1a22;
-      border: 1px solid var(--border2);
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-      display: none;
-      overflow: hidden;
-    }
-
-    .dropdown-panel.open { display: block; }
-
-    .dropdown-search-wrap {
-      padding: 10px 10px 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .dropdown-search {
-      width: 100%;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 9px 12px;
-      font-size: 13px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-
-    .dropdown-search:focus { border-color: var(--accent); }
-    .dropdown-search::placeholder { color: var(--dim); }
-
-    .dropdown-list {
-      max-height: 280px;
-      overflow-y: auto;
-      padding: 6px 6px;
-    }
-
-    .dropdown-category {
-      padding: 8px 10px 4px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--dim);
-    }
-
-    .dropdown-option {
-      padding: 8px 12px;
-      font-size: 13px;
-      color: rgba(255,255,255,0.7);
-      cursor: pointer;
-      border-radius: 8px;
-      transition: all 0.12s;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .dropdown-option:hover { background: rgba(37,99,235,0.15); color: var(--text); }
-    .dropdown-option.selected { background: rgba(37,99,235,0.2); color: var(--accent-l); }
-
-    .dropdown-empty {
-      padding: 20px 12px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--dim);
-    }
-
-    /* ── Count selector ── */
-    .count-group {
-      display: flex;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 4px;
-      gap: 4px;
-    }
-
-    .count-btn {
-      flex: 1;
-      background: none; border: none;
-      padding: 9px 0;
-      border-radius: 9px;
-      font-size: 13px; font-weight: 700;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.18s;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .count-btn.active {
-      background: rgba(255,255,255,0.1);
-      color: var(--text);
-    }
-
-    /* ── Output type ── */
-    .output-group {
-      display: flex;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 4px;
-      gap: 4px;
-    }
-
-    .output-btn {
-      flex: 1;
-      background: none; border: none;
-      padding: 9px 12px;
-      border-radius: 9px;
-      font-size: 13px; font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.18s;
-      font-family: 'Inter', sans-serif;
-      text-align: center;
-    }
-
-    .output-btn.active {
-      background: rgba(255,255,255,0.1);
-      color: var(--text);
-    }
-
-    /* ── Generate button ── */
-    .generate-btn {
-      width: 100%;
-      background: var(--accent);
-      border: none;
-      border-radius: 14px;
-      padding: 15px 20px;
-      font-size: 15px; font-weight: 700;
-      color: #fff;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      transition: all 0.2s;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      box-shadow: 0 0 24px rgba(37,99,235,0.3);
-      letter-spacing: -0.2px;
-    }
-
-    .generate-btn:hover:not(:disabled) {
-      background: var(--accent-h);
-      box-shadow: 0 0 36px rgba(37,99,235,0.4);
-      transform: translateY(-1px);
-    }
-
-    .generate-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .btn-icon {
-      width: 18px; height: 18px;
-    }
-
-    /* ── Spinner ── */
-    .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Framework bar ── */
-    .framework-bar {
-      padding: 14px 32px;
-      border-top: 1px solid var(--border);
-      display: flex; align-items: center; gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .fw-label {
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.07em;
-      color: var(--dim); margin-right: 4px;
-    }
-
-    .fw-tag {
-      font-size: 10px; font-weight: 600;
-      padding: 3px 8px; border-radius: 99px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      color: var(--dim);
-      letter-spacing: 0.03em;
-    }
-
-    /* ── Results ── */
-    .results-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin: 36px 0 16px;
-    }
-
-    .results-title {
-      font-size: 13px; font-weight: 600; color: var(--muted);
-    }
-
-    .regen-btn {
-      background: none; border: 1px solid var(--border);
-      border-radius: 10px; padding: 6px 14px;
-      font-size: 12px; font-weight: 600; color: var(--muted);
-      cursor: pointer; font-family: 'Inter', sans-serif;
-      transition: all 0.15s; display: flex; align-items: center; gap: 6px;
-    }
-
-    .regen-btn:hover { border-color: var(--border2); color: var(--text); }
-
-    .results-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 16px;
-    }
-
-    /* ── Post card ── */
-    .post-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 22px;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-
-    .post-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-    }
-
-    .post-card:hover {
-      border-color: rgba(255,255,255,0.12);
-      transform: translateY(-2px);
-    }
-
-    .post-card-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 14px;
-    }
-
-    .format-badge {
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      padding: 4px 10px; border-radius: 99px;
-      background: rgba(37,99,235,0.12);
-      border: 1px solid rgba(37,99,235,0.2);
-      color: var(--accent-l);
-    }
-
-    .copy-btn {
-      background: none; border: 1px solid var(--border);
-      border-radius: 8px; padding: 5px 10px;
-      font-size: 11px; font-weight: 600;
-      color: var(--dim); cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      transition: all 0.15s;
-      display: flex; align-items: center; gap: 5px;
-    }
-
-    .copy-btn:hover { border-color: var(--border2); color: var(--text); }
-    .copy-btn.copied { border-color: rgba(34,197,94,0.3); color: var(--green); }
-
-    .post-text {
-      font-size: 14px;
-      line-height: 1.7;
-      color: rgba(255,255,255,0.82);
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin-bottom: 16px;
-    }
-
-    .post-reason {
-      font-size: 11px;
-      color: var(--dim);
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-      line-height: 1.5;
-    }
-
-    /* ── Empty state ── */
-    .empty-state {
-      text-align: center;
-      padding: 64px 24px;
-      color: var(--dim);
-    }
-
-    .empty-icon {
-      width: 48px; height: 48px;
-      margin: 0 auto 16px;
-      opacity: 0.25;
-    }
-
-    .empty-state p { font-size: 14px; }
-
-    /* ── Error ── */
-    .error-bar {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.2);
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 13px;
-      color: #fca5a5;
-      margin-top: 16px;
-      display: none;
-    }
-
-    /* ── Loading skeleton ── */
-    .skeleton {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 22px;
-      display: none;
-    }
-
-    .skel-line {
-      height: 12px; border-radius: 6px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.05) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
-      margin-bottom: 10px;
-    }
-
-    .skel-line:last-child { margin-bottom: 0; width: 60%; }
-
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>XLink — Viral Post Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080c;--s1:#111114;--s2:#18181f;--s3:#1e1e28;
+  --b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.12);--b3:rgba(255,255,255,0.2);
+  --t1:#fff;--t2:rgba(255,255,255,0.6);--t3:rgba(255,255,255,0.35);--t4:rgba(255,255,255,0.18);
+  --accent:#2563eb;--accent-h:#1d4ed8;--accent-l:#60a5fa;--accent-d:rgba(37,99,235,0.12);
+  --green:rgba(34,197,94,1);--green-d:rgba(34,197,94,0.12);
+  --red:rgba(239,68,68,1);--red-d:rgba(239,68,68,0.1);
+  --radius:20px;--radius-sm:12px;--radius-xs:8px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:99px}
+
+/* ── Nav ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:rgba(8,8,12,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1)}
+.nav-logo{font-size:17px;font-weight:900;letter-spacing:-.5px;color:var(--t1);text-decoration:none}
+.nav-step-label{font-size:12px;font-weight:600;color:var(--t3)}
+
+/* ── Step indicator ── */
+.step-bar{display:flex;align-items:center;justify-content:center;gap:0;padding:82px 24px 0;margin-bottom:36px}
+.step-node{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.step-circle{width:36px;height:36px;border-radius:50%;border:2px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--t3);transition:all .25s;background:var(--bg)}
+.step-circle.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px rgba(37,99,235,0.15)}
+.step-circle.done{border-color:var(--accent);background:var(--accent);color:#fff}
+.step-label{font-size:11px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.step-label.active,.step-label.done{color:var(--t2)}
+.step-line{width:80px;height:2px;background:var(--b2);margin:0 8px;margin-bottom:20px;flex-shrink:0;transition:background .3s}
+.step-line.done{background:var(--accent)}
+
+/* ── Page ── */
+.page{max-width:860px;margin:0 auto;padding:0 20px 80px}
+.step-view{display:none}
+.step-view.active{display:block}
+
+/* ── Section heading ── */
+.section-title{font-size:22px;font-weight:900;letter-spacing:-.5px;margin-bottom:4px}
+.section-sub{font-size:14px;color:var(--t3);margin-bottom:28px}
+
+/* ── Card ── */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--radius);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);pointer-events:none}
+
+/* ── Filters grid ── */
+.filters-grid{padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:600px){.filters-grid{grid-template-columns:1fr;padding:18px}}
+.filter-full{grid-column:1/-1}
+
+/* ── Label ── */
+.lbl{display:block;font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+
+/* ── Select ── */
+.sel-wrap{position:relative}
+.sel-wrap::after{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--t3);pointer-events:none}
+select{width:100%;appearance:none;-webkit-appearance:none;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:10px 34px 10px 12px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;cursor:pointer;transition:border-color .15s}
+select:focus{border-color:var(--accent)}
+select option{background:#1a1a22;color:var(--t1)}
+
+/* ── Niche dropdown (custom) ── */
+.dd-wrap{position:relative}
+.dd-trigger{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:10px 34px 10px 12px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .15s;text-align:left}
+.dd-trigger:hover,.dd-trigger.open{border-color:var(--b2)}
+.dd-trigger.open{border-color:var(--accent)}
+.dd-val{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-val.ph{color:var(--t4)}
+.dd-chev{flex-shrink:0;width:14px;height:14px;color:var(--t3);transition:transform .2s}
+.dd-trigger.open .dd-chev{transform:rotate(180deg)}
+.dd-panel{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:300;background:#1c1c25;border:1px solid var(--b2);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.65);display:none;overflow:hidden}
+.dd-panel.open{display:block}
+.dd-search-wrap{padding:8px 8px 6px;border-bottom:1px solid var(--b1)}
+.dd-search{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--b1);border-radius:var(--radius-xs);padding:8px 11px;font-size:13px;color:var(--t1);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s}
+.dd-search:focus{border-color:var(--accent)}
+.dd-search::placeholder{color:var(--t4)}
+.dd-list{max-height:260px;overflow-y:auto;padding:5px 5px}
+.dd-cat{padding:8px 10px 3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t4)}
+.dd-opt{padding:7px 10px;font-size:13px;color:var(--t2);cursor:pointer;border-radius:7px;transition:all .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-opt:hover{background:rgba(37,99,235,0.15);color:var(--t1)}
+.dd-opt.sel{background:rgba(37,99,235,0.2);color:var(--accent-l)}
+.dd-empty{padding:18px 10px;text-align:center;font-size:13px;color:var(--t4)}
+
+/* ── Textarea ── */
+textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;resize:vertical;transition:border-color .15s;min-height:72px}
+textarea:focus{border-color:var(--accent)}
+textarea::placeholder{color:var(--t4)}
+
+/* ── Toggle group ── */
+.tgl{display:flex;background:rgba(255,255,255,0.03);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:3px;gap:3px}
+.tgl-btn{flex:1;background:none;border:none;padding:8px 4px;border-radius:var(--radius-xs);font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.tgl-btn.active{background:var(--accent);color:#fff;box-shadow:0 0 12px rgba(37,99,235,.3)}
+.tgl-btn.active-mono{background:rgba(255,255,255,0.1);color:var(--t1)}
+
+/* ── Count buttons ── */
+.count-grp{display:flex;background:rgba(255,255,255,0.03);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:3px;gap:3px}
+.count-btn{flex:1;background:none;border:none;padding:8px 0;border-radius:var(--radius-xs);font-size:13px;font-weight:700;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.count-btn.active-mono{background:rgba(255,255,255,0.1);color:var(--t1)}
+
+/* ── Primary button ── */
+.btn-primary{width:100%;background:var(--accent);border:none;border-radius:14px;padding:14px 20px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 0 24px rgba(37,99,235,.25);letter-spacing:-.2px}
+.btn-primary:hover:not(:disabled){background:var(--accent-h);box-shadow:0 0 36px rgba(37,99,235,.38);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-action-row{padding:20px 28px 28px;display:flex;flex-direction:column;gap:10px}
+
+/* ── Back button ── */
+.btn-back{background:none;border:1px solid var(--b1);border-radius:var(--radius-xs);padding:7px 14px;font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:5px;margin-bottom:20px}
+.btn-back:hover{border-color:var(--b2);color:var(--t1)}
+
+/* ── Spinner ── */
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:none;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Error bar ── */
+.err{background:var(--red-d);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-xs);padding:10px 14px;font-size:13px;color:#fca5a5;display:none;margin-top:10px}
+
+/* ── Step 2: Trend list ── */
+.trends-loading{text-align:center;padding:56px 20px;display:none}
+.loader-ring{width:40px;height:40px;border:3px solid var(--b1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
+.trends-loading-label{font-size:14px;color:var(--t3);margin-bottom:4px}
+.trends-loading-sub{font-size:12px;color:var(--t4)}
+.trends-list{padding:12px 16px 16px;display:none}
+.trend-item{display:flex;align-items:flex-start;gap:12px;padding:13px 14px;border-radius:14px;border:1px solid var(--b1);margin-bottom:8px;transition:border-color .15s;cursor:pointer}
+.trend-item:hover{border-color:var(--b2)}
+.trend-item.checked{border-color:rgba(37,99,235,.3);background:rgba(37,99,235,.05)}
+.trend-check{width:18px;height:18px;flex-shrink:0;margin-top:1px;appearance:none;-webkit-appearance:none;background:rgba(255,255,255,.04);border:1.5px solid var(--b2);border-radius:5px;cursor:pointer;transition:all .15s;position:relative}
+.trend-check:checked{background:var(--accent);border-color:var(--accent)}
+.trend-check:checked::after{content:'';position:absolute;left:4px;top:1.5px;width:6px;height:10px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg)}
+.trend-body{flex:1;min-width:0}
+.trend-title{font-size:13px;font-weight:600;color:var(--t1);line-height:1.4;margin-bottom:5px}
+.trend-meta{display:flex;align-items:center;gap:8px}
+.source-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;border:1px solid;letter-spacing:.03em}
+.source-badge.reddit{color:#ff6314;border-color:rgba(255,99,20,.25);background:rgba(255,99,20,.08)}
+.source-badge.hackernews{color:#ff9500;border-color:rgba(255,149,0,.25);background:rgba(255,149,0,.08)}
+.source-badge.news{color:var(--t3);border-color:var(--b2);background:var(--b1)}
+.trend-score{font-size:11px;color:var(--t4)}
+.trends-empty{text-align:center;padding:40px 20px;color:var(--t4);font-size:13px}
+.select-row{display:flex;gap:8px;padding:0 16px 8px;align-items:center}
+.sel-link{font-size:11px;color:var(--t4);background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;padding:4px 6px;border-radius:6px;transition:all .15s}
+.sel-link:hover{color:var(--t2);background:var(--b1)}
+.trend-count-note{font-size:11px;color:var(--t4);margin-left:auto}
+
+/* ── Step 3: Post cards ── */
+.posts-loading{text-align:center;padding:56px 20px;display:none}
+.posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;display:none}
+.post-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.post-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)}
+.post-card:hover{border-color:var(--b2);transform:translateY(-2px)}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.pc-badges{display:flex;flex-wrap:wrap;gap:5px;flex:1;min-width:0}
+.fmt-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--accent-d);border:1px solid rgba(37,99,235,.2);color:var(--accent-l);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.fw-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid var(--b1);color:var(--t4);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.fw-badge.hit{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);color:rgba(34,197,94,.8)}
+.post-source{font-size:11px;color:var(--t4);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--b1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.post-text{font-size:13px;line-height:1.75;color:rgba(255,255,255,.82);white-space:pre-wrap;word-break:break-word;margin-bottom:14px}
+.post-reason{font-size:11px;color:var(--t4);padding-top:12px;border-top:1px solid var(--b1);line-height:1.5;margin-bottom:14px}
+.pc-actions{display:flex;gap:7px}
+.pc-btn{background:none;border:1px solid var(--b1);border-radius:var(--radius-xs);padding:6px 12px;font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
+.pc-btn:hover{border-color:var(--b2);color:var(--t1)}
+.pc-btn.copied{border-color:rgba(34,197,94,.3);color:var(--green)}
+.pc-btn.regen-btn-inline:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Skeleton ── */
+.skel-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--radius);padding:20px}
+.skel-ln{height:11px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.07) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:sh 1.4s infinite;margin-bottom:9px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── Results header ── */
+.results-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.results-label{font-size:13px;color:var(--t3)}
+.regen-all-btn{background:none;border:1px solid var(--b1);border-radius:var(--radius-xs);padding:6px 12px;font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
+.regen-all-btn:hover{border-color:var(--b2);color:var(--t1)}
+</style>
 </head>
 <body>
 
-  <nav>
-    <a href="/" class="nav-logo">XLink</a>
-    <span class="nav-badge">Viral Post Generator</span>
-  </nav>
+<nav>
+  <a href="/" class="nav-logo">XLink</a>
+  <span class="nav-step-label" id="navStepLabel">Step 1 of 3</span>
+</nav>
 
-  <div class="page">
+<!-- Step indicator -->
+<div class="step-bar">
+  <div class="step-node">
+    <div class="step-circle active" id="sc1">1</div>
+    <span class="step-label active" id="sl1">Filters</span>
+  </div>
+  <div class="step-line" id="line1"></div>
+  <div class="step-node">
+    <div class="step-circle" id="sc2">2</div>
+    <span class="step-label" id="sl2">Trends</span>
+  </div>
+  <div class="step-line" id="line2"></div>
+  <div class="step-node">
+    <div class="step-circle" id="sc3">3</div>
+    <span class="step-label" id="sl3">Posts</span>
+  </div>
+</div>
 
-    <!-- Hero -->
-    <div class="hero">
-      <h1>Write posts that <span>actually spread</span></h1>
-      <p>Pick your niche. Generate viral-framework posts for X or LinkedIn in seconds.</p>
-    </div>
+<div class="page">
 
-    <!-- Controls -->
-    <div class="card">
-      <div class="controls">
+<!-- ═══════════════════════════════════════════ STEP 1 ═══ -->
+<div class="step-view active" id="view1">
+  <h1 class="section-title">Set your filters</h1>
+  <p class="section-sub">Every setting shapes what the AI writes. Fill them out, then find what is trending.</p>
 
-        <!-- Row 1: Platform + Niche -->
-        <div class="control-row">
-          <div>
-            <span class="label">Platform</span>
-            <div class="toggle-group" id="platformGroup">
-              <button class="toggle-btn active" data-val="x">X (Twitter)</button>
-              <button class="toggle-btn" data-val="linkedin">LinkedIn</button>
+  <div class="card">
+    <div class="filters-grid">
+
+      <!-- Niche -->
+      <div>
+        <span class="lbl">Niche</span>
+        <div class="dd-wrap" id="nicheWrap">
+          <button class="dd-trigger" id="nicheTrigger" type="button">
+            <span class="dd-val ph" id="nicheTriggerVal">Select a niche</span>
+            <svg class="dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="dd-panel" id="nichePanel">
+            <div class="dd-search-wrap">
+              <input class="dd-search" id="nicheSearch" type="text" placeholder="Search niches..." autocomplete="off"/>
             </div>
-          </div>
-
-          <div>
-            <span class="label">Niche</span>
-            <div class="dropdown-wrap" id="nicheWrap">
-              <button class="dropdown-trigger" id="nicheTrigger" type="button">
-                <span class="dropdown-trigger-text placeholder" id="nicheTriggerText">Select a niche</span>
-                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </button>
-              <div class="dropdown-panel" id="nichePanel">
-                <div class="dropdown-search-wrap">
-                  <input class="dropdown-search" id="nicheSearch" type="text" placeholder="Search niches..." autocomplete="off" />
-                </div>
-                <div class="dropdown-list" id="nicheList"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Row 2: Count + Output type -->
-        <div class="control-row">
-          <div>
-            <span class="label">Number of posts</span>
-            <div class="count-group" id="countGroup">
-              <button class="count-btn" data-val="1">1</button>
-              <button class="count-btn" data-val="2">2</button>
-              <button class="count-btn active" data-val="3">3</button>
-              <button class="count-btn" data-val="5">5</button>
-            </div>
-          </div>
-
-          <div>
-            <span class="label">Output type</span>
-            <div class="output-group" id="outputGroup">
-              <button class="output-btn active" data-val="full">Full post</button>
-              <button class="output-btn" data-val="hook">Hook only</button>
-            </div>
+            <div class="dd-list" id="nicheList"></div>
           </div>
         </div>
-
-        <!-- Generate -->
-        <button class="generate-btn" id="generateBtn" disabled>
-          <div class="spinner" id="spinner"></div>
-          <svg class="btn-icon" id="btnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-          <span id="btnLabel">Generate Posts</span>
-        </button>
-
-        <div class="error-bar" id="errorBar"></div>
-
       </div>
 
-      <!-- Framework bar -->
-      <div class="framework-bar">
-        <span class="fw-label">Framework</span>
-        <span class="fw-tag">Stimulated</span>
-        <span class="fw-tag">Captivated</span>
-        <span class="fw-tag">Anticipation</span>
-        <span class="fw-tag">Validation</span>
-        <span class="fw-tag">Affection</span>
-        <span class="fw-tag">Revelation</span>
+      <!-- Platform -->
+      <div>
+        <span class="lbl">Platform</span>
+        <div class="tgl" id="platformGroup">
+          <button class="tgl-btn active" data-val="x-post">X Post</button>
+          <button class="tgl-btn" data-val="x-thread">X Thread</button>
+          <button class="tgl-btn" data-val="linkedin">LinkedIn</button>
+        </div>
       </div>
-    </div>
 
-    <!-- Loading skeletons -->
-    <div id="skeletons" style="display:none;">
-      <div class="results-header">
-        <span class="results-title">Generating...</span>
+      <!-- Tone -->
+      <div>
+        <span class="lbl">Tone</span>
+        <div class="sel-wrap">
+          <select id="fTone">
+            <option value="aggressive">Aggressive</option>
+            <option value="calm">Calm</option>
+            <option value="educational">Educational</option>
+            <option value="controversial">Controversial</option>
+            <option value="storytelling">Storytelling</option>
+            <option value="motivational" selected>Motivational</option>
+          </select>
+        </div>
       </div>
-      <div class="results-grid" id="skelGrid"></div>
-    </div>
 
-    <!-- Results -->
-    <div id="resultsWrap" style="display:none;">
-      <div class="results-header">
-        <span class="results-title" id="resultsLabel"></span>
-        <button class="regen-btn" id="regenBtn">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
-            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-          </svg>
-          Regenerate
-        </button>
+      <!-- POV -->
+      <div>
+        <span class="lbl">Point of View</span>
+        <div class="sel-wrap">
+          <select id="fPov">
+            <option value="first person (I)" selected>First person (I)</option>
+            <option value="brand voice (we)">Brand voice (we)</option>
+            <option value="observer perspective">Observer perspective</option>
+          </select>
+        </div>
       </div>
-      <div class="results-grid" id="resultsGrid"></div>
+
+      <!-- Hook type -->
+      <div>
+        <span class="lbl">Hook Type</span>
+        <div class="sel-wrap">
+          <select id="fHookType">
+            <option value="bold claim" selected>Bold claim</option>
+            <option value="personal story">Personal story</option>
+            <option value="statistic">Statistic</option>
+            <option value="question">Question</option>
+            <option value="list">List</option>
+            <option value="confession">Confession</option>
+            <option value="prediction">Prediction</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Post goal -->
+      <div>
+        <span class="lbl">Post Goal</span>
+        <div class="sel-wrap">
+          <select id="fGoal">
+            <option value="grow followers" selected>Grow followers</option>
+            <option value="get DMs">Get DMs</option>
+            <option value="build authority">Build authority</option>
+            <option value="drive traffic">Drive traffic</option>
+            <option value="sell something">Sell something</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Target audience -->
+      <div>
+        <span class="lbl">Target Audience</span>
+        <div class="sel-wrap">
+          <select id="fAudience">
+            <option value="beginners" selected>Beginners</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="experts">Experts</option>
+            <option value="skeptics">Skeptics</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div>
+        <span class="lbl">Call to Action</span>
+        <div class="sel-wrap">
+          <select id="fCta">
+            <option value="follow me">Follow me</option>
+            <option value="DM me">DM me</option>
+            <option value="comment below" selected>Comment below</option>
+            <option value="save this">Save this</option>
+            <option value="link in bio">Link in bio</option>
+            <option value="no CTA">No CTA</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Writing style -->
+      <div>
+        <span class="lbl">Writing Style</span>
+        <div class="sel-wrap">
+          <select id="fStyle">
+            <option value="short punchy lines" selected>Short punchy lines</option>
+            <option value="long-form narrative">Long-form narrative</option>
+            <option value="listicle">Listicle</option>
+            <option value="question-based">Question-based</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Trend window -->
+      <div>
+        <span class="lbl">Trend Window</span>
+        <div class="tgl" id="trendWindowGroup">
+          <button class="tgl-btn active" data-val="24h">Last 24 hours</button>
+          <button class="tgl-btn" data-val="7d">Last 7 days</button>
+        </div>
+      </div>
+
+      <!-- Number of posts -->
+      <div>
+        <span class="lbl">Number of Posts</span>
+        <div class="count-grp" id="countGroup">
+          <button class="count-btn" data-val="1">1</button>
+          <button class="count-btn" data-val="2">2</button>
+          <button class="count-btn active-mono" data-val="3">3</button>
+          <button class="count-btn" data-val="5">5</button>
+        </div>
+      </div>
+
+      <!-- Output type -->
+      <div>
+        <span class="lbl">Output Type</span>
+        <div class="tgl" id="outputGroup">
+          <button class="tgl-btn active" data-val="full">Full post</button>
+          <button class="tgl-btn" data-val="hook">Hook only</button>
+        </div>
+      </div>
+
+      <!-- Contrarian belief -->
+      <div class="filter-full">
+        <span class="lbl">Contrarian Belief <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
+        <textarea id="fContrarian" placeholder="What do you believe that most in your niche disagree with?" rows="2"></textarea>
+      </div>
+
+      <!-- Personal result -->
+      <div class="filter-full">
+        <span class="lbl">Personal Result to Include <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
+        <textarea id="fResult" placeholder="e.g. 3x revenue in 60 days, grew from 0 to 12,000 followers in 4 months" rows="2"></textarea>
+      </div>
+
     </div>
 
-    <!-- Empty state -->
-    <div class="empty-state" id="emptyState">
-      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-      </svg>
-      <p>Select a niche and hit Generate</p>
+    <div class="btn-action-row">
+      <button class="btn-primary" id="findTrendsBtn" disabled>
+        <div class="spinner" id="sp1"></div>
+        <svg id="sp1Icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span id="sp1Label">Find Trending Topics</span>
+      </button>
+      <div class="err" id="err1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ STEP 2 ═══ -->
+<div class="step-view" id="view2">
+  <button class="btn-back" id="backTo1">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to filters
+  </button>
+
+  <h1 class="section-title">Trending topics</h1>
+  <p class="section-sub" id="trendsSubLabel">Check the topics you want your posts to be based on.</p>
+
+  <div class="card">
+    <!-- Loading -->
+    <div class="trends-loading" id="trendsLoading">
+      <div class="loader-ring"></div>
+      <div class="trends-loading-label">Scanning Reddit, Hacker News, and News...</div>
+      <div class="trends-loading-sub" id="trendsLoadingSub">Fetching hot posts in your niche</div>
     </div>
 
+    <!-- Trends list -->
+    <div class="trends-list" id="trendsList">
+      <div class="select-row">
+        <button class="sel-link" id="selAllBtn">Select all</button>
+        <button class="sel-link" id="selNoneBtn">Deselect all</button>
+        <span class="trend-count-note" id="trendCountNote"></span>
+      </div>
+      <div id="trendsItems"></div>
+      <div class="trends-empty" id="trendsEmpty" style="display:none">No trending topics found for this niche. Try a different niche or trend window.</div>
+    </div>
+
+    <div class="btn-action-row">
+      <button class="btn-primary" id="generateBtn" disabled>
+        <div class="spinner" id="sp2"></div>
+        <svg id="sp2Icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span id="sp2Label">Generate Posts</span>
+      </button>
+      <div class="err" id="err2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ STEP 3 ═══ -->
+<div class="step-view" id="view3">
+  <button class="btn-back" id="backTo2">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to trends
+  </button>
+
+  <!-- Loading -->
+  <div class="posts-loading" id="postsLoading">
+    <div class="loader-ring"></div>
+    <div class="trends-loading-label">Writing your posts...</div>
+    <div class="trends-loading-sub">Applying all 6 viral frameworks</div>
+    <div id="skelGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:28px;text-align:left"></div>
   </div>
 
-  <script>
-    // ─── Niche data ──────────────────────────────────────────────────────────
-    const NICHES = {
-      'Business': [
-        'Agency', 'Consulting', 'Freelancing', 'SaaS', 'Startup', 'E-commerce',
-        'Dropshipping', 'Amazon FBA', 'Real Estate', 'Investing', 'Crypto',
-        'Stock Market', 'Personal Finance', 'Insurance', 'Accounting',
-        'B2B Sales', 'Venture Capital', 'Side Hustles', 'Monetization', 'Private Equity'
-      ],
-      'Marketing': [
-        'SEO', 'Paid Ads', 'Email Marketing', 'Social Media', 'Content Marketing',
-        'Copywriting', 'Branding', 'PR', 'Influencer Marketing', 'Affiliate Marketing',
-        'Video Marketing', 'TikTok Growth', 'LinkedIn Growth', 'Community Building',
-        'Conversion Optimization'
-      ],
-      'Health & Fitness': [
-        'Weight Loss', 'Bodybuilding', 'Nutrition', 'Yoga', 'Mental Health',
-        'Meditation', 'Running', 'CrossFit', 'Biohacking', 'Longevity',
-        'Sleep Optimization', 'Fasting', 'Cycling', 'Martial Arts', 'Flexibility'
-      ],
-      'Creator Economy': [
-        'YouTube', 'Podcasting', 'Newsletter', 'Blogging', 'Twitch Streaming',
-        'Photography', 'Videography', 'Graphic Design', 'UI/UX', 'Substack',
-        'Course Creation', 'Personal Branding', 'Ghostwriting', 'Notion Templates'
-      ],
-      'Career': [
-        'Job Hunting', 'Remote Work', 'Productivity', 'Leadership', 'Management',
-        'Public Speaking', 'Personal Development', 'Career Coaching',
-        'Networking', 'Resume Writing', 'Executive Coaching', 'Negotiation'
-      ],
-      'Education': [
-        'Online Courses', 'Tutoring', 'Parenting', 'Homeschooling',
-        'Language Learning', 'E-Learning', 'EdTech', 'Study Skills'
-      ],
-      'Lifestyle': [
-        'Travel', 'Fashion', 'Food & Cooking', 'Relationships', 'Dating',
-        'Minimalism', 'Sustainability', 'Luxury Lifestyle', 'Parenting', 'Spirituality'
-      ],
-      'Tech': [
-        'AI Tools', 'No-Code', 'Web Development', 'Cybersecurity', 'Blockchain',
-        'Gaming', 'Data Science', 'DevOps', 'SaaS Tools', 'Automation',
-        'Prompt Engineering', 'AR/VR', 'Mobile Development', 'Cloud Computing'
-      ],
-      'Niche Professions': [
-        'Law', 'Medicine', 'Dentistry', 'Architecture', 'Interior Design',
-        'Wedding', 'Pets', 'Cars & Automotive', 'Sports Coaching',
-        'Finance Coaching', 'Therapy & Counseling', 'Chiropractic', 'Veterinary'
-      ],
+  <!-- Results -->
+  <div id="postsResults" style="display:none">
+    <div class="results-bar">
+      <span class="results-label" id="postsResultsLabel"></span>
+      <button class="regen-all-btn" id="regenAllBtn">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+        Regenerate all
+      </button>
+    </div>
+    <div class="posts-grid" id="postsGrid"></div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+// ─── Niche data ───────────────────────────────────────────────────────────────
+const NICHES = {
+  'Business':          ['Agency','Consulting','Freelancing','SaaS','Startup','E-commerce','Dropshipping','Amazon FBA','Real Estate','Investing','Crypto','Stock Market','Personal Finance','Insurance','Accounting','B2B Sales','Venture Capital','Side Hustles','Monetization','Private Equity'],
+  'Marketing':         ['SEO','Paid Ads','Email Marketing','Social Media','Content Marketing','Copywriting','Branding','PR','Influencer Marketing','Affiliate Marketing','Video Marketing','TikTok Growth','LinkedIn Growth','Community Building','Conversion Optimization'],
+  'Health & Fitness':  ['Weight Loss','Bodybuilding','Nutrition','Yoga','Mental Health','Meditation','Running','CrossFit','Biohacking','Longevity','Sleep Optimization','Fasting','Cycling','Martial Arts','Flexibility'],
+  'Creator Economy':   ['YouTube','Podcasting','Newsletter','Blogging','Twitch Streaming','Photography','Videography','Graphic Design','UI/UX','Substack','Course Creation','Personal Branding','Ghostwriting','Notion Templates'],
+  'Career':            ['Job Hunting','Remote Work','Productivity','Leadership','Management','Public Speaking','Personal Development','Career Coaching','Networking','Resume Writing','Executive Coaching','Negotiation'],
+  'Education':         ['Online Courses','Tutoring','Parenting','Homeschooling','Language Learning','E-Learning','EdTech','Study Skills'],
+  'Lifestyle':         ['Travel','Fashion','Food & Cooking','Relationships','Dating','Minimalism','Sustainability','Luxury Lifestyle','Spirituality'],
+  'Tech':              ['AI Tools','No-Code','Web Development','Cybersecurity','Blockchain','Gaming','Data Science','DevOps','SaaS Tools','Automation','Prompt Engineering','AR/VR','Mobile Development','Cloud Computing'],
+  'Niche Professions': ['Law','Medicine','Dentistry','Architecture','Interior Design','Wedding','Pets','Cars & Automotive','Sports Coaching','Finance Coaching','Therapy & Counseling','Chiropractic','Veterinary'],
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+const filters = {
+  niche: '', platform: 'x-post', tone: 'motivational', pov: 'first person (I)',
+  hookType: 'bold claim', postGoal: 'grow followers', targetAudience: 'beginners',
+  cta: 'comment below', writingStyle: 'short punchy lines', trendWindow: '24h',
+  count: 3, outputType: 'full', contrarianBelief: '', personalResult: '',
+}
+let allTrends   = []
+let lastFilters = null
+let lastTrends  = null
+
+// ─── Step navigation ──────────────────────────────────────────────────────────
+function goToStep(n) {
+  document.querySelectorAll('.step-view').forEach(v => v.classList.remove('active'))
+  document.getElementById('view' + n).classList.add('active')
+  document.getElementById('navStepLabel').textContent = `Step ${n} of 3`
+  ;[1,2,3].forEach(i => {
+    const circ  = document.getElementById('sc'+i)
+    const label = document.getElementById('sl'+i)
+    circ.classList.remove('active','done')
+    label.classList.remove('active','done')
+    if (i < n)  { circ.classList.add('done');   label.classList.add('done')   }
+    if (i === n){ circ.classList.add('active');  label.classList.add('active') }
+  })
+  ;[1,2].forEach(i => {
+    document.getElementById('line'+i).classList.toggle('done', i < n)
+  })
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// ─── Niche dropdown ───────────────────────────────────────────────────────────
+function buildNicheList(q = '') {
+  const list = document.getElementById('nicheList')
+  list.innerHTML = ''
+  const lq = q.toLowerCase().trim()
+  let any = false
+  for (const [cat, items] of Object.entries(NICHES)) {
+    const filtered = lq ? items.filter(i => i.toLowerCase().includes(lq)) : items
+    if (!filtered.length) continue
+    any = true
+    if (!lq) {
+      const h = document.createElement('div')
+      h.className = 'dd-cat'
+      h.textContent = cat
+      list.appendChild(h)
     }
+    filtered.forEach(item => {
+      const el = document.createElement('div')
+      el.className = 'dd-opt' + (item === filters.niche ? ' sel' : '')
+      el.textContent = item
+      el.addEventListener('click', () => {
+        filters.niche = item
+        document.getElementById('nicheTriggerVal').textContent = item
+        document.getElementById('nicheTriggerVal').classList.remove('ph')
+        closeDD()
+        updateFindBtn()
+      })
+      list.appendChild(el)
+    })
+  }
+  if (!any) {
+    const e = document.createElement('div')
+    e.className = 'dd-empty'
+    e.textContent = `No niches match "${q}"`
+    list.appendChild(e)
+  }
+}
 
-    // ─── State ───────────────────────────────────────────────────────────────
-    let selectedNiche = ''
-    let selectedPlatform = 'x'
-    let selectedCount = 3
-    let selectedOutput = 'full'
-    let lastParams = null
+function openDD() {
+  document.getElementById('nichePanel').classList.add('open')
+  document.getElementById('nicheTrigger').classList.add('open')
+  document.getElementById('nicheSearch').value = ''
+  buildNicheList()
+  setTimeout(() => document.getElementById('nicheSearch').focus(), 40)
+}
+function closeDD() {
+  document.getElementById('nichePanel').classList.remove('open')
+  document.getElementById('nicheTrigger').classList.remove('open')
+}
 
-    // ─── DOM refs ────────────────────────────────────────────────────────────
-    const nicheTrigger   = document.getElementById('nicheTrigger')
-    const nicheTriggerTx = document.getElementById('nicheTriggerText')
-    const nichePanel     = document.getElementById('nichePanel')
-    const nicheSearch    = document.getElementById('nicheSearch')
-    const nicheList      = document.getElementById('nicheList')
-    const generateBtn    = document.getElementById('generateBtn')
-    const btnLabel       = document.getElementById('btnLabel')
-    const btnIcon        = document.getElementById('btnIcon')
-    const spinner        = document.getElementById('spinner')
-    const errorBar       = document.getElementById('errorBar')
-    const resultsWrap    = document.getElementById('resultsWrap')
-    const resultsGrid    = document.getElementById('resultsGrid')
-    const resultsLabel   = document.getElementById('resultsLabel')
-    const skeletons      = document.getElementById('skeletons')
-    const skelGrid       = document.getElementById('skelGrid')
-    const emptyState     = document.getElementById('emptyState')
-    const regenBtn       = document.getElementById('regenBtn')
+document.getElementById('nicheTrigger').addEventListener('click', e => { e.stopPropagation(); document.getElementById('nichePanel').classList.contains('open') ? closeDD() : openDD() })
+document.getElementById('nicheSearch').addEventListener('input', e => buildNicheList(e.target.value))
+document.getElementById('nicheSearch').addEventListener('click', e => e.stopPropagation())
+document.getElementById('nichePanel').addEventListener('click', e => e.stopPropagation())
+document.addEventListener('click', closeDD)
 
-    // ─── Build niche dropdown ────────────────────────────────────────────────
-    function buildNicheList(query = '') {
-      const q = query.toLowerCase().trim()
-      nicheList.innerHTML = ''
-      let hasAny = false
+// ─── Filter controls ──────────────────────────────────────────────────────────
+function makeTglGroup(id, key, monoStyle) {
+  document.getElementById(id).addEventListener('click', e => {
+    const btn = e.target.closest('[data-val]')
+    if (!btn) return
+    document.querySelectorAll(`#${id} [data-val]`).forEach(b => b.classList.remove('active', 'active-mono'))
+    btn.classList.add(monoStyle ? 'active-mono' : 'active')
+    filters[key] = btn.dataset.val
+  })
+}
+makeTglGroup('platformGroup',    'platform',    false)
+makeTglGroup('trendWindowGroup', 'trendWindow', false)
+makeTglGroup('outputGroup',      'outputType',  false)
+makeTglGroup('countGroup',       'count',       true)
 
-      for (const [cat, items] of Object.entries(NICHES)) {
-        const filtered = q ? items.filter(i => i.toLowerCase().includes(q)) : items
-        if (!filtered.length) continue
-        hasAny = true
+;[['fTone','tone'],['fPov','pov'],['fHookType','hookType'],['fGoal','postGoal'],
+  ['fAudience','targetAudience'],['fCta','cta'],['fStyle','writingStyle']].forEach(([id,key]) => {
+  document.getElementById(id).addEventListener('change', e => { filters[key] = e.target.value })
+})
 
-        if (!q) {
-          const catEl = document.createElement('div')
-          catEl.className = 'dropdown-category'
-          catEl.textContent = cat
-          nicheList.appendChild(catEl)
-        }
+document.getElementById('fContrarian').addEventListener('input', e => { filters.contrarianBelief = e.target.value })
+document.getElementById('fResult').addEventListener('input', e => { filters.personalResult = e.target.value })
 
-        for (const item of filtered) {
-          const el = document.createElement('div')
-          el.className = 'dropdown-option' + (item === selectedNiche ? ' selected' : '')
-          el.textContent = item
-          el.addEventListener('click', () => selectNiche(item))
-          nicheList.appendChild(el)
-        }
-      }
+function updateFindBtn() {
+  document.getElementById('findTrendsBtn').disabled = !filters.niche
+}
 
-      if (!hasAny) {
-        const empty = document.createElement('div')
-        empty.className = 'dropdown-empty'
-        empty.textContent = 'No niches match "' + query + '"'
-        nicheList.appendChild(empty)
-      }
-    }
+// ─── Step 1 → Step 2 ─────────────────────────────────────────────────────────
+document.getElementById('findTrendsBtn').addEventListener('click', async () => {
+  const btn   = document.getElementById('findTrendsBtn')
+  const sp    = document.getElementById('sp1')
+  const icon  = document.getElementById('sp1Icon')
+  const label = document.getElementById('sp1Label')
+  const err   = document.getElementById('err1')
 
-    function selectNiche(niche) {
-      selectedNiche = niche
-      nicheTriggerTx.textContent = niche
-      nicheTriggerTx.classList.remove('placeholder')
-      closeDropdown()
+  err.style.display = 'none'
+  btn.disabled = true
+  sp.style.display = 'block'
+  icon.style.display = 'none'
+  label.textContent  = 'Scanning...'
+
+  goToStep(2)
+  document.getElementById('trendsLoading').style.display = 'block'
+  document.getElementById('trendsList').style.display    = 'none'
+  document.getElementById('generateBtn').disabled        = true
+
+  try {
+    const res  = await fetch('/api/trends', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ niche: filters.niche, trendWindow: filters.trendWindow }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Failed to fetch trends')
+    allTrends = data.trends || []
+    renderTrends(allTrends)
+  } catch (e) {
+    document.getElementById('trendsLoading').style.display = 'none'
+    document.getElementById('trendsList').style.display    = 'block'
+    document.getElementById('trendsItems').innerHTML       = ''
+    document.getElementById('trendsEmpty').style.display   = 'block'
+    document.getElementById('err2').textContent = e.message
+    document.getElementById('err2').style.display = 'block'
+  } finally {
+    btn.disabled = false
+    sp.style.display   = 'none'
+    icon.style.display = 'block'
+    label.textContent  = 'Find Trending Topics'
+  }
+})
+
+// ─── Render trends ────────────────────────────────────────────────────────────
+function renderTrends(trends) {
+  document.getElementById('trendsLoading').style.display = 'none'
+  document.getElementById('trendsList').style.display    = 'block'
+  document.getElementById('err2').style.display          = 'none'
+
+  const container = document.getElementById('trendsItems')
+  container.innerHTML = ''
+
+  if (!trends.length) {
+    document.getElementById('trendsEmpty').style.display = 'block'
+    document.getElementById('generateBtn').disabled      = true
+    return
+  }
+  document.getElementById('trendsEmpty').style.display = 'none'
+
+  document.getElementById('trendsSubLabel').textContent = `Found ${trends.length} trending topics. Check the ones you want used.`
+
+  trends.forEach((t, i) => {
+    const row = document.createElement('div')
+    row.className = 'trend-item checked'
+    row.dataset.idx = i
+
+    const typeClass = t.type === 'reddit' ? 'reddit' : t.type === 'hackernews' ? 'hackernews' : 'news'
+    const scoreHtml = t.score != null ? `<span class="trend-score">${t.score.toLocaleString()} pts</span>` : ''
+
+    row.innerHTML = `
+      <input class="trend-check" type="checkbox" checked data-idx="${i}" id="tc${i}"/>
+      <div class="trend-body">
+        <div class="trend-title">${escHtml(t.title)}</div>
+        <div class="trend-meta">
+          <span class="source-badge ${typeClass}">${escHtml(t.source)}</span>
+          ${scoreHtml}
+        </div>
+      </div>`
+
+    // Click row = toggle checkbox
+    row.addEventListener('click', e => {
+      if (e.target.classList.contains('trend-check')) return
+      const cb = row.querySelector('.trend-check')
+      cb.checked = !cb.checked
+      row.classList.toggle('checked', cb.checked)
       updateGenerateBtn()
-    }
-
-    function openDropdown() {
-      nichePanel.classList.add('open')
-      nicheTrigger.classList.add('open')
-      nicheSearch.value = ''
-      buildNicheList()
-      setTimeout(() => nicheSearch.focus(), 50)
-    }
-
-    function closeDropdown() {
-      nichePanel.classList.remove('open')
-      nicheTrigger.classList.remove('open')
-    }
-
-    nicheTrigger.addEventListener('click', e => {
-      e.stopPropagation()
-      nichePanel.classList.contains('open') ? closeDropdown() : openDropdown()
+    })
+    row.querySelector('.trend-check').addEventListener('change', () => {
+      row.classList.toggle('checked', row.querySelector('.trend-check').checked)
+      updateGenerateBtn()
     })
 
-    nicheSearch.addEventListener('input', () => buildNicheList(nicheSearch.value))
-    nicheSearch.addEventListener('click', e => e.stopPropagation())
-    nichePanel.addEventListener('click', e => e.stopPropagation())
+    container.appendChild(row)
+  })
 
-    document.addEventListener('click', () => closeDropdown())
+  updateTrendCountNote()
+  updateGenerateBtn()
+}
 
-    // ─── Platform toggle ─────────────────────────────────────────────────────
-    document.getElementById('platformGroup').addEventListener('click', e => {
-      const btn = e.target.closest('.toggle-btn')
-      if (!btn) return
-      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'))
-      btn.classList.add('active')
-      selectedPlatform = btn.dataset.val
+function getCheckedTrends() {
+  return Array.from(document.querySelectorAll('.trend-check:checked'))
+    .map(cb => allTrends[parseInt(cb.dataset.idx)])
+    .filter(Boolean)
+}
+
+function updateGenerateBtn() {
+  document.getElementById('generateBtn').disabled = getCheckedTrends().length === 0
+  updateTrendCountNote()
+}
+
+function updateTrendCountNote() {
+  const n = getCheckedTrends().length
+  document.getElementById('trendCountNote').textContent = `${n} selected`
+}
+
+document.getElementById('selAllBtn').addEventListener('click', () => {
+  document.querySelectorAll('.trend-check').forEach(cb => { cb.checked = true; cb.closest('.trend-item').classList.add('checked') })
+  updateGenerateBtn()
+})
+document.getElementById('selNoneBtn').addEventListener('click', () => {
+  document.querySelectorAll('.trend-check').forEach(cb => { cb.checked = false; cb.closest('.trend-item').classList.remove('checked') })
+  updateGenerateBtn()
+})
+
+// ─── Step 2 → Step 3 ─────────────────────────────────────────────────────────
+document.getElementById('generateBtn').addEventListener('click', () => runGenerate())
+
+async function runGenerate(singleTrend = null) {
+  const usedTrends = singleTrend ? [singleTrend] : getCheckedTrends()
+  const usedFilters = singleTrend
+    ? { ...filters, count: 1 }
+    : { ...filters, count: Number(document.querySelector('#countGroup .active-mono')?.dataset.val || 3) }
+
+  lastFilters = usedFilters
+  lastTrends  = usedTrends
+
+  goToStep(3)
+  document.getElementById('postsLoading').style.display  = 'block'
+  document.getElementById('postsResults').style.display  = 'none'
+
+  showSkelCards(usedFilters.count)
+
+  try {
+    const res  = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filters: usedFilters, trends: usedTrends }),
+    })
+    const data = await res.json()
+    if (!res.ok || data.error) throw new Error(data.error || 'Unknown error')
+    renderPosts(data.posts, usedFilters, usedTrends)
+  } catch (e) {
+    document.getElementById('postsLoading').style.display = 'none'
+    document.getElementById('postsResults').style.display = 'block'
+    document.getElementById('postsGrid').style.display    = 'none'
+    document.getElementById('postsResultsLabel').textContent = 'Error: ' + e.message
+  }
+}
+
+// ─── Skeleton cards while loading ─────────────────────────────────────────────
+function showSkelCards(count) {
+  const g = document.getElementById('skelGrid')
+  g.innerHTML = ''
+  for (let i = 0; i < count; i++) {
+    g.innerHTML += `<div class="skel-card">
+      <div class="skel-ln" style="width:28%;height:9px;margin-bottom:14px"></div>
+      <div class="skel-ln" style="width:100%"></div>
+      <div class="skel-ln" style="width:90%"></div>
+      <div class="skel-ln" style="width:95%"></div>
+      <div class="skel-ln" style="width:78%"></div>
+      <div class="skel-ln" style="width:60%;margin-top:14px"></div>
+    </div>`
+  }
+}
+
+// ─── Render generated posts ────────────────────────────────────────────────────
+const ALL_FW = ['STIMULATED','CAPTIVATED','ANTICIPATION','VALIDATION','AFFECTION','REVELATION']
+
+function renderPosts(posts, usedFilters, usedTrends) {
+  document.getElementById('postsLoading').style.display = 'none'
+  document.getElementById('postsResults').style.display = 'block'
+  document.getElementById('postsGrid').style.display    = 'grid'
+
+  const plat = usedFilters.platform === 'x-post' ? 'X Post' : usedFilters.platform === 'x-thread' ? 'X Thread' : 'LinkedIn'
+  document.getElementById('postsResultsLabel').textContent =
+    `${posts.length} post${posts.length !== 1 ? 's' : ''} for "${usedFilters.niche}" on ${plat}`
+
+  const grid = document.getElementById('postsGrid')
+  grid.innerHTML = ''
+
+  posts.forEach((post, idx) => {
+    const hit = new Set((post.frameworks || []).map(f => f.toUpperCase()))
+
+    const fwBadges = ALL_FW.map(fw =>
+      `<span class="fw-badge ${hit.has(fw) ? 'hit' : ''}">${fw.toLowerCase()}</span>`
+    ).join('')
+
+    const card = document.createElement('div')
+    card.className = 'post-card'
+    card.innerHTML = `
+      <div class="pc-top">
+        <div class="pc-badges">
+          <span class="fmt-badge">${escHtml(post.format || 'Post')}</span>
+        </div>
+      </div>
+      <div class="pc-badges" style="margin-bottom:10px;gap:4px;display:flex;flex-wrap:wrap">${fwBadges}</div>
+      ${post.source_title ? `<div class="post-source">Based on: ${escHtml(post.source_title)}</div>` : ''}
+      <div class="post-text">${escHtml(post.text)}</div>
+      <div class="post-reason">${escHtml(post.reason || '')}</div>
+      <div class="pc-actions">
+        <button class="pc-btn copy-btn" data-text="${escAttr(post.text)}">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>Copy
+        </button>
+        <button class="pc-btn regen-btn-inline" data-idx="${idx}">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+          </svg>Regenerate this
+        </button>
+      </div>`
+
+    // Copy
+    card.querySelector('.copy-btn').addEventListener('click', function() {
+      navigator.clipboard.writeText(this.dataset.text).then(() => {
+        this.classList.add('copied')
+        this.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied`
+        setTimeout(() => {
+          this.classList.remove('copied')
+          this.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy`
+        }, 2000)
+      })
     })
 
-    // ─── Count selector ──────────────────────────────────────────────────────
-    document.getElementById('countGroup').addEventListener('click', e => {
-      const btn = e.target.closest('.count-btn')
-      if (!btn) return
-      document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'))
-      btn.classList.add('active')
-      selectedCount = parseInt(btn.dataset.val)
-    })
-
-    // ─── Output type ─────────────────────────────────────────────────────────
-    document.getElementById('outputGroup').addEventListener('click', e => {
-      const btn = e.target.closest('.output-btn')
-      if (!btn) return
-      document.querySelectorAll('.output-btn').forEach(b => b.classList.remove('active'))
-      btn.classList.add('active')
-      selectedOutput = btn.dataset.val
-    })
-
-    // ─── Generate button state ────────────────────────────────────────────────
-    function updateGenerateBtn() {
-      generateBtn.disabled = !selectedNiche
-    }
-
-    // ─── Skeletons ────────────────────────────────────────────────────────────
-    function showSkeletons(count) {
-      skelGrid.innerHTML = ''
-      for (let i = 0; i < count; i++) {
-        const sk = document.createElement('div')
-        sk.className = 'skeleton'
-        sk.style.display = 'block'
-        sk.innerHTML = `
-          <div class="skel-line" style="width:30%; height:10px; margin-bottom:16px;"></div>
-          <div class="skel-line" style="width:100%;"></div>
-          <div class="skel-line" style="width:88%;"></div>
-          <div class="skel-line" style="width:94%;"></div>
-          <div class="skel-line" style="width:70%;"></div>
-          <div class="skel-line" style="width:55%; margin-top:16px;"></div>
-        `
-        skelGrid.appendChild(sk)
-      }
-      skeletons.style.display = 'block'
-      emptyState.style.display = 'none'
-      resultsWrap.style.display = 'none'
-    }
-
-    function hideSkeletons() {
-      skeletons.style.display = 'none'
-    }
-
-    // ─── Render posts ─────────────────────────────────────────────────────────
-    function renderPosts(posts, params) {
-      resultsGrid.innerHTML = ''
-
-      for (const post of posts) {
-        const card = document.createElement('div')
-        card.className = 'post-card'
-
-        card.innerHTML = `
-          <div class="post-card-header">
-            <span class="format-badge">${escHtml(post.format)}</span>
-            <button class="copy-btn" data-text="${escAttr(post.text)}">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-              Copy
-            </button>
-          </div>
-          <div class="post-text">${escHtml(post.text)}</div>
-          <div class="post-reason">${escHtml(post.reason)}</div>
-        `
-
-        const copyBtn = card.querySelector('.copy-btn')
-        copyBtn.addEventListener('click', () => {
-          navigator.clipboard.writeText(post.text).then(() => {
-            copyBtn.classList.add('copied')
-            copyBtn.innerHTML = `
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              Copied
-            `
-            setTimeout(() => {
-              copyBtn.classList.remove('copied')
-              copyBtn.innerHTML = `
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                Copy
-              `
-            }, 2000)
-          })
-        })
-
-        resultsGrid.appendChild(card)
-      }
-
-      resultsLabel.textContent = `${posts.length} post${posts.length !== 1 ? 's' : ''} for "${params.niche}" on ${params.platform === 'x' ? 'X' : 'LinkedIn'}`
-      resultsWrap.style.display = 'block'
-      emptyState.style.display = 'none'
-    }
-
-    // ─── Generate ─────────────────────────────────────────────────────────────
-    async function generate() {
-      if (!selectedNiche) return
-
-      const params = {
-        niche: selectedNiche,
-        platform: selectedPlatform,
-        count: selectedCount,
-        outputType: selectedOutput,
-      }
-      lastParams = params
-
-      errorBar.style.display = 'none'
-      showSkeletons(selectedCount)
-
-      generateBtn.disabled = true
-      spinner.style.display = 'block'
-      btnIcon.style.display = 'none'
-      btnLabel.textContent = 'Generating...'
-
+    // Regenerate single post — find the trend this post was based on
+    card.querySelector('.regen-btn-inline').addEventListener('click', async function() {
+      this.disabled = true
+      this.textContent = 'Writing...'
+      const sourceTrend = usedTrends.find(t => post.source_title && t.title === post.source_title)
+        || usedTrends[idx % usedTrends.length]
       try {
-        const res = await fetch('/api/generate', {
+        const res  = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(params),
+          body: JSON.stringify({ filters: { ...usedFilters, count: 1 }, trends: [sourceTrend] }),
         })
-
         const data = await res.json()
-        hideSkeletons()
-
-        if (!res.ok || data.error) {
-          throw new Error(data.error || 'Something went wrong')
-        }
-
-        renderPosts(data.posts, params)
-
-      } catch (err) {
-        hideSkeletons()
-        resultsWrap.style.display = 'none'
-        emptyState.style.display = 'block'
-        errorBar.textContent = err.message
-        errorBar.style.display = 'block'
-      } finally {
-        generateBtn.disabled = false
-        spinner.style.display = 'none'
-        btnIcon.style.display = 'block'
-        btnLabel.textContent = 'Generate Posts'
+        if (!res.ok || data.error) throw new Error(data.error)
+        // Replace just this card
+        const newPosts = [...posts]
+        newPosts[idx] = data.posts[0]
+        renderPosts(newPosts, usedFilters, usedTrends)
+      } catch (e) {
+        this.disabled = false
+        this.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Regenerate this`
+        alert('Error: ' + e.message)
       }
-    }
+    })
 
-    generateBtn.addEventListener('click', generate)
-    regenBtn.addEventListener('click', generate)
+    grid.appendChild(card)
+  })
+}
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
-    function escHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-    }
+// ─── Regen all ────────────────────────────────────────────────────────────────
+document.getElementById('regenAllBtn').addEventListener('click', () => {
+  if (lastFilters && lastTrends) runGenerate()
+})
 
-    function escAttr(str) {
-      return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;')
-    }
+// ─── Back navigation ──────────────────────────────────────────────────────────
+document.getElementById('backTo1').addEventListener('click', () => goToStep(1))
+document.getElementById('backTo2').addEventListener('click', () => goToStep(2))
 
-    // Init
-    buildNicheList()
-  </script>
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escAttr(s){return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+
+// Init
+buildNicheList()
+</script>
 </body>
 </html>

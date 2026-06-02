@@ -13,7 +13,11 @@
       "Bash(node server.js)",
       "Bash(curl -s http://localhost:3000)",
       "Bash(node -e \"const A = require\\('@anthropic-ai/sdk'\\); console.log\\(typeof A, typeof A.default, Object.keys\\(A\\).slice\\(0,8\\)\\)\")",
-      "Bash(node -e \"const d=require\\('/dev/stdin'\\); console.log\\('installed version:', d.version\\)\")"
+      "Bash(node -e \"const d=require\\('/dev/stdin'\\); console.log\\('installed version:', d.version\\)\")",
+      "Bash(curl -s http://localhost:3000/health)",
+      "Bash(curl -s -X POST http://localhost:3000/api/trends -H 'Content-Type: application/json' -d '{\"niche\":\"SaaS\",\"trendWindow\":\"24h\"}')",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -X POST http://localhost:3000/api/trends -H 'Content-Type: application/json' -d '{\"niche\":\"SaaS\",\"trendWindow\":\"7d\"}')"
     ]
   }
 }
