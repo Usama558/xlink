@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){try{if(localStorage.getItem("xlink_theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}})();</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>XLink — Your Results</title>
@@ -8,15 +9,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#08080c;--s1:#111114;--b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.12);--t1:#fff;--t2:rgba(255,255,255,0.6);--t3:rgba(255,255,255,0.35);--t4:rgba(255,255,255,0.18);--accent:#2563eb;--accent-l:#60a5fa;--green:#22c55e;--gold:#d4af37}
+:root{--ink:#fff;--ink-rgb:255,255,255;--bg-rgb:8,8,12;--bg:#08080c;--s1:#111114;--b1:rgba(var(--ink-rgb),0.06);--b2:rgba(var(--ink-rgb),0.12);--t1:var(--ink);--t2:rgba(var(--ink-rgb),0.6);--t3:rgba(var(--ink-rgb),0.35);--t4:rgba(var(--ink-rgb),0.18);--accent:#2563eb;--accent-l:#60a5fa;--green:#22c55e;--gold:#d4af37}
 body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:99px}
-nav{position:fixed;top:0;left:0;right:0;z-index:200;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(8,8,12,0.85);backdrop-filter:blur(24px);border-bottom:1px solid var(--b1)}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(var(--bg-rgb),0.82);backdrop-filter:blur(24px);border-bottom:1px solid var(--b1)}
 .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
 .nav-wordmark{font-size:18px;font-weight:900;letter-spacing:-.5px;color:var(--t1)}
 .nav-right{display:flex;align-items:center;gap:16px}
 .nav-link{font-size:13px;font-weight:600;color:var(--t2);text-decoration:none;transition:color .15s}
-.nav-link:hover{color:#fff}
+.nav-link:hover{color:var(--ink)}
 .wrap{max-width:920px;margin:0 auto;padding:96px 20px 80px}
 h1{font-size:clamp(26px,4vw,40px);font-weight:900;letter-spacing:-1px;margin-bottom:6px}
 .sub{font-size:14px;color:var(--t3);margin-bottom:28px}
@@ -24,18 +25,18 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:900;letter-spacing:-1px;margin-bot
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:34px}
 @media(max-width:640px){.stats-row{grid-template-columns:1fr 1fr}}
 .stat{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:18px;position:relative;overflow:hidden}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--ink-rgb),0.08),transparent)}
 .stat-v{font-size:26px;font-weight:900;letter-spacing:-.5px;margin-bottom:3px}
 .stat-l{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
 /* groups */
 .group-title{font-size:13px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin:30px 0 12px;display:flex;align-items:center;gap:8px}
-.group-count{background:rgba(255,255,255,0.06);border-radius:99px;padding:1px 9px;font-size:11px;color:var(--t2)}
+.group-count{background:rgba(var(--ink-rgb),0.06);border-radius:99px;padding:1px 9px;font-size:11px;color:var(--t2)}
 .post{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:18px;margin-bottom:12px;position:relative}
 .post.top{border-color:rgba(212,175,55,0.5);box-shadow:0 0 24px rgba(212,175,55,0.12)}
 .top-badge{position:absolute;top:-9px;left:18px;background:var(--gold);color:#1a1400;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px}
 .post-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.mp{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,0.05);border:1px solid var(--b1);color:var(--t3)}
-.post-text{font-size:13px;line-height:1.7;color:rgba(255,255,255,0.82);white-space:pre-wrap;margin-bottom:12px}
+.mp{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 8px;border-radius:99px;background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b1);color:var(--t3)}
+.post-text{font-size:13px;line-height:1.7;color:rgba(var(--ink-rgb),0.82);white-space:pre-wrap;margin-bottom:12px}
 .perf{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
 .perf-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.2);color:var(--accent-l)}
 .post-actions{display:flex;gap:8px}
@@ -49,16 +50,16 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:900;letter-spacing:-1px;margin-bot
 .ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:640px){.ins-grid{grid-template-columns:1fr}}
 .ins-card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:18px;position:relative;overflow:hidden}
-.ins-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)}
+.ins-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--ink-rgb),0.08),transparent)}
 .ins-t{font-size:12px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
 .bar-row{margin-bottom:11px}
 .bar-row:last-child{margin-bottom:0}
 .bar-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
 .bar-k{color:var(--t1);font-weight:600;text-transform:capitalize}
 .bar-v{color:var(--t3)}
-.bar-track{height:7px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden}
+.bar-track{height:7px;background:rgba(var(--ink-rgb),0.05);border-radius:99px;overflow:hidden}
 .bar-fill{height:100%;background:linear-gradient(90deg,#2563eb,#60a5fa);border-radius:99px;transition:width .5s}
-.big-stat{font-size:34px;font-weight:900;letter-spacing:-1px;color:#fff}
+.big-stat{font-size:34px;font-weight:900;letter-spacing:-1px;color:var(--ink)}
 .big-stat-sub{font-size:12px;color:var(--t3);margin-top:2px}
 .ins-lock{text-align:center;padding:40px 20px;color:var(--t4);font-size:14px;background:var(--s1);border:1px solid var(--b1);border-radius:16px}
 /* clear */
@@ -70,7 +71,7 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:900;letter-spacing:-1px;margin-bot
 <body>
 <nav>
   <a href="/" class="nav-brand">
-    <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="url(#lg)"/><defs><linearGradient id="lg" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs><line x1="10" y1="10" x2="24" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="10" x2="10" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="10" r="2.5" fill="white"/><circle cx="24" cy="24" r="2.5" fill="white"/><circle cx="24" cy="10" r="2.5" fill="white"/><circle cx="10" cy="24" r="2.5" fill="white"/><circle cx="17" cy="17" r="3.5" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/></svg>
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="url(#lg)"/><defs><linearGradient id="lg" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs><line x1="10" y1="10" x2="24" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="10" x2="10" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="10" r="2.5" fill="white"/><circle cx="24" cy="24" r="2.5" fill="white"/><circle cx="24" cy="10" r="2.5" fill="white"/><circle cx="10" cy="24" r="2.5" fill="white"/><circle cx="17" cy="17" r="3.5" fill="none" stroke="rgba(var(--ink-rgb),0.5)" stroke-width="1.5"/></svg>
     <span class="nav-wordmark">XLink</span>
   </a>
   <div class="nav-right">

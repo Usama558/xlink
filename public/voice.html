@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){try{if(localStorage.getItem("xlink_theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}})();</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>XLink — Teach XLink How You Write</title>
@@ -8,32 +9,32 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#08080c;--s1:#111114;--b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.12);--t1:#fff;--t2:rgba(255,255,255,0.6);--t3:rgba(255,255,255,0.35);--t4:rgba(255,255,255,0.18);--accent:#2563eb;--accent-h:#1d4ed8;--accent-l:#60a5fa;--green:#22c55e}
+:root{--ink:#fff;--ink-rgb:255,255,255;--bg-rgb:8,8,12;--bg:#08080c;--s1:#111114;--b1:rgba(var(--ink-rgb),0.06);--b2:rgba(var(--ink-rgb),0.12);--t1:var(--ink);--t2:rgba(var(--ink-rgb),0.6);--t3:rgba(var(--ink-rgb),0.35);--t4:rgba(var(--ink-rgb),0.18);--accent:#2563eb;--accent-h:#1d4ed8;--accent-l:#60a5fa;--green:#22c55e}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:99px}
-nav{position:fixed;top:0;left:0;right:0;z-index:200;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(8,8,12,0.85);backdrop-filter:blur(24px);border-bottom:1px solid var(--b1)}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(var(--bg-rgb),0.82);backdrop-filter:blur(24px);border-bottom:1px solid var(--b1)}
 .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
 .nav-wordmark{font-size:18px;font-weight:900;letter-spacing:-.5px;color:var(--t1)}
 .nav-right{display:flex;align-items:center;gap:16px}
 .nav-link{font-size:13px;font-weight:600;color:var(--t2);text-decoration:none;transition:color .15s}
-.nav-link:hover{color:#fff}
+.nav-link:hover{color:var(--ink)}
 .wrap{max-width:760px;margin:0 auto;padding:104px 20px 80px}
 .header{text-align:center;margin-bottom:30px;position:relative}
 .header-glow{position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:480px;height:280px;background:radial-gradient(ellipse,rgba(37,99,235,0.16),transparent 70%);filter:blur(30px);pointer-events:none}
 h1{position:relative;font-size:clamp(28px,4.5vw,44px);font-weight:900;letter-spacing:-1px;line-height:1.1;margin-bottom:14px}
-h1 span{background:linear-gradient(135deg,#fff,#93c5fd,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h1 span{background:linear-gradient(135deg,var(--ink),#93c5fd,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .sub{position:relative;font-size:15px;color:var(--t3);max-width:540px;margin:0 auto;line-height:1.6}
 .card{background:var(--s1);border:1px solid var(--b1);border-radius:20px;position:relative;overflow:hidden;padding:26px}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--ink-rgb),0.08),transparent)}
 .lbl{display:block;font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
-textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:12px;padding:14px;font-size:14px;line-height:1.6;color:var(--t1);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s;resize:vertical;min-height:220px}
+textarea{width:100%;background:rgba(var(--ink-rgb),0.04);border:1px solid var(--b1);border-radius:12px;padding:14px;font-size:14px;line-height:1.6;color:var(--t1);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s;resize:vertical;min-height:220px}
 textarea:focus{border-color:var(--accent)}
 textarea::placeholder{color:var(--t4)}
 .btn-primary{width:100%;background:var(--accent);border:none;border-radius:14px;padding:14px 20px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 0 24px rgba(37,99,235,.25);margin-top:18px}
 .btn-primary:hover:not(:disabled){background:var(--accent-h);box-shadow:0 0 36px rgba(37,99,235,.38);transform:translateY(-1px)}
 .btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:none}
+.spinner{width:16px;height:16px;border:2px solid rgba(var(--ink-rgb),.25);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 .err{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:#fca5a5;display:none;margin-top:12px}
 /* profile card */
@@ -42,17 +43,17 @@ textarea::placeholder{color:var(--t4)}
 .pc-row:last-child{margin-bottom:0}
 .pc-h{font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
 .pill{display:inline-flex;align-items:center;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.25);color:var(--accent-l);border-radius:99px;padding:5px 13px;font-size:12px;font-weight:600;margin:0 6px 6px 0}
-.pill.gray{background:rgba(255,255,255,0.05);border-color:var(--b1);color:var(--t2)}
+.pill.gray{background:rgba(var(--ink-rgb),0.05);border-color:var(--b1);color:var(--t2)}
 .kv{display:flex;flex-wrap:wrap;gap:8px}
 .kv-item{font-size:13px;color:var(--t2)}
-.kv-item b{color:#fff;font-weight:600;text-transform:capitalize}
-.hooks-box{background:#0c0c10;border:1px solid var(--b1);border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;color:rgba(255,255,255,0.8)}
+.kv-item b{color:var(--ink);font-weight:600;text-transform:capitalize}
+.hooks-box{background:#0c0c10;border:1px solid var(--b1);border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;color:rgba(var(--ink-rgb),0.8)}
 .hooks-box .hk{display:flex;gap:10px;margin-bottom:8px}
 .hooks-box .hk:last-child{margin-bottom:0}
 .hooks-box .hk span{color:var(--accent-l)}
 .pc-actions{display:flex;gap:10px;margin-top:24px}
-.btn-sec{flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--b2);border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
-.btn-sec:hover{background:rgba(255,255,255,0.08)}
+.btn-sec{flex:1;background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b2);border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-sec:hover{background:rgba(var(--ink-rgb),0.08)}
 .btn-save{flex:1;background:var(--accent);border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
 .btn-save:hover{background:var(--accent-h)}
 .saved-note{text-align:center;font-size:13px;color:var(--green);margin-top:14px;display:none}
@@ -63,7 +64,7 @@ textarea::placeholder{color:var(--t4)}
 <body>
 <nav>
   <a href="/" class="nav-brand">
-    <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="url(#lg)"/><defs><linearGradient id="lg" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs><line x1="10" y1="10" x2="24" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="10" x2="10" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="10" r="2.5" fill="white"/><circle cx="24" cy="24" r="2.5" fill="white"/><circle cx="24" cy="10" r="2.5" fill="white"/><circle cx="10" cy="24" r="2.5" fill="white"/><circle cx="17" cy="17" r="3.5" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/></svg>
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="url(#lg)"/><defs><linearGradient id="lg" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs><line x1="10" y1="10" x2="24" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="10" x2="10" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="10" r="2.5" fill="white"/><circle cx="24" cy="24" r="2.5" fill="white"/><circle cx="24" cy="10" r="2.5" fill="white"/><circle cx="10" cy="24" r="2.5" fill="white"/><circle cx="17" cy="17" r="3.5" fill="none" stroke="rgba(var(--ink-rgb),0.5)" stroke-width="1.5"/></svg>
     <span class="nav-wordmark">XLink</span>
   </a>
   <div class="nav-right">

@@ -57,10 +57,47 @@
   .xl-copy:hover{border-color:rgba(255,255,255,0.25);color:#fff}
   .xl-copy.copied{border-color:rgba(34,197,94,0.3);color:#22c55e}
   .xl-rp-err{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:12px 14px;font-size:13px;color:#fca5a5}
+
+  /* light theme — flips the ink + surfaces; accent stays */
+  html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#eceff3;--ink:#0e0f16;--ink-rgb:14,15,22}
+  html[data-theme="light"] body{background:var(--bg)}
+  html[data-theme="light"] .xl-voice-badge{color:#15803d}
+  html[data-theme="light"] .xl-voice-link{color:#1d4ed8}
+  .xl-theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b2);color:var(--t2);cursor:pointer;transition:all .15s;flex-shrink:0;padding:0}
+  .xl-theme-toggle:hover{color:var(--t1);border-color:var(--b3)}
   `
   const style = document.createElement('style')
   style.textContent = css
   document.head.appendChild(style)
+
+  // ─── Theme (dark default / light) ─────────────────────────────────────────
+  const THEME_KEY = 'xlink_theme'
+  function applyTheme(t) {
+    if (t === 'light') document.documentElement.setAttribute('data-theme', 'light')
+    else document.documentElement.removeAttribute('data-theme')
+  }
+  function currentTheme() { return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark' }
+  function setTheme(t) { try { localStorage.setItem(THEME_KEY, t) } catch (e) {} applyTheme(t); updateThemeIcon() }
+  function toggleTheme() { setTheme(currentTheme() === 'light' ? 'dark' : 'light') }
+  // apply stored theme immediately (the head script handles the very first paint)
+  try { applyTheme(localStorage.getItem(THEME_KEY)) } catch (e) {}
+
+  const SUN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>'
+  const MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
+  function updateThemeIcon() { const b = document.getElementById('xlThemeToggle'); if (b) b.innerHTML = currentTheme() === 'light' ? MOON : SUN }
+  function mountThemeToggle() {
+    if (document.getElementById('xlThemeToggle')) return
+    const btn = document.createElement('button')
+    btn.id = 'xlThemeToggle'
+    btn.className = 'xl-theme-toggle'
+    btn.title = 'Toggle light and dark mode'
+    btn.setAttribute('aria-label', 'Toggle light and dark mode')
+    btn.addEventListener('click', toggleTheme)
+    const slot = document.getElementById('voiceBadgeSlot')
+    if (slot && slot.parentNode) slot.parentNode.insertBefore(btn, slot)
+    else { const nav = document.querySelector('nav'); if (nav) nav.appendChild(btn) }
+    updateThemeIcon()
+  }
 
   // ─── Voice profile helpers ────────────────────────────────────────────────
   function getVoiceProfile() { try { return JSON.parse(localStorage.getItem(VOICE_KEY) || 'null') } catch (e) { return null } }
@@ -271,7 +308,7 @@
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
 
   // ─── Init ─────────────────────────────────────────────────────────────────
-  function init() { renderVoiceBadge(); addHints(); buildRepurposeModal() }
+  function init() { mountThemeToggle(); renderVoiceBadge(); addHints(); buildRepurposeModal() }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init)
   else init()
 
@@ -279,5 +316,6 @@
     getVoiceProfile, getVoiceProfileRaw, setVoiceProfile, clearVoiceProfile, renderVoiceBadge,
     getPosts, savePosts, upsertPost, clearPosts,
     addHints, openRepurpose, esc,
+    setTheme, toggleTheme, currentTheme,
   }
 })()
