@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>XLink — Lead Magnet Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800&family=Lora:wght@400;500;600&family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Sora:wght@400;600;700;800&family=Archivo:wght@500;700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080c;--s1:#111114;--s2:#18181f;
+  --b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.12);--b3:rgba(255,255,255,0.2);
+  --t1:#fff;--t2:rgba(255,255,255,0.6);--t3:rgba(255,255,255,0.35);--t4:rgba(255,255,255,0.18);
+  --accent:#2563eb;--accent-h:#1d4ed8;--accent-l:#60a5fa;--accent-d:rgba(37,99,235,0.12);
+  --green:rgba(34,197,94,1);--amber:#f59e0b;--red:#ef4444;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:99px}
+
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(8,8,12,0.85);backdrop-filter:blur(24px);border-bottom:1px solid var(--b1)}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-wordmark{font-size:18px;font-weight:900;letter-spacing:-.5px;color:var(--t1)}
+.nav-link{font-size:13px;font-weight:600;color:var(--t2);text-decoration:none;transition:color .15s}
+.nav-link:hover{color:var(--t1)}
+
+.wrap{max-width:920px;margin:0 auto;padding:96px 20px 80px}
+
+/* Header */
+.lm-header{text-align:center;margin-bottom:28px;position:relative}
+.lm-header-glow{position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:500px;height:300px;background:radial-gradient(ellipse,rgba(37,99,235,0.16) 0%,transparent 70%);filter:blur(30px);pointer-events:none}
+.lm-eyebrow{position:relative;display:inline-flex;align-items:center;gap:7px;background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.25);border-radius:99px;padding:6px 15px;font-size:12px;font-weight:600;color:var(--accent-l);margin-bottom:18px}
+.lm-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.lm-h1{position:relative;font-size:clamp(30px,5vw,48px);font-weight:900;letter-spacing:-1.2px;line-height:1.08;margin-bottom:14px}
+.lm-h1 span{background:linear-gradient(135deg,#fff,#93c5fd,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lm-hsub{position:relative;font-size:15px;color:var(--t3);max-width:520px;margin:0 auto;line-height:1.6}
+
+/* Limit banner */
+.limit-banner{display:flex;align-items:center;gap:10px;justify-content:center;border-radius:12px;padding:11px 18px;font-size:13px;font-weight:500;margin:22px auto 0;max-width:560px;border:1px solid}
+.limit-banner.ok{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.2);color:#86efac}
+.limit-banner.blocked{background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.25);color:#fcd34d}
+.limit-icon{flex-shrink:0}
+
+/* Card */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:20px;position:relative;overflow:hidden;margin-top:24px}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)}
+.card-pad{padding:26px}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+.lbl{display:block;font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.opt-tag{color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0}
+input.fld,textarea.fld,select.fld{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s}
+input.fld:focus,textarea.fld:focus,select.fld:focus{border-color:var(--accent)}
+input.fld::placeholder,textarea.fld::placeholder{color:var(--t4)}
+textarea.fld{resize:vertical;min-height:64px}
+.sel-wrap{position:relative}
+.sel-wrap::after{content:'';position:absolute;right:13px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--t3);pointer-events:none}
+select.fld{appearance:none;-webkit-appearance:none;padding-right:34px;cursor:pointer}
+select.fld option{background:#1a1a22}
+.tgl{display:flex;background:rgba(255,255,255,0.03);border:1px solid var(--b1);border-radius:12px;padding:3px;gap:3px}
+.tgl-btn{flex:1;background:none;border:none;padding:9px 4px;border-radius:9px;font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.tgl-btn.active{background:var(--accent);color:#fff;box-shadow:0 0 12px rgba(37,99,235,.3)}
+
+.btn-primary{width:100%;background:var(--accent);border:none;border-radius:14px;padding:14px 20px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 0 24px rgba(37,99,235,.25);letter-spacing:-.2px;margin-top:20px}
+.btn-primary:hover:not(:disabled){background:var(--accent-h);box-shadow:0 0 36px rgba(37,99,235,.38);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:none;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:#fca5a5;display:none;margin-top:12px}
+
+/* Loading */
+.gen-loading{text-align:center;padding:56px 20px;display:none}
+.loader-ring{width:40px;height:40px;border:3px solid var(--b1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
+.gen-loading-label{font-size:14px;color:var(--t3);margin-bottom:4px}
+.gen-loading-sub{font-size:12px;color:var(--t4)}
+
+/* Results */
+#results{display:none}
+.result-section-title{font-size:13px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin:34px 0 12px}
+
+/* Promo post card */
+.promo-card{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:20px;position:relative}
+.promo-text{font-size:14px;line-height:1.7;color:rgba(255,255,255,0.85);white-space:pre-wrap;margin-bottom:14px}
+.pc-btn{background:none;border:1px solid var(--b1);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.pc-btn:hover{border-color:var(--b2);color:var(--t1)}
+.pc-btn.copied{border-color:rgba(34,197,94,.3);color:var(--green)}
+
+/* Template picker */
+.tpl-row{display:flex;gap:9px;overflow-x:auto;padding:4px 2px 12px}
+.tpl-chip{flex-shrink:0;border:1px solid var(--b1);border-radius:11px;padding:9px 13px;cursor:pointer;transition:all .15s;background:var(--s1);min-width:118px}
+.tpl-chip:hover{border-color:var(--b2)}
+.tpl-chip.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tpl-swatch{display:flex;gap:3px;margin-bottom:7px}
+.tpl-dot{width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,0.1)}
+.tpl-name{font-size:11px;font-weight:600;color:var(--t2)}
+
+/* Download bar */
+.dl-bar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 24px}
+.dl-btn{flex:1;min-width:160px;border:none;border-radius:12px;padding:13px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.dl-btn.primary{background:var(--accent);color:#fff;box-shadow:0 0 24px rgba(37,99,235,.25)}
+.dl-btn.primary:hover:not(:disabled){background:var(--accent-h);transform:translateY(-1px)}
+.dl-btn.primary:disabled{opacity:.5;cursor:wait}
+.dl-btn.ghost{background:rgba(255,255,255,0.05);border:1px solid var(--b2);color:var(--t1)}
+.dl-btn.ghost:hover{background:rgba(255,255,255,0.08)}
+
+/* Preview stage */
+.stage{background:#0a0a0e;border:1px solid var(--b1);border-radius:16px;padding:24px;overflow-x:auto;display:flex;justify-content:center}
+.stage-inner{transform-origin:top center}
+
+/* ═══════ LEAD MAGNET DOCUMENT (no XLink branding) ═══════ */
+.lm-doc{width:794px;background:var(--lm-bg);color:var(--lm-fg);box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.lm-cover{min-height:1123px;padding:96px 76px;display:flex;flex-direction:column;background:var(--lm-cover-bg);color:var(--lm-cover-fg);page-break-after:always}
+.lm-kicker{font-size:14px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--lm-cover-kicker);margin-bottom:auto}
+.lm-cover-mid{margin:auto 0}
+.lm-title{font-family:var(--lm-head);font-size:62px;line-height:1.03;font-weight:800;letter-spacing:-1px;margin-bottom:22px}
+.lm-subtitle{font-family:var(--lm-body);font-size:21px;line-height:1.5;color:var(--lm-cover-sub);max-width:90%}
+.lm-byline{margin-top:auto;display:flex;align-items:center;gap:12px;padding-top:30px;border-top:1px solid var(--lm-cover-rule)}
+.lm-byline-avatar{width:46px;height:46px;border-radius:50%;background:var(--lm-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--lm-head);font-size:20px;font-weight:700;flex-shrink:0}
+.lm-byline-name{font-size:16px;font-weight:700}
+.lm-byline-label{font-size:13px;color:var(--lm-cover-sub)}
+
+.lm-content{padding:70px 76px}
+.lm-intro{font-family:var(--lm-body);font-size:18px;line-height:1.7;color:var(--lm-fg);margin-bottom:44px;padding-bottom:36px;border-bottom:2px solid var(--lm-border)}
+.lm-section{margin-bottom:36px;page-break-inside:avoid}
+.lm-snum{font-family:var(--lm-head);font-size:13px;font-weight:700;color:var(--lm-accent);letter-spacing:.1em}
+.lm-h{font-family:var(--lm-head);font-size:27px;font-weight:700;line-height:1.2;margin:4px 0 16px;color:var(--lm-fg)}
+.lm-item{display:flex;gap:13px;margin-bottom:11px;font-family:var(--lm-body);font-size:15.5px;line-height:1.62;color:var(--lm-body-fg)}
+.lm-bullet{flex-shrink:0;width:8px;height:8px;border-radius:var(--lm-bullet-radius);background:var(--lm-accent);margin-top:8px}
+.lm-body-text{font-family:var(--lm-body);font-size:15.5px;line-height:1.7;color:var(--lm-body-fg)}
+.lm-takeaways{margin-top:44px;background:var(--lm-surface);border:1px solid var(--lm-border);border-left:4px solid var(--lm-accent);border-radius:12px;padding:28px 30px;page-break-inside:avoid}
+.lm-tk-title{font-family:var(--lm-head);font-size:18px;font-weight:700;margin-bottom:16px;color:var(--lm-fg)}
+.lm-tk-item{display:flex;gap:11px;margin-bottom:10px;font-family:var(--lm-body);font-size:15px;line-height:1.55;color:var(--lm-body-fg)}
+.lm-tk-check{flex-shrink:0;color:var(--lm-accent);font-weight:800}
+.lm-cta{margin-top:48px;padding-top:30px;border-top:2px solid var(--lm-border);font-family:var(--lm-head);font-size:21px;font-weight:700;line-height:1.4;color:var(--lm-accent)}
+
+/* Footer */
+.foot{padding:24px 32px;border-top:1px solid var(--b1);text-align:center;font-size:12px;color:var(--t4)}
+
+/* Print fallback */
+@media print{
+  nav,.wrap > *:not(#results),#results > *:not(#stageWrap),.result-section-title,.dl-bar,.tpl-row,.promo-card,.foot{display:none !important}
+  body{background:#fff}
+  .stage{border:none;padding:0;background:#fff}
+  .lm-doc{box-shadow:none;width:100%}
+  @page{margin:0}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-brand">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="34" height="34" rx="9" fill="url(#lg)"/>
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs>
+      <line x1="10" y1="10" x2="24" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <line x1="24" y1="10" x2="10" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="10" cy="10" r="2.5" fill="white"/><circle cx="24" cy="24" r="2.5" fill="white"/><circle cx="24" cy="10" r="2.5" fill="white"/><circle cx="10" cy="24" r="2.5" fill="white"/>
+      <circle cx="17" cy="17" r="3.5" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+    </svg>
+    <span class="nav-wordmark">XLink</span>
+  </a>
+  <a href="/" class="nav-link">Back to Post Generator</a>
+</nav>
+
+<div class="wrap">
+
+  <div class="lm-header">
+    <div class="lm-header-glow"></div>
+    <div class="lm-eyebrow"><span class="lm-eyebrow-dot"></span>1 free lead magnet per week</div>
+    <h1 class="lm-h1">Build a <span>lead magnet</span> worth giving away</h1>
+    <p class="lm-hsub">Generate a complete, downloadable resource with the promo post to launch it. Your name on the cover. No watermarks. Publish it anywhere.</p>
+
+    <div class="limit-banner ok" id="limitBanner">
+      <svg class="limit-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span id="limitText">You can create 1 lead magnet this week.</span>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="card" id="formCard">
+    <div class="card-pad">
+      <div class="form-grid">
+
+        <div class="full">
+          <span class="lbl">What is the lead magnet about? <span style="color:#f87171;font-weight:700;text-transform:none;letter-spacing:0">required</span></span>
+          <textarea class="fld" id="mTopic" rows="2" placeholder="e.g. The 7-step cold email system that books 10 calls a week, A pricing framework for new agency owners"></textarea>
+        </div>
+
+        <div>
+          <span class="lbl">Who is it for?</span>
+          <input class="fld" id="mAudience" placeholder="e.g. early-stage SaaS founders"/>
+        </div>
+
+        <div>
+          <span class="lbl">Type</span>
+          <div class="sel-wrap">
+            <select class="fld" id="mType">
+              <option>Checklist</option>
+              <option selected>Step-by-step Guide</option>
+              <option>Cheat Sheet</option>
+              <option>Playbook</option>
+              <option>Toolkit</option>
+              <option>Templates &amp; Swipe File</option>
+              <option>Framework Breakdown</option>
+              <option>Resource List</option>
+              <option>Quick-start Guide</option>
+              <option>Mini Workbook</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <span class="lbl">Your name / handle on the cover <span style="color:#f87171;font-weight:700;text-transform:none;letter-spacing:0">required</span></span>
+          <input class="fld" id="mByline" placeholder="e.g. Usama Ashraf"/>
+        </div>
+
+        <div>
+          <span class="lbl">Email <span class="opt-tag">(optional)</span></span>
+          <input class="fld" id="mEmail" type="email" placeholder="you@example.com"/>
+        </div>
+
+        <div class="full">
+          <span class="lbl">Promo post platform</span>
+          <div class="tgl" id="mPlatform">
+            <button class="tgl-btn active" data-val="x">X (Twitter)</button>
+            <button class="tgl-btn" data-val="linkedin">LinkedIn</button>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="btn-primary" id="genBtn" disabled>
+        <div class="spinner" id="genSpinner"></div>
+        <svg id="genIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        <span id="genLabel">Create my lead magnet</span>
+      </button>
+      <div class="err" id="genErr"></div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="gen-loading" id="genLoading">
+    <div class="loader-ring"></div>
+    <div class="gen-loading-label">Writing your lead magnet...</div>
+    <div class="gen-loading-sub">Building the cover, the content, and your promo post</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="result-section-title">Promo post — announce your lead magnet</div>
+    <div class="promo-card">
+      <div class="promo-text" id="promoText"></div>
+      <button class="pc-btn" id="copyPromo">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy post
+      </button>
+    </div>
+
+    <div class="result-section-title">Choose a design — 10 templates</div>
+    <div class="tpl-row" id="tplRow"></div>
+
+    <div class="dl-bar">
+      <button class="dl-btn primary" id="dlPdf">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download PDF
+      </button>
+      <button class="dl-btn ghost" id="dlPrint">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+        Print / Save as PDF
+      </button>
+    </div>
+
+    <div class="stage" id="stageWrap">
+      <div class="stage-inner" id="stageInner">
+        <div class="lm-doc" id="lmDoc"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">Your lead magnet. Your name. No watermarks. — built with XLink</div>
+
+<script>
+// ─── User id (drives the weekly limit) ───────────────────────────────────────
+function getUid(){
+  let id=localStorage.getItem('xlink_uid')
+  if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'u-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('xlink_uid',id) }
+  return id
+}
+const UID=getUid()
+
+// Prefill byline from a captured lead if present
+try{const l=JSON.parse(localStorage.getItem('xlink_lead_v1')||'null'); if(l&&l.name)document.getElementById('mByline').value=l.name; if(l&&l.email)document.getElementById('mEmail').value=l.email}catch(e){}
+
+// ─── 10 design templates ─────────────────────────────────────────────────────
+const TEMPLATES=[
+  {id:'mono',name:'Minimal Mono',head:"'Inter',sans-serif",body:"'Inter',sans-serif",bulletR:'2px',
+    vars:{bg:'#ffffff',fg:'#0a0a0a',bodyFg:'#262626',accent:'#111111',surface:'#f5f5f5',border:'#e5e5e5',coverBg:'#ffffff',coverFg:'#0a0a0a',coverSub:'#525252',coverKicker:'#111111',coverRule:'#e5e5e5'},swatch:['#ffffff','#111111','#e5e5e5']},
+  {id:'editorial',name:'Editorial Cream',head:"'Playfair Display',serif",body:"'Lora',serif",bulletR:'50%',
+    vars:{bg:'#f7f3ec',fg:'#1a1a1a',bodyFg:'#3a342c',accent:'#b23a2e',surface:'#efe8db',border:'#ddd2bf',coverBg:'#f7f3ec',coverFg:'#1a1a1a',coverSub:'#5c5346',coverKicker:'#b23a2e',coverRule:'#ddd2bf'},swatch:['#f7f3ec','#b23a2e','#1a1a1a']},
+  {id:'midnight',name:'Midnight Neon',head:"'Space Grotesk',sans-serif",body:"'Inter',sans-serif",bulletR:'50%',
+    vars:{bg:'#0b1020',fg:'#eef2ff',bodyFg:'#c7d2fe',accent:'#818cf8',surface:'#161d33',border:'#26304d',coverBg:'linear-gradient(160deg,#0b1020,#1e1b4b)',coverFg:'#eef2ff',coverSub:'#a5b4fc',coverKicker:'#818cf8',coverRule:'rgba(129,140,248,0.3)'},swatch:['#0b1020','#818cf8','#1e1b4b']},
+  {id:'sunset',name:'Sunset Warm',head:"'Poppins',sans-serif",body:"'Inter',sans-serif",bulletR:'50%',
+    vars:{bg:'#fffaf5',fg:'#1f2937',bodyFg:'#44403c',accent:'#ea580c',surface:'#fff1e6',border:'#fcd9b6',coverBg:'linear-gradient(150deg,#ea580c,#db2777)',coverFg:'#ffffff',coverSub:'rgba(255,255,255,0.88)',coverKicker:'rgba(255,255,255,0.9)',coverRule:'rgba(255,255,255,0.35)'},swatch:['#ea580c','#db2777','#fffaf5']},
+  {id:'corporate',name:'Corporate Blue',head:"'Sora',sans-serif",body:"'Inter',sans-serif",bulletR:'3px',
+    vars:{bg:'#ffffff',fg:'#0f172a',bodyFg:'#334155',accent:'#2563eb',surface:'#eff6ff',border:'#dbeafe',coverBg:'#0f172a',coverFg:'#ffffff',coverSub:'#94a3b8',coverKicker:'#60a5fa',coverRule:'rgba(255,255,255,0.18)'},swatch:['#0f172a','#2563eb','#ffffff']},
+  {id:'pastel',name:'Pastel Soft',head:"'Poppins',sans-serif",body:"'DM Sans',sans-serif",bulletR:'50%',
+    vars:{bg:'#fdf4ff',fg:'#3b0764',bodyFg:'#581c87',accent:'#a855f7',surface:'#f8e8ff',border:'#f0d4ff',coverBg:'linear-gradient(160deg,#f5d0fe,#c4b5fd)',coverFg:'#3b0764',coverSub:'#6b21a8',coverKicker:'#9333ea',coverRule:'rgba(147,51,234,0.25)'},swatch:['#f5d0fe','#a855f7','#3b0764']},
+  {id:'brutalist',name:'Brutalist',head:"'Archivo',sans-serif",body:"'Space Grotesk',sans-serif",bulletR:'0',
+    vars:{bg:'#ffffff',fg:'#000000',bodyFg:'#171717',accent:'#000000',surface:'#fafafa',border:'#000000',coverBg:'#ffeb3b',coverFg:'#000000',coverSub:'#000000',coverKicker:'#000000',coverRule:'#000000'},swatch:['#ffeb3b','#000000','#ffffff']},
+  {id:'luxe',name:'Luxe Gold',head:"'Cormorant Garamond',serif",body:"'Lora',serif",bulletR:'50%',
+    vars:{bg:'#0c0c0c',fg:'#f5f0e6',bodyFg:'#d6cdb8',accent:'#c9a227',surface:'#161410',border:'#2e2a1f',coverBg:'#0c0c0c',coverFg:'#f5f0e6',coverSub:'#b9a87f',coverKicker:'#c9a227',coverRule:'rgba(201,162,39,0.35)'},swatch:['#0c0c0c','#c9a227','#f5f0e6']},
+  {id:'forest',name:'Forest Calm',head:"'Playfair Display',serif",body:"'Lora',serif",bulletR:'50%',
+    vars:{bg:'#f4f7f2',fg:'#14241a',bodyFg:'#2f4034',accent:'#2f7d4f',surface:'#e7efe6',border:'#cfe0cd',coverBg:'#14241a',coverFg:'#f4f7f2',coverSub:'#a9c4ad',coverKicker:'#6ee7a0',coverRule:'rgba(110,231,160,0.3)'},swatch:['#14241a','#2f7d4f','#f4f7f2']},
+  {id:'slate',name:'Tech Slate',head:"'Space Grotesk',sans-serif",body:"'Inter',sans-serif",bulletR:'2px',
+    vars:{bg:'#0f172a',fg:'#e2e8f0',bodyFg:'#94a3b8',accent:'#06b6d4',surface:'#1e293b',border:'#334155',coverBg:'linear-gradient(160deg,#0f172a,#0c4a6e)',coverFg:'#e2e8f0',coverSub:'#7dd3fc',coverKicker:'#06b6d4',coverRule:'rgba(6,182,212,0.3)'},swatch:['#0f172a','#06b6d4','#0c4a6e']},
+]
+let currentTpl=TEMPLATES[0]
+let magnetData=null
+
+// ─── Form state ──────────────────────────────────────────────────────────────
+let platform='x'
+document.getElementById('mPlatform').addEventListener('click',e=>{
+  const b=e.target.closest('.tgl-btn');if(!b)return
+  document.querySelectorAll('#mPlatform .tgl-btn').forEach(x=>x.classList.remove('active'))
+  b.classList.add('active');platform=b.dataset.val
+})
+function checkForm(){
+  const ok=document.getElementById('mTopic').value.trim() && document.getElementById('mByline').value.trim() && !blocked
+  document.getElementById('genBtn').disabled=!ok
+}
+document.getElementById('mTopic').addEventListener('input',checkForm)
+document.getElementById('mByline').addEventListener('input',checkForm)
+
+// ─── Weekly limit status ─────────────────────────────────────────────────────
+let blocked=false
+function fmtRemaining(ms){
+  const d=Math.floor(ms/86400000), h=Math.floor((ms%86400000)/3600000)
+  if(d>0)return `${d} day${d!==1?'s':''} ${h} hr${h!==1?'s':''}`
+  const m=Math.floor((ms%3600000)/60000); return `${h} hr ${m} min`
+}
+function applyStatus(allowed,nextAvailable){
+  const banner=document.getElementById('limitBanner'), txt=document.getElementById('limitText')
+  if(allowed){
+    blocked=false; banner.className='limit-banner ok'
+    txt.textContent='You can create 1 lead magnet this week.'
+  }else{
+    blocked=true; banner.className='limit-banner blocked'
+    const left=nextAvailable-Date.now()
+    txt.textContent=`You already created your lead magnet this week. Next one in ${fmtRemaining(left)}.`
+  }
+  checkForm()
+}
+async function loadStatus(){
+  try{const r=await fetch('/api/lead-magnet/status?uid='+encodeURIComponent(UID));const d=await r.json();applyStatus(d.allowed,d.nextAvailable)}catch(e){}
+}
+loadStatus()
+
+// ─── Generate ────────────────────────────────────────────────────────────────
+document.getElementById('genBtn').addEventListener('click',async()=>{
+  const topic=document.getElementById('mTopic').value.trim()
+  const byline=document.getElementById('mByline').value.trim()
+  const audience=document.getElementById('mAudience').value.trim()
+  const type=document.getElementById('mType').value
+  const email=document.getElementById('mEmail').value.trim()
+  if(!topic||!byline)return
+
+  const btn=document.getElementById('genBtn'),sp=document.getElementById('genSpinner'),icon=document.getElementById('genIcon'),lbl=document.getElementById('genLabel'),err=document.getElementById('genErr')
+  err.style.display='none'
+  btn.disabled=true;sp.style.display='block';icon.style.display='none';lbl.textContent='Creating...'
+  document.getElementById('genLoading').style.display='block'
+  document.getElementById('results').style.display='none'
+
+  try{
+    const r=await fetch('/api/lead-magnet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:UID,topic,audience,type,platform,byline,email})})
+    const d=await r.json()
+    if(r.status===429){applyStatus(false,d.nextAvailable);throw new Error(d.error||'Limit reached')}
+    if(!r.ok||d.error)throw new Error(d.error||'Generation failed')
+    magnetData=d.magnet
+    renderResults()
+    applyStatus(false,d.nextAvailable)
+    document.getElementById('results').scrollIntoView({behavior:'smooth'})
+  }catch(e){
+    err.textContent=e.message;err.style.display='block'
+  }finally{
+    document.getElementById('genLoading').style.display='none'
+    sp.style.display='none';icon.style.display='block';lbl.textContent='Create my lead magnet'
+    checkForm()
+  }
+})
+
+// ─── Render results ──────────────────────────────────────────────────────────
+function renderResults(){
+  document.getElementById('results').style.display='block'
+  document.getElementById('promoText').textContent=magnetData.promo_post||''
+  // template chips
+  const row=document.getElementById('tplRow');row.innerHTML=''
+  TEMPLATES.forEach(t=>{
+    const chip=document.createElement('div')
+    chip.className='tpl-chip'+(t.id===currentTpl.id?' active':'')
+    chip.innerHTML=`<div class="tpl-swatch">${t.swatch.map(c=>`<span class="tpl-dot" style="background:${c}"></span>`).join('')}</div><div class="tpl-name">${t.name}</div>`
+    chip.addEventListener('click',()=>{currentTpl=t;renderDoc();document.querySelectorAll('.tpl-chip').forEach(c=>c.classList.remove('active'));chip.classList.add('active')})
+    row.appendChild(chip)
+  })
+  renderDoc()
+  fitStage()
+}
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function renderDoc(){
+  const t=currentTpl,m=magnetData,v=t.vars
+  const doc=document.getElementById('lmDoc')
+  doc.style.setProperty('--lm-bg',v.bg)
+  doc.style.setProperty('--lm-fg',v.fg)
+  doc.style.setProperty('--lm-body-fg',v.bodyFg)
+  doc.style.setProperty('--lm-accent',v.accent)
+  doc.style.setProperty('--lm-surface',v.surface)
+  doc.style.setProperty('--lm-border',v.border)
+  doc.style.setProperty('--lm-cover-bg',v.coverBg)
+  doc.style.setProperty('--lm-cover-fg',v.coverFg)
+  doc.style.setProperty('--lm-cover-sub',v.coverSub)
+  doc.style.setProperty('--lm-cover-kicker',v.coverKicker)
+  doc.style.setProperty('--lm-cover-rule',v.coverRule)
+  doc.style.setProperty('--lm-head',t.head)
+  doc.style.setProperty('--lm-body',t.body)
+  doc.style.setProperty('--lm-bullet-radius',t.bulletR)
+
+  const initials=(m.author||document.getElementById('mByline').value||'A').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase()
+  const byline=document.getElementById('mByline').value.trim()||'The Author'
+
+  const sections=(m.sections||[]).map((s,i)=>{
+    const num=String(i+1).padStart(2,'0')
+    let inner=''
+    if(Array.isArray(s.items)&&s.items.length){
+      inner=s.items.map(it=>`<div class="lm-item"><span class="lm-bullet"></span><span>${esc(it)}</span></div>`).join('')
+    }else if(s.body){
+      inner=`<div class="lm-body-text">${esc(s.body)}</div>`
+    }
+    return `<div class="lm-section"><div class="lm-snum">${num}</div><div class="lm-h">${esc(s.heading)}</div>${inner}</div>`
+  }).join('')
+
+  const takeaways=(m.key_takeaways&&m.key_takeaways.length)?`
+    <div class="lm-takeaways">
+      <div class="lm-tk-title">Key takeaways</div>
+      ${m.key_takeaways.map(k=>`<div class="lm-tk-item"><span class="lm-tk-check">&#10003;</span><span>${esc(k)}</span></div>`).join('')}
+    </div>`:''
+
+  doc.innerHTML=`
+    <div class="lm-cover">
+      <div class="lm-kicker">${esc(m.tagline||type||'Free resource')}</div>
+      <div class="lm-cover-mid">
+        <div class="lm-title">${esc(m.title||'Untitled')}</div>
+        <div class="lm-subtitle">${esc(m.subtitle||'')}</div>
+      </div>
+      <div class="lm-byline">
+        <div class="lm-byline-avatar">${esc(initials)}</div>
+        <div><div class="lm-byline-name">${esc(byline)}</div><div class="lm-byline-label">Created this for you</div></div>
+      </div>
+    </div>
+    <div class="lm-content">
+      <div class="lm-intro">${esc(m.intro||'')}</div>
+      ${sections}
+      ${takeaways}
+      ${m.cta?`<div class="lm-cta">${esc(m.cta)}</div>`:''}
+    </div>`
+}
+
+// Scale the 794px doc down to fit narrow screens (display only; PDF uses full size)
+function fitStage(){
+  const stage=document.getElementById('stageWrap'), inner=document.getElementById('stageInner')
+  const avail=stage.clientWidth-48
+  const scale=Math.min(1,avail/794)
+  inner.style.transform=`scale(${scale})`
+  inner.style.width='794px'
+  inner.style.height=(document.getElementById('lmDoc').offsetHeight*scale)+'px'
+}
+window.addEventListener('resize',()=>{if(magnetData)fitStage()})
+
+// ─── Copy promo ──────────────────────────────────────────────────────────────
+document.getElementById('copyPromo').addEventListener('click',function(){
+  navigator.clipboard.writeText(magnetData.promo_post||'').then(()=>{
+    this.classList.add('copied')
+    const old=this.innerHTML
+    this.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied'
+    setTimeout(()=>{this.classList.remove('copied');this.innerHTML=old},2000)
+  })
+})
+
+// ─── Download PDF ────────────────────────────────────────────────────────────
+document.getElementById('dlPdf').addEventListener('click',async function(){
+  const btn=this;btn.disabled=true;const old=btn.innerHTML;btn.innerHTML='<div class="spinner" style="display:block"></div>Building PDF...'
+  // reset display scale so html2canvas captures full size, then restore
+  const inner=document.getElementById('stageInner');const prev=inner.style.transform;inner.style.transform='none';inner.style.height='auto'
+  try{await (document.fonts?document.fonts.ready:Promise.resolve())}catch(e){}
+  const filename=((magnetData.title||'lead-magnet').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()||'lead-magnet')+'.pdf'
+  const opt={margin:0,filename,image:{type:'jpeg',quality:0.98},
+    html2canvas:{scale:2,useCORS:true,backgroundColor:null,windowWidth:794},
+    jsPDF:{unit:'px',format:[794,1123],orientation:'portrait'},
+    pagebreak:{mode:['css','legacy']}}
+  try{await html2pdf().set(opt).from(document.getElementById('lmDoc')).save()}
+  catch(e){alert('PDF build failed: '+e.message)}
+  finally{inner.style.transform=prev;fitStage();btn.disabled=false;btn.innerHTML=old}
+})
+
+// ─── Print / Save as PDF (vector fallback) ───────────────────────────────────
+document.getElementById('dlPrint').addEventListener('click',()=>{
+  const inner=document.getElementById('stageInner');const prev=inner.style.transform;inner.style.transform='none';inner.style.height='auto'
+  window.print()
+  setTimeout(()=>{inner.style.transform=prev;fitStage()},300)
+})
+</script>
+</body>
+</html>

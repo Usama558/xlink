@@ -42,6 +42,10 @@ nav{
   text-decoration:none;display:inline-flex;align-items:center;gap:7px;
 }
 .nav-cta:hover{background:var(--accent-h);box-shadow:0 0 32px rgba(37,99,235,.45);transform:translateY(-1px)}
+.nav-right{display:flex;align-items:center;gap:18px}
+.nav-link{font-size:13px;font-weight:600;color:var(--t2);text-decoration:none;transition:color .15s;white-space:nowrap}
+.nav-link:hover{color:var(--t1)}
+@media(max-width:560px){.nav-link{display:none}}
 
 /* ══════════════════════════════════════════════════
    HERO
@@ -514,10 +518,13 @@ textarea::placeholder{color:var(--t4)}
     </svg>
     <span class="nav-wordmark">XLink</span>
   </a>
-  <a href="#app" class="nav-cta">
-    Start Creating Free
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-  </a>
+  <div class="nav-right">
+    <a href="/lead-magnet" class="nav-link">Lead Magnet</a>
+    <a href="#app" class="nav-cta">
+      Start Creating Free
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
 </nav>
 
 <!-- ══════════════════════════════════════════════════
@@ -652,6 +659,7 @@ textarea::placeholder{color:var(--t4)}
                 <option value="controversial">Controversial</option>
                 <option value="storytelling">Storytelling</option>
                 <option value="motivational" selected>Motivational</option>
+                <option value="sarcastic">Sarcastic</option>
               </select>
             </div>
           </div>
