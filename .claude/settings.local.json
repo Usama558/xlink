@@ -26,7 +26,10 @@
       "Bash(curl -s \"http://localhost:3000/api/lead-magnet/status?uid=blocked-uid\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X POST http://localhost:3000/api/lead-magnet -H \"Content-Type: application/json\" -d '{\"uid\":\"blocked-uid\",\"topic\":\"x\",\"byline\":\"y\"}')",
       "Bash(node -e \"require\\('fs'\\).writeFileSync\\('magnet_usage.json', JSON.stringify\\({'old-uid':Date.now\\(\\)-8*86400000}\\)\\)\")",
-      "Bash(curl -s \"http://localhost:3000/api/lead-magnet/status?uid=old-uid\")"
+      "Bash(curl -s \"http://localhost:3000/api/lead-magnet/status?uid=old-uid\")",
+      "Bash(node --check server.js)",
+      "Bash(node -e \"require\\('child_process'\\)\")",
+      "Bash(node -e \"const fs=require\\('fs'\\);const s=fs.readFileSync\\('public/xlink.js','utf8'\\);new Function\\(s\\);console.log\\('xlink.js parses OK'\\)\")"
     ]
   }
 }

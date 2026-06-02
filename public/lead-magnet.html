@@ -168,7 +168,10 @@ select.fld option{background:#1a1a22}
     </svg>
     <span class="nav-wordmark">XLink</span>
   </a>
-  <a href="/" class="nav-link">Back to Post Generator</a>
+  <div style="display:flex;align-items:center;gap:16px">
+    <span id="voiceBadgeSlot"></span>
+    <a href="/" class="nav-link">Back to Post Generator</a>
+  </div>
 </nav>
 
 <div class="wrap">
@@ -382,7 +385,7 @@ document.getElementById('genBtn').addEventListener('click',async()=>{
   document.getElementById('results').style.display='none'
 
   try{
-    const r=await fetch('/api/lead-magnet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:UID,topic,audience,type,platform,byline,email})})
+    const r=await fetch('/api/lead-magnet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:UID,topic,audience,type,platform,byline,email,voiceProfile:(window.XL?XL.getVoiceProfileRaw():null)})})
     const d=await r.json()
     if(r.status===429){applyStatus(false,d.nextAvailable);throw new Error(d.error||'Limit reached')}
     if(!r.ok||d.error)throw new Error(d.error||'Generation failed')
@@ -520,5 +523,6 @@ document.getElementById('dlPrint').addEventListener('click',()=>{
   setTimeout(()=>{inner.style.transform=prev;fitStage()},300)
 })
 </script>
+<script src="/xlink.js"></script>
 </body>
 </html>
