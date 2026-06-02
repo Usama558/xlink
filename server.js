@@ -1,6 +1,7 @@
 const express = require('express')
 const Anthropic = require('@anthropic-ai/sdk')
 const path = require('path')
+const fs = require('fs')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -153,9 +154,73 @@ const SUBREDDIT_MAP = {
   'Veterinary':         ['veterinary', 'vet'],
 }
 
+// Keyword-based fallback so the 200+ niche labels resolve to relevant subreddits
+const KEYWORD_SUBS = [
+  [/real estate|rental|house flip|reit|commercial real/i, ['realestate','realestateinvesting']],
+  [/crypto|bitcoin|defi|nft|web3|blockchain/i,            ['CryptoCurrency','ethereum']],
+  [/stock|index fund|day trad|option|invest|angel|venture|private equity|wealth|family office/i, ['investing','stocks']],
+  [/personal finance|budget|debt|fire|financial independ|retirement|financial plan/i, ['personalfinance','financialindependence']],
+  [/tax|account|bookkeep|cfo/i,                           ['Accounting','tax']],
+  [/insurance/i,                                          ['Insurance','personalfinance']],
+  [/seo/i,                                                ['SEO','bigseo']],
+  [/\bads\b|ppc|facebook ad|google ad|tiktok ad/i,        ['PPC','advertising']],
+  [/email|sms market/i,                                   ['emailmarketing','marketing']],
+  [/copywrit|direct response/i,                           ['copywriting','marketing']],
+  [/funnel|landing page|conversion|cro|growth hack|viral market/i, ['marketing','Entrepreneur']],
+  [/influencer|affiliate|partnership market|community market|event market|\bpr\b/i, ['marketing','Entrepreneur']],
+  [/newsletter|substack/i,                                ['Newsletters','writing']],
+  [/linkedin/i,                                           ['linkedin','marketing']],
+  [/twitter|x \(twitter\)|x growth/i,                     ['Twitter','socialmedia']],
+  [/instagram/i,                                          ['Instagram','socialmedia']],
+  [/tiktok/i,                                             ['Tiktokhelp','socialmedia']],
+  [/youtub/i,                                             ['NewTubers','youtubers']],
+  [/podcast/i,                                            ['podcasting','podcast']],
+  [/weight loss|fat loss/i,                               ['loseit','fitness']],
+  [/muscle|bodybuild|powerlift|olympic lift|calisthenic|functional fitness|athletic|sports perform/i, ['bodybuilding','fitness']],
+  [/crossfit/i,                                           ['crossfit','fitness']],
+  [/run|marathon|triathlon/i,                             ['running','fitness']],
+  [/cycl/i,                                               ['cycling','bicycling']],
+  [/swim/i,                                               ['Swimming','fitness']],
+  [/yoga|pilates|stretch|mobility|flexib/i,               ['yoga','flexibility']],
+  [/nutrition|meal plan|macro|keto|carnivore|vegan|fasting|gut health|diet/i, ['nutrition','EatCheapAndHealthy']],
+  [/hormone|longevity|biohack/i,                          ['Biohackers','longevity']],
+  [/sleep/i,                                              ['sleep','GetMotivated']],
+  [/mental health|anxiety|depress|therapy|mindful|meditat|breathwork|stress/i, ['mentalhealth','meditation']],
+  [/photograph/i,                                         ['photography','AskPhotography']],
+  [/videograph|filmmak|documentar|motion graphic|animation|\beditor\b/i, ['Filmmakers','editors']],
+  [/design|ui\/ux|illustrat|comic/i,                      ['Design','graphic_design']],
+  [/game develop/i,                                       ['gamedev','IndieDev']],
+  [/indie hack|app develop|no-code|nocode|low-code|prompt engineer|ai tools|ai develop|automation/i, ['SaaS','indiehackers']],
+  [/ghostwrit|speechwrit|author|publish|blog|journal|\bwriter\b/i, ['writing','Blogging']],
+  [/job|resume|interview|\bcareer\b|recruit|talent|executive search/i, ['jobs','careerguidance']],
+  [/leadership|management|consult|strategy|organizational|team build|operations|process improv|six sigma/i, ['leadership','consulting']],
+  [/remote work|digital nomad|work life/i,                ['remotework','digitalnomad']],
+  [/productiv|time management|project management|agile|scrum/i, ['productivity','projectmanagement']],
+  [/supply chain|logistic/i,                              ['supplychain','logistics']],
+  [/software|frontend|backend|full stack|mobile develop|\bios\b|android|devops|cloud|\baws\b|data scien|machine learning|cybersecur|robotic|\biot\b|hardware|ar\/vr/i, ['programming','webdev']],
+  [/education|tutor|test prep|language learn|homeschool|college admiss|\bmba\b|law school|medical school|certificat|curriculum|instructional|edtech|learning|skill develop|corporate train/i, ['education','Teachers']],
+  [/travel|van life|expat|nomad/i,                        ['travel','solotravel']],
+  [/minimalism|sustainab|zero waste/i,                    ['minimalism','ZeroWaste']],
+  [/fashion|streetwear|beauty|skincare|haircare|sneaker|watches|luxury good/i, ['femalefashionadvice','malefashionadvice']],
+  [/food|cook|bak|wine|coffee/i,                          ['Cooking','recipes']],
+  [/relationship|dating|marriage|divorce/i,               ['relationship_advice','dating_advice']],
+  [/parent|fatherhood|motherhood/i,                       ['Parenting','daddit']],
+  [/stoic|philosoph|spiritual|religion|astrolog/i,        ['Stoicism','philosophy']],
+  [/self-improv|self improv/i,                            ['selfimprovement','getdisciplined']],
+  [/true crime/i,                                         ['TrueCrime','UnresolvedMysteries']],
+  [/football|soccer|basketball|tennis|golf|motorsport|esports|chess|sport/i, ['sports','sportsbook']],
+  [/\bcars?\b|motorcycle/i,                               ['cars','motorcycles']],
+  [/\bpets?\b|\bdogs?\b|horse/i,                           ['pets','dogs']],
+  [/agency|freelanc|startup|saas|ecommerce|e-commerce|dropship|amazon fba|print on demand|wholesale|business|\bsales\b|franchise|restaurant|retail|course creat|membership|mastermind|community|info product|productized/i, ['Entrepreneur','smallbusiness']],
+]
+
 function getSubreddits(niche) {
-  const key = Object.keys(SUBREDDIT_MAP).find(k => k.toLowerCase() === niche.toLowerCase())
-  return key ? SUBREDDIT_MAP[key] : ['Entrepreneur', 'smallbusiness']
+  const exact = Object.keys(SUBREDDIT_MAP).find(k => k.toLowerCase() === niche.toLowerCase())
+  if (exact) return SUBREDDIT_MAP[exact]
+  for (const [re, subs] of KEYWORD_SUBS) {
+    if (re.test(niche)) return subs
+  }
+  return ['Entrepreneur', 'smallbusiness']
 }
 
 // ─── Trend fetchers ───────────────────────────────────────────────────────────
@@ -294,11 +359,24 @@ function buildPrompt(filters, trends) {
     .map((t, i) => `${i + 1}. [${t.source}] ${t.title}${t.score ? ` (${t.score} upvotes)` : ''}`)
     .join('\n')
 
+  const topic = (filters.topic && filters.topic.trim()) || filters.niche
+
+  const refBlock = filters.referencePosts && filters.referencePosts.trim()
+    ? `\nREFERENCE POSTS — the user pasted these as style targets. Study their sentence length, paragraph structure, hook style, line breaks, and overall rhythm. Mirror that exact structure and energy in your output, while keeping the content fully original and on the topic. Do not copy their words, names, or specifics:
+"""
+${filters.referencePosts.trim().slice(0, 4000)}
+"""
+`
+    : ''
+
   return {
     system: `You are a world-class social media ghostwriter. You write posts that spread.
 
 ${platformInstructions[filters.platform] || platformInstructions['x-post']}
 ${outputInstruction}
+
+CENTRAL TOPIC — every post must be about this. The trending items are only angles, hooks, and supporting material. Never drift off this topic:
+"${topic}"
 
 FILTERS TO APPLY:
 - Tone: ${filters.tone}
@@ -310,7 +388,7 @@ FILTERS TO APPLY:
 - Writing style: ${filters.writingStyle}
 ${filters.contrarianBelief ? `- Contrarian belief to embed: "${filters.contrarianBelief}"` : ''}
 ${filters.personalResult ? `- Personal result to include: "${filters.personalResult}"` : ''}
-
+${refBlock}
 VIRAL FRAMEWORK — hit all 6 in every post:
 1. STIMULATED: first line triggers curiosity or emotion. No warm-up.
 2. CAPTIVATED: middle builds tension or contrast. Never lose momentum.
@@ -337,14 +415,15 @@ Each element must have exactly these keys:
   "reason": "one sentence on why this specific angle drives engagement"
 }`,
 
-    user: `Niche: ${filters.niche}
+    user: `Write about this topic: "${topic}"
+Niche context: ${filters.niche}
 Platform: ${filters.platform}
 Generate exactly ${filters.count} post(s).
 
-Base each post on one of these trending topics:
+Use these trending items as fresh angles, hooks, or supporting context. Tie each one back to the topic above:
 ${trendBlock}
 
-Distribute across different topics and formats. Do not reuse the same topic for multiple posts if avoidable.`,
+Spread the posts across different angles and formats. Every post must clearly be about the topic, not just the trending item.`,
   }
 }
 
@@ -403,7 +482,55 @@ app.post('/api/generate', async (req, res) => {
   }
 })
 
+// ─── POST /api/lead — capture user contact → Google Sheet ─────────────────────
+app.post('/api/lead', async (req, res) => {
+  const { name, email, linkedin, twitter, startingOut, niche, topic } = req.body || {}
+
+  // Require at least one contact channel
+  if (!email && !linkedin && !twitter) {
+    return res.status(400).json({ error: 'At least one contact (email, LinkedIn, or X) is required' })
+  }
+
+  const lead = {
+    timestamp:   new Date().toISOString(),
+    name:        name     || '',
+    email:       email    || '',
+    linkedin:    linkedin || '',
+    twitter:     twitter  || '',
+    startingOut: startingOut ? 'yes' : 'no',
+    niche:       niche    || '',
+    topic:       topic    || '',
+  }
+
+  // Local fallback (ephemeral on Railway, but useful in dev / before redeploy)
+  try {
+    fs.appendFileSync(path.join(__dirname, 'leads.jsonl'), JSON.stringify(lead) + '\n')
+  } catch (e) {
+    console.warn('[lead] local append failed:', e.message)
+  }
+
+  // Forward to Google Sheet via Apps Script web app webhook
+  const hook = process.env.GOOGLE_SHEET_WEBHOOK_URL
+  if (hook) {
+    try {
+      await fetch(hook, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(lead),
+        signal:  AbortSignal.timeout(8000),
+      })
+      console.log('[lead] forwarded to sheet:', lead.name || lead.email || lead.linkedin || lead.twitter)
+    } catch (e) {
+      console.warn('[lead] sheet forward failed:', e.message)
+    }
+  } else {
+    console.warn('[lead] GOOGLE_SHEET_WEBHOOK_URL not set — saved locally only')
+  }
+
+  res.json({ ok: true })
+})
+
 // ─── Health check ─────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => res.json({ ok: true, keySet: !!process.env.ANTHROPIC_API_KEY, node: process.version }))
+app.get('/health', (_req, res) => res.json({ ok: true, keySet: !!process.env.ANTHROPIC_API_KEY, sheetHook: !!process.env.GOOGLE_SHEET_WEBHOOK_URL, node: process.version }))
 
 app.listen(PORT, () => console.log(`XLink running on port ${PORT}`))

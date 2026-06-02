@@ -3,33 +3,216 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>XLink — Viral Post Generator</title>
+<title>XLink — Viral Content Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#08080c;--s1:#111114;--s2:#18181f;--s3:#1e1e28;
+  --bg:#08080c;--s1:#111114;--s2:#18181f;
   --b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.12);--b3:rgba(255,255,255,0.2);
   --t1:#fff;--t2:rgba(255,255,255,0.6);--t3:rgba(255,255,255,0.35);--t4:rgba(255,255,255,0.18);
   --accent:#2563eb;--accent-h:#1d4ed8;--accent-l:#60a5fa;--accent-d:rgba(37,99,235,0.12);
-  --green:rgba(34,197,94,1);--green-d:rgba(34,197,94,0.12);
-  --red:rgba(239,68,68,1);--red-d:rgba(239,68,68,0.1);
-  --radius:20px;--radius-sm:12px;--radius-xs:8px;
+  --green:rgba(34,197,94,1);--red:rgba(239,68,68,1);
 }
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
-::-webkit-scrollbar{width:4px;height:4px}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--b2);border-radius:99px}
 
-/* ── Nav ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:rgba(8,8,12,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1)}
-.nav-logo{font-size:17px;font-weight:900;letter-spacing:-.5px;color:var(--t1);text-decoration:none}
-.nav-step-label{font-size:12px;font-weight:600;color:var(--t3)}
+/* ══════════════════════════════════════════════════
+   NAV
+══════════════════════════════════════════════════ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:62px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+  background:rgba(8,8,12,0.85);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--b1);
+}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-wordmark{font-size:18px;font-weight:900;letter-spacing:-.5px;color:var(--t1)}
+.nav-cta{
+  background:var(--accent);border:none;border-radius:10px;
+  padding:8px 18px;font-size:13px;font-weight:700;color:#fff;
+  cursor:pointer;font-family:'Inter',sans-serif;
+  transition:all .2s;box-shadow:0 0 20px rgba(37,99,235,.3);
+  text-decoration:none;display:inline-flex;align-items:center;gap:7px;
+}
+.nav-cta:hover{background:var(--accent-h);box-shadow:0 0 32px rgba(37,99,235,.45);transform:translateY(-1px)}
 
-/* ── Step indicator ── */
-.step-bar{display:flex;align-items:center;justify-content:center;gap:0;padding:82px 24px 0;margin-bottom:36px}
+/* ══════════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════════ */
+#hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+  padding:80px 24px 60px;
+  text-align:center;
+}
+
+/* Background layers */
+.hero-bg-grid{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);
+}
+.hero-glow-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:900px;height:700px;
+  background:radial-gradient(ellipse,rgba(37,99,235,0.22) 0%,rgba(37,99,235,0.06) 40%,transparent 70%);
+  filter:blur(1px);pointer-events:none;
+  animation:breathe 6s ease-in-out infinite;
+}
+.hero-glow-top{
+  position:absolute;top:-120px;left:50%;transform:translateX(-50%);
+  width:500px;height:400px;
+  background:radial-gradient(ellipse,rgba(96,165,250,0.18) 0%,transparent 70%);
+  filter:blur(40px);pointer-events:none;
+}
+.hero-glow-left{
+  position:absolute;top:30%;left:-100px;
+  width:400px;height:400px;
+  background:radial-gradient(ellipse,rgba(37,99,235,0.12) 0%,transparent 70%);
+  filter:blur(60px);pointer-events:none;
+}
+.hero-glow-right{
+  position:absolute;top:40%;right:-100px;
+  width:400px;height:400px;
+  background:radial-gradient(ellipse,rgba(147,197,253,0.1) 0%,transparent 70%);
+  filter:blur(60px);pointer-events:none;
+}
+@keyframes breathe{
+  0%,100%{opacity:.8;transform:translate(-50%,-50%) scale(1)}
+  50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+}
+
+/* Floating shimmer line */
+.hero-shimmer-line{
+  position:absolute;top:0;left:-100%;
+  width:60%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(96,165,250,0.6),transparent);
+  animation:shimmer-line 5s ease-in-out infinite 1s;
+  pointer-events:none;
+}
+@keyframes shimmer-line{
+  0%{left:-60%;top:30%}
+  100%{left:120%;top:70%}
+}
+
+/* Hero content */
+.hero-inner{position:relative;z-index:2;max-width:800px}
+
+.hero-free-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.25);
+  border-radius:99px;padding:6px 16px;
+  font-size:12px;font-weight:600;color:var(--accent-l);
+  margin-bottom:32px;letter-spacing:.02em;
+}
+.hero-free-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0}
+
+.hero-h1{
+  font-size:clamp(38px,6.5vw,80px);
+  font-weight:900;letter-spacing:-2px;line-height:1.04;
+  margin-bottom:24px;
+}
+.hero-h1-line1{
+  display:block;color:var(--t1);
+  text-shadow:0 0 80px rgba(96,165,250,0.15);
+}
+.hero-h1-line2{
+  display:block;
+  background:linear-gradient(135deg,#fff 0%,#93c5fd 40%,#60a5fa 70%,#3b82f6 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 30px rgba(96,165,250,0.4));
+}
+.hero-h1-line3{
+  display:block;color:var(--t1);
+  text-shadow:0 0 80px rgba(96,165,250,0.15);
+}
+
+.hero-sub{
+  font-size:clamp(15px,2vw,19px);color:var(--t3);
+  max-width:560px;margin:0 auto 40px;line-height:1.65;
+  font-weight:400;
+}
+
+.hero-ctas{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:48px}
+
+.btn-hero-primary{
+  background:var(--accent);border:none;border-radius:14px;
+  padding:15px 28px;font-size:15px;font-weight:700;color:#fff;
+  cursor:pointer;font-family:'Inter',sans-serif;
+  transition:all .2s;
+  box-shadow:0 0 0 1px rgba(37,99,235,.4),0 0 40px rgba(37,99,235,.4),0 0 80px rgba(37,99,235,.15);
+  display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  letter-spacing:-.2px;position:relative;overflow:hidden;
+}
+.btn-hero-primary::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);
+  transition:left .5s;
+}
+.btn-hero-primary:hover::before{left:100%}
+.btn-hero-primary:hover{
+  background:var(--accent-h);
+  box-shadow:0 0 0 1px rgba(37,99,235,.5),0 0 60px rgba(37,99,235,.55),0 0 120px rgba(37,99,235,.2);
+  transform:translateY(-2px);
+}
+.btn-hero-secondary{
+  background:rgba(255,255,255,0.05);border:1px solid var(--b2);border-radius:14px;
+  padding:15px 28px;font-size:15px;font-weight:600;color:var(--t2);
+  cursor:pointer;font-family:'Inter',sans-serif;
+  transition:all .2s;display:inline-flex;align-items:center;gap:9px;
+  text-decoration:none;
+}
+.btn-hero-secondary:hover{background:rgba(255,255,255,0.08);border-color:var(--b3);color:var(--t1)}
+
+/* Free badge row */
+.hero-free-note{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:13px;color:var(--t4);margin-bottom:52px;
+}
+.hero-free-note strong{color:var(--t2)}
+
+/* Feature pills */
+.hero-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.hero-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--b1);
+  border-radius:99px;padding:7px 14px;
+  font-size:12px;font-weight:500;color:var(--t3);
+}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:var(--accent-l);flex-shrink:0}
+
+/* Scroll indicator */
+.hero-scroll{
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  color:var(--t4);font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;
+  animation:bob 2s ease-in-out infinite;cursor:pointer;text-decoration:none;
+}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(5px)}}
+.scroll-arrow{width:20px;height:20px;opacity:.4}
+
+/* ══════════════════════════════════════════════════
+   APP SECTION WRAPPER
+══════════════════════════════════════════════════ */
+#app{
+  padding-top:24px;padding-bottom:80px;
+  border-top:1px solid var(--b1);
+  background:linear-gradient(to bottom,rgba(37,99,235,0.03) 0%,transparent 200px);
+}
+
+/* ── Step bar ── */
+.step-bar{display:flex;align-items:center;justify-content:center;gap:0;padding:32px 24px 28px;margin-bottom:0}
 .step-node{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
 .step-circle{width:36px;height:36px;border-radius:50%;border:2px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--t3);transition:all .25s;background:var(--bg)}
 .step-circle.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px rgba(37,99,235,0.15)}
@@ -39,17 +222,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:58px;display:flex;ali
 .step-line{width:80px;height:2px;background:var(--b2);margin:0 8px;margin-bottom:20px;flex-shrink:0;transition:background .3s}
 .step-line.done{background:var(--accent)}
 
-/* ── Page ── */
-.page{max-width:860px;margin:0 auto;padding:0 20px 80px}
+/* ── App page container ── */
+.page{max-width:860px;margin:0 auto;padding:0 20px}
 .step-view{display:none}
 .step-view.active{display:block}
 
-/* ── Section heading ── */
+/* ── Section headings ── */
 .section-title{font-size:22px;font-weight:900;letter-spacing:-.5px;margin-bottom:4px}
 .section-sub{font-size:14px;color:var(--t3);margin-bottom:28px}
 
 /* ── Card ── */
-.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--radius);position:relative;overflow:hidden}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:20px;position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);pointer-events:none}
 
 /* ── Filters grid ── */
@@ -63,14 +246,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:58px;display:flex;ali
 /* ── Select ── */
 .sel-wrap{position:relative}
 .sel-wrap::after{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--t3);pointer-events:none}
-select{width:100%;appearance:none;-webkit-appearance:none;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:10px 34px 10px 12px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;cursor:pointer;transition:border-color .15s}
+select{width:100%;appearance:none;-webkit-appearance:none;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:12px;padding:10px 34px 10px 12px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;cursor:pointer;transition:border-color .15s}
 select:focus{border-color:var(--accent)}
 select option{background:#1a1a22;color:var(--t1)}
 
-/* ── Niche dropdown (custom) ── */
+/* ── Niche dropdown ── */
 .dd-wrap{position:relative}
-.dd-trigger{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:10px 34px 10px 12px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .15s;text-align:left}
-.dd-trigger:hover,.dd-trigger.open{border-color:var(--b2)}
+.dd-trigger{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:12px;padding:10px 34px 10px 12px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .15s;text-align:left}
 .dd-trigger.open{border-color:var(--accent)}
 .dd-val{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dd-val.ph{color:var(--t4)}
@@ -79,30 +261,28 @@ select option{background:#1a1a22;color:var(--t1)}
 .dd-panel{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:300;background:#1c1c25;border:1px solid var(--b2);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.65);display:none;overflow:hidden}
 .dd-panel.open{display:block}
 .dd-search-wrap{padding:8px 8px 6px;border-bottom:1px solid var(--b1)}
-.dd-search{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--b1);border-radius:var(--radius-xs);padding:8px 11px;font-size:13px;color:var(--t1);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s}
+.dd-search{width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--b1);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--t1);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s}
 .dd-search:focus{border-color:var(--accent)}
 .dd-search::placeholder{color:var(--t4)}
 .dd-list{max-height:260px;overflow-y:auto;padding:5px 5px}
 .dd-cat{padding:8px 10px 3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t4)}
-.dd-opt{padding:7px 10px;font-size:13px;color:var(--t2);cursor:pointer;border-radius:7px;transition:all .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-opt{padding:7px 10px;font-size:13px;color:rgba(255,255,255,0.7);cursor:pointer;border-radius:7px;transition:all .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dd-opt:hover{background:rgba(37,99,235,0.15);color:var(--t1)}
 .dd-opt.sel{background:rgba(37,99,235,0.2);color:var(--accent-l)}
 .dd-empty{padding:18px 10px;text-align:center;font-size:13px;color:var(--t4)}
 
 /* ── Textarea ── */
-textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;resize:vertical;transition:border-color .15s;min-height:72px}
+textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;resize:vertical;transition:border-color .15s;min-height:72px}
 textarea:focus{border-color:var(--accent)}
 textarea::placeholder{color:var(--t4)}
 
-/* ── Toggle group ── */
-.tgl{display:flex;background:rgba(255,255,255,0.03);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:3px;gap:3px}
-.tgl-btn{flex:1;background:none;border:none;padding:8px 4px;border-radius:var(--radius-xs);font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+/* ── Toggle groups ── */
+.tgl{display:flex;background:rgba(255,255,255,0.03);border:1px solid var(--b1);border-radius:12px;padding:3px;gap:3px}
+.tgl-btn{flex:1;background:none;border:none;padding:8px 4px;border-radius:8px;font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
 .tgl-btn.active{background:var(--accent);color:#fff;box-shadow:0 0 12px rgba(37,99,235,.3)}
 .tgl-btn.active-mono{background:rgba(255,255,255,0.1);color:var(--t1)}
-
-/* ── Count buttons ── */
-.count-grp{display:flex;background:rgba(255,255,255,0.03);border:1px solid var(--b1);border-radius:var(--radius-sm);padding:3px;gap:3px}
-.count-btn{flex:1;background:none;border:none;padding:8px 0;border-radius:var(--radius-xs);font-size:13px;font-weight:700;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.count-grp{display:flex;background:rgba(255,255,255,0.03);border:1px solid var(--b1);border-radius:12px;padding:3px;gap:3px}
+.count-btn{flex:1;background:none;border:none;padding:8px 0;border-radius:8px;font-size:13px;font-weight:700;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
 .count-btn.active-mono{background:rgba(255,255,255,0.1);color:var(--t1)}
 
 /* ── Primary button ── */
@@ -111,18 +291,18 @@ textarea::placeholder{color:var(--t4)}
 .btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .btn-action-row{padding:20px 28px 28px;display:flex;flex-direction:column;gap:10px}
 
-/* ── Back button ── */
-.btn-back{background:none;border:1px solid var(--b1);border-radius:var(--radius-xs);padding:7px 14px;font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:5px;margin-bottom:20px}
+/* ── Back ── */
+.btn-back{background:none;border:1px solid var(--b1);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:5px;margin-bottom:20px}
 .btn-back:hover{border-color:var(--b2);color:var(--t1)}
 
 /* ── Spinner ── */
 .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:none;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── Error bar ── */
-.err{background:var(--red-d);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-xs);padding:10px 14px;font-size:13px;color:#fca5a5;display:none;margin-top:10px}
+/* ── Error ── */
+.err{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:#fca5a5;display:none;margin-top:10px}
 
-/* ── Step 2: Trend list ── */
+/* ── Trends ── */
 .trends-loading{text-align:center;padding:56px 20px;display:none}
 .loader-ring{width:40px;height:40px;border:3px solid var(--b1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
 .trends-loading-label{font-size:14px;color:var(--t3);margin-bottom:4px}
@@ -148,13 +328,13 @@ textarea::placeholder{color:var(--t4)}
 .sel-link:hover{color:var(--t2);background:var(--b1)}
 .trend-count-note{font-size:11px;color:var(--t4);margin-left:auto}
 
-/* ── Step 3: Post cards ── */
+/* ── Post cards ── */
 .posts-loading{text-align:center;padding:56px 20px;display:none}
-.posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;display:none}
-.post-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.posts-grid{display:none;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.post-card{background:var(--s1);border:1px solid var(--b1);border-radius:20px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
 .post-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)}
 .post-card:hover{border-color:var(--b2);transform:translateY(-2px)}
-.pc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
 .pc-badges{display:flex;flex-wrap:wrap;gap:5px;flex:1;min-width:0}
 .fmt-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--accent-d);border:1px solid rgba(37,99,235,.2);color:var(--accent-l);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .fw-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;background:rgba(255,255,255,.04);border:1px solid var(--b1);color:var(--t4);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
@@ -163,717 +343,855 @@ textarea::placeholder{color:var(--t4)}
 .post-text{font-size:13px;line-height:1.75;color:rgba(255,255,255,.82);white-space:pre-wrap;word-break:break-word;margin-bottom:14px}
 .post-reason{font-size:11px;color:var(--t4);padding-top:12px;border-top:1px solid var(--b1);line-height:1.5;margin-bottom:14px}
 .pc-actions{display:flex;gap:7px}
-.pc-btn{background:none;border:1px solid var(--b1);border-radius:var(--radius-xs);padding:6px 12px;font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
+.pc-btn{background:none;border:1px solid var(--b1);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
 .pc-btn:hover{border-color:var(--b2);color:var(--t1)}
 .pc-btn.copied{border-color:rgba(34,197,94,.3);color:var(--green)}
-.pc-btn.regen-btn-inline:disabled{opacity:.4;cursor:not-allowed}
-
-/* ── Skeleton ── */
-.skel-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--radius);padding:20px}
+.pc-btn:disabled{opacity:.4;cursor:not-allowed}
+.skel-card{background:var(--s1);border:1px solid var(--b1);border-radius:20px;padding:20px}
 .skel-ln{height:11px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.07) 50%,rgba(255,255,255,.04) 75%);background-size:200% 100%;animation:sh 1.4s infinite;margin-bottom:9px}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
-
-/* ── Results header ── */
 .results-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .results-label{font-size:13px;color:var(--t3)}
-.regen-all-btn{background:none;border:1px solid var(--b1);border-radius:var(--radius-xs);padding:6px 12px;font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
+.regen-all-btn{background:none;border:1px solid var(--b1);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
 .regen-all-btn:hover{border-color:var(--b2);color:var(--t1)}
+
+/* ══════════════════════════════════════════════════
+   CLOSING SECTION
+══════════════════════════════════════════════════ */
+#closing{
+  padding:100px 24px 80px;
+  border-top:1px solid var(--b1);
+  position:relative;overflow:hidden;
+  text-align:center;
+}
+.closing-glow{
+  position:absolute;bottom:-100px;left:50%;transform:translateX(-50%);
+  width:600px;height:400px;
+  background:radial-gradient(ellipse,rgba(37,99,235,0.1) 0%,transparent 70%);
+  filter:blur(40px);pointer-events:none;
+}
+.closing-inner{position:relative;z-index:2;max-width:640px;margin:0 auto}
+
+.closing-eyebrow{
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent-l);margin-bottom:20px;
+}
+.closing-headline{
+  font-size:clamp(28px,4vw,46px);font-weight:900;letter-spacing:-1px;
+  line-height:1.1;color:var(--t1);margin-bottom:20px;
+}
+.closing-body{
+  font-size:15px;color:var(--t3);line-height:1.8;
+  margin-bottom:52px;max-width:520px;margin-left:auto;margin-right:auto;
+}
+.closing-body p{margin-bottom:10px}
+.closing-body p:last-child{margin-bottom:0}
+
+/* Photo + signature */
+.closing-sig{
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+}
+.sig-photo-wrap{
+  position:relative;
+}
+.sig-photo-ring{
+  position:absolute;inset:-3px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-l),#fff,var(--accent));
+  padding:3px;
+  animation:ring-rotate 4s linear infinite;
+}
+@keyframes ring-rotate{
+  0%{background:linear-gradient(135deg,var(--accent),var(--accent-l),#fff,var(--accent))}
+  25%{background:linear-gradient(225deg,var(--accent),var(--accent-l),#fff,var(--accent))}
+  50%{background:linear-gradient(315deg,var(--accent),var(--accent-l),#fff,var(--accent))}
+  75%{background:linear-gradient(45deg,var(--accent),var(--accent-l),#fff,var(--accent))}
+  100%{background:linear-gradient(135deg,var(--accent),var(--accent-l),#fff,var(--accent))}
+}
+.sig-photo{
+  width:120px;height:120px;border-radius:50%;
+  object-fit:cover;object-position:top center;
+  border:3px solid var(--bg);
+  position:relative;z-index:1;
+  display:block;
+}
+.sig-photo-fallback{
+  width:120px;height:120px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent-d),rgba(37,99,235,0.3));
+  border:3px solid var(--b2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:40px;font-weight:900;color:var(--accent-l);
+}
+.sig-info{text-align:center}
+.sig-name{font-size:22px;font-weight:900;letter-spacing:-.5px;color:var(--t1);margin-bottom:4px}
+.sig-title{font-size:13px;color:var(--t3);margin-bottom:16px}
+.sig-divider{
+  width:1px;height:20px;background:var(--b2);margin:0 auto 16px;
+}
+.sig-dash{
+  font-size:18px;font-weight:700;color:var(--t4);margin-bottom:12px;letter-spacing:.05em;
+}
+.sig-linkedin{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(10,102,194,0.12);border:1px solid rgba(10,102,194,0.3);
+  border-radius:10px;padding:10px 20px;
+  font-size:13px;font-weight:600;color:#60a5fa;
+  text-decoration:none;transition:all .2s;
+}
+.sig-linkedin:hover{background:rgba(10,102,194,0.2);border-color:rgba(10,102,194,0.5);color:#93c5fd;transform:translateY(-1px)}
+
+/* ── Footer bar ── */
+.footer-bar{
+  padding:24px 32px;border-top:1px solid var(--b1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:var(--t4);text-align:center;
+}
+
+/* ══════════════════════════════════════════════════
+   LEAD CAPTURE MODAL (required gate)
+══════════════════════════════════════════════════ */
+.lead-overlay{
+  position:fixed;inset:0;z-index:500;
+  display:none;align-items:center;justify-content:center;padding:24px;
+  background:rgba(6,6,10,0.78);backdrop-filter:blur(8px);
+}
+.lead-overlay.open{display:flex}
+.lead-modal{
+  position:relative;width:100%;max-width:440px;
+  background:var(--s1);border:1px solid var(--b2);border-radius:22px;
+  padding:32px 28px 24px;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 60px rgba(37,99,235,.12);
+  animation:lead-pop .25s cubic-bezier(.16,1,.3,1);
+}
+@keyframes lead-pop{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.lead-modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(96,165,250,0.5),transparent)}
+.lead-modal-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:300px;height:200px;background:radial-gradient(ellipse,rgba(37,99,235,0.22) 0%,transparent 70%);filter:blur(20px);pointer-events:none}
+.lead-badge{position:relative;display:inline-flex;align-items:center;gap:7px;background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.25);border-radius:99px;padding:5px 13px;font-size:11px;font-weight:600;color:var(--accent-l);margin-bottom:16px}
+.lead-badge-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+.lead-title{position:relative;font-size:21px;font-weight:900;letter-spacing:-.5px;line-height:1.2;margin-bottom:8px}
+.lead-sub{position:relative;font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:22px}
+.lead-field{margin-bottom:10px}
+.lead-input{
+  width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:11px;
+  padding:11px 13px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;
+  outline:none;transition:border-color .15s;
+}
+.lead-input:focus{border-color:var(--accent)}
+.lead-input::placeholder{color:var(--t4)}
+.lead-check-row{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--t2);cursor:pointer;margin:14px 2px 18px;user-select:none}
+.lead-check{width:17px;height:17px;flex-shrink:0;appearance:none;-webkit-appearance:none;background:rgba(255,255,255,.04);border:1.5px solid var(--b2);border-radius:5px;cursor:pointer;transition:all .15s;position:relative}
+.lead-check:checked{background:var(--accent);border-color:var(--accent)}
+.lead-check:checked::after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg)}
+.lead-err{font-size:12px;color:#fca5a5;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 12px;margin-bottom:12px;display:none}
+.lead-foot{font-size:11px;color:var(--t4);text-align:center;margin-top:14px;line-height:1.5}
 </style>
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════════════
+     NAV
+══════════════════════════════════════════════════ -->
 <nav>
-  <a href="/" class="nav-logo">XLink</a>
-  <span class="nav-step-label" id="navStepLabel">Step 1 of 3</span>
+  <a href="/" class="nav-brand">
+    <!-- XLink Logo -->
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="34" height="34" rx="9" fill="url(#logo-grad)"/>
+      <defs>
+        <linearGradient id="logo-grad" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#3b82f6"/>
+          <stop offset="100%" stop-color="#1d4ed8"/>
+        </linearGradient>
+      </defs>
+      <!-- X shape -->
+      <line x1="10" y1="10" x2="24" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <line x1="24" y1="10" x2="10" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <!-- Node dots at each arm (chain/link concept) -->
+      <circle cx="10" cy="10" r="2.5" fill="white"/>
+      <circle cx="24" cy="24" r="2.5" fill="white"/>
+      <circle cx="24" cy="10" r="2.5" fill="white"/>
+      <circle cx="10" cy="24" r="2.5" fill="white"/>
+      <!-- Center connector ring -->
+      <circle cx="17" cy="17" r="3.5" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+    </svg>
+    <span class="nav-wordmark">XLink</span>
+  </a>
+  <a href="#app" class="nav-cta">
+    Start Creating Free
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </a>
 </nav>
 
-<!-- Step indicator -->
-<div class="step-bar">
-  <div class="step-node">
-    <div class="step-circle active" id="sc1">1</div>
-    <span class="step-label active" id="sl1">Filters</span>
+<!-- ══════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-glow-center"></div>
+  <div class="hero-glow-top"></div>
+  <div class="hero-glow-left"></div>
+  <div class="hero-glow-right"></div>
+  <div class="hero-shimmer-line"></div>
+
+  <div class="hero-inner">
+    <div class="hero-free-pill">
+      <span class="hero-free-dot"></span>
+      Free for everyone who wants to scale
+    </div>
+
+    <h1 class="hero-h1">
+      <span class="hero-h1-line1">Creating Content</span>
+      <span class="hero-h1-line2">was never Easier</span>
+      <span class="hero-h1-line3">than this.</span>
+    </h1>
+
+    <p class="hero-sub">
+      Find what is trending in your niche. Write posts built on 6 viral frameworks. Publish on X and LinkedIn. All in minutes — not hours.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="#app" class="btn-hero-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Start Creating Free
+      </a>
+      <a href="#closing" class="btn-hero-secondary">
+        Who built this
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </a>
+    </div>
+
+    <div class="hero-free-note">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <strong>100% free.</strong> No credit card. No account. Open the tool and go.
+    </div>
+
+    <div class="hero-pills">
+      <span class="hero-pill"><span class="pill-dot"></span>Reddit + HN + News in real time</span>
+      <span class="hero-pill"><span class="pill-dot"></span>6 viral frameworks on every post</span>
+      <span class="hero-pill"><span class="pill-dot"></span>X Post, X Thread, LinkedIn</span>
+      <span class="hero-pill"><span class="pill-dot"></span>200+ niches covered</span>
+    </div>
   </div>
-  <div class="step-line" id="line1"></div>
-  <div class="step-node">
-    <div class="step-circle" id="sc2">2</div>
-    <span class="step-label" id="sl2">Trends</span>
+
+  <a href="#app" class="hero-scroll">
+    <svg class="scroll-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+    Scroll to start
+  </a>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     APP — 3-STEP WIZARD
+══════════════════════════════════════════════════ -->
+<section id="app">
+
+  <!-- Step indicator -->
+  <div class="step-bar">
+    <div class="step-node">
+      <div class="step-circle active" id="sc1">1</div>
+      <span class="step-label active" id="sl1">Filters</span>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step-node">
+      <div class="step-circle" id="sc2">2</div>
+      <span class="step-label" id="sl2">Trends</span>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-node">
+      <div class="step-circle" id="sc3">3</div>
+      <span class="step-label" id="sl3">Posts</span>
+    </div>
   </div>
-  <div class="step-line" id="line2"></div>
-  <div class="step-node">
-    <div class="step-circle" id="sc3">3</div>
-    <span class="step-label" id="sl3">Posts</span>
-  </div>
-</div>
 
-<div class="page">
+  <div class="page">
 
-<!-- ═══════════════════════════════════════════ STEP 1 ═══ -->
-<div class="step-view active" id="view1">
-  <h1 class="section-title">Set your filters</h1>
-  <p class="section-sub">Every setting shapes what the AI writes. Fill them out, then find what is trending.</p>
+    <!-- STEP 1 -->
+    <div class="step-view active" id="view1">
+      <h2 class="section-title">Set your filters</h2>
+      <p class="section-sub">Every setting shapes what the AI writes. Fill them out, then find what is trending.</p>
 
-  <div class="card">
-    <div class="filters-grid">
+      <div class="card">
+        <div class="filters-grid">
 
-      <!-- Niche -->
-      <div>
-        <span class="lbl">Niche</span>
-        <div class="dd-wrap" id="nicheWrap">
-          <button class="dd-trigger" id="nicheTrigger" type="button">
-            <span class="dd-val ph" id="nicheTriggerVal">Select a niche</span>
-            <svg class="dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="dd-panel" id="nichePanel">
-            <div class="dd-search-wrap">
-              <input class="dd-search" id="nicheSearch" type="text" placeholder="Search niches..." autocomplete="off"/>
-            </div>
-            <div class="dd-list" id="nicheList"></div>
+          <div class="filter-full">
+            <span class="lbl">What do you want to post about? <span style="color:#f87171;font-weight:700;text-transform:none;letter-spacing:0">required</span></span>
+            <textarea id="fTopic" placeholder="e.g. Why most agency owners price themselves out of clients, How I closed my first $10K deal, The mistake killing your conversion rate" rows="2"></textarea>
           </div>
+
+          <div>
+            <span class="lbl">Niche</span>
+            <div class="dd-wrap" id="nicheWrap">
+              <button class="dd-trigger" id="nicheTrigger" type="button">
+                <span class="dd-val ph" id="nicheTriggerVal">Select a niche</span>
+                <svg class="dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="dd-panel" id="nichePanel">
+                <div class="dd-search-wrap">
+                  <input class="dd-search" id="nicheSearch" type="text" placeholder="Search niches..." autocomplete="off"/>
+                </div>
+                <div class="dd-list" id="nicheList"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Platform</span>
+            <div class="tgl" id="platformGroup">
+              <button class="tgl-btn active" data-val="x-post">X Post</button>
+              <button class="tgl-btn" data-val="x-thread">X Thread</button>
+              <button class="tgl-btn" data-val="linkedin">LinkedIn</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Tone</span>
+            <div class="sel-wrap">
+              <select id="fTone">
+                <option value="aggressive">Aggressive</option>
+                <option value="calm">Calm</option>
+                <option value="educational">Educational</option>
+                <option value="controversial">Controversial</option>
+                <option value="storytelling">Storytelling</option>
+                <option value="motivational" selected>Motivational</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Point of View</span>
+            <div class="sel-wrap">
+              <select id="fPov">
+                <option value="first person (I)" selected>First person (I)</option>
+                <option value="brand voice (we)">Brand voice (we)</option>
+                <option value="observer perspective">Observer perspective</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Hook Type</span>
+            <div class="sel-wrap">
+              <select id="fHookType">
+                <option value="bold claim" selected>Bold claim</option>
+                <option value="personal story">Personal story</option>
+                <option value="statistic">Statistic</option>
+                <option value="question">Question</option>
+                <option value="list">List</option>
+                <option value="confession">Confession</option>
+                <option value="prediction">Prediction</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Post Goal</span>
+            <div class="sel-wrap">
+              <select id="fGoal">
+                <option value="grow followers" selected>Grow followers</option>
+                <option value="get DMs">Get DMs</option>
+                <option value="build authority">Build authority</option>
+                <option value="drive traffic">Drive traffic</option>
+                <option value="sell something">Sell something</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Target Audience</span>
+            <div class="sel-wrap">
+              <select id="fAudience">
+                <option value="beginners" selected>Beginners</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="experts">Experts</option>
+                <option value="skeptics">Skeptics</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Call to Action</span>
+            <div class="sel-wrap">
+              <select id="fCta">
+                <option value="follow me">Follow me</option>
+                <option value="DM me">DM me</option>
+                <option value="comment below" selected>Comment below</option>
+                <option value="save this">Save this</option>
+                <option value="link in bio">Link in bio</option>
+                <option value="no CTA">No CTA</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Writing Style</span>
+            <div class="sel-wrap">
+              <select id="fStyle">
+                <option value="short punchy lines" selected>Short punchy lines</option>
+                <option value="long-form narrative">Long-form narrative</option>
+                <option value="listicle">Listicle</option>
+                <option value="question-based">Question-based</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Trend Window</span>
+            <div class="tgl" id="trendWindowGroup">
+              <button class="tgl-btn active" data-val="24h">Last 24 hours</button>
+              <button class="tgl-btn" data-val="7d">Last 7 days</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Number of Posts</span>
+            <div class="count-grp" id="countGroup">
+              <button class="count-btn" data-val="1">1</button>
+              <button class="count-btn" data-val="2">2</button>
+              <button class="count-btn active-mono" data-val="3">3</button>
+              <button class="count-btn" data-val="5">5</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="lbl">Output Type</span>
+            <div class="tgl" id="outputGroup">
+              <button class="tgl-btn active" data-val="full">Full post</button>
+              <button class="tgl-btn" data-val="hook">Hook only</button>
+            </div>
+          </div>
+
+          <div class="filter-full">
+            <span class="lbl">Contrarian Belief <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
+            <textarea id="fContrarian" placeholder="What do you believe that most in your niche disagree with?" rows="2"></textarea>
+          </div>
+
+          <div class="filter-full">
+            <span class="lbl">Personal Result to Include <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
+            <textarea id="fResult" placeholder="e.g. 3x revenue in 60 days, grew from 0 to 12,000 followers in 4 months" rows="2"></textarea>
+          </div>
+
+          <div class="filter-full">
+            <span class="lbl">Paste viral posts you want to match in style/format <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
+            <textarea id="fRefPosts" placeholder="Paste any posts here that you love — the AI will match their structure, rhythm, and energy while creating original content. You can paste 1-3 posts." rows="6"></textarea>
+          </div>
+
+        </div>
+        <div class="btn-action-row">
+          <button class="btn-primary" id="findTrendsBtn" disabled>
+            <div class="spinner" id="sp1"></div>
+            <svg id="sp1Icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <span id="sp1Label">Find Trending Topics</span>
+          </button>
+          <div class="err" id="err1"></div>
         </div>
       </div>
-
-      <!-- Platform -->
-      <div>
-        <span class="lbl">Platform</span>
-        <div class="tgl" id="platformGroup">
-          <button class="tgl-btn active" data-val="x-post">X Post</button>
-          <button class="tgl-btn" data-val="x-thread">X Thread</button>
-          <button class="tgl-btn" data-val="linkedin">LinkedIn</button>
-        </div>
-      </div>
-
-      <!-- Tone -->
-      <div>
-        <span class="lbl">Tone</span>
-        <div class="sel-wrap">
-          <select id="fTone">
-            <option value="aggressive">Aggressive</option>
-            <option value="calm">Calm</option>
-            <option value="educational">Educational</option>
-            <option value="controversial">Controversial</option>
-            <option value="storytelling">Storytelling</option>
-            <option value="motivational" selected>Motivational</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- POV -->
-      <div>
-        <span class="lbl">Point of View</span>
-        <div class="sel-wrap">
-          <select id="fPov">
-            <option value="first person (I)" selected>First person (I)</option>
-            <option value="brand voice (we)">Brand voice (we)</option>
-            <option value="observer perspective">Observer perspective</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Hook type -->
-      <div>
-        <span class="lbl">Hook Type</span>
-        <div class="sel-wrap">
-          <select id="fHookType">
-            <option value="bold claim" selected>Bold claim</option>
-            <option value="personal story">Personal story</option>
-            <option value="statistic">Statistic</option>
-            <option value="question">Question</option>
-            <option value="list">List</option>
-            <option value="confession">Confession</option>
-            <option value="prediction">Prediction</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Post goal -->
-      <div>
-        <span class="lbl">Post Goal</span>
-        <div class="sel-wrap">
-          <select id="fGoal">
-            <option value="grow followers" selected>Grow followers</option>
-            <option value="get DMs">Get DMs</option>
-            <option value="build authority">Build authority</option>
-            <option value="drive traffic">Drive traffic</option>
-            <option value="sell something">Sell something</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Target audience -->
-      <div>
-        <span class="lbl">Target Audience</span>
-        <div class="sel-wrap">
-          <select id="fAudience">
-            <option value="beginners" selected>Beginners</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="experts">Experts</option>
-            <option value="skeptics">Skeptics</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- CTA -->
-      <div>
-        <span class="lbl">Call to Action</span>
-        <div class="sel-wrap">
-          <select id="fCta">
-            <option value="follow me">Follow me</option>
-            <option value="DM me">DM me</option>
-            <option value="comment below" selected>Comment below</option>
-            <option value="save this">Save this</option>
-            <option value="link in bio">Link in bio</option>
-            <option value="no CTA">No CTA</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Writing style -->
-      <div>
-        <span class="lbl">Writing Style</span>
-        <div class="sel-wrap">
-          <select id="fStyle">
-            <option value="short punchy lines" selected>Short punchy lines</option>
-            <option value="long-form narrative">Long-form narrative</option>
-            <option value="listicle">Listicle</option>
-            <option value="question-based">Question-based</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Trend window -->
-      <div>
-        <span class="lbl">Trend Window</span>
-        <div class="tgl" id="trendWindowGroup">
-          <button class="tgl-btn active" data-val="24h">Last 24 hours</button>
-          <button class="tgl-btn" data-val="7d">Last 7 days</button>
-        </div>
-      </div>
-
-      <!-- Number of posts -->
-      <div>
-        <span class="lbl">Number of Posts</span>
-        <div class="count-grp" id="countGroup">
-          <button class="count-btn" data-val="1">1</button>
-          <button class="count-btn" data-val="2">2</button>
-          <button class="count-btn active-mono" data-val="3">3</button>
-          <button class="count-btn" data-val="5">5</button>
-        </div>
-      </div>
-
-      <!-- Output type -->
-      <div>
-        <span class="lbl">Output Type</span>
-        <div class="tgl" id="outputGroup">
-          <button class="tgl-btn active" data-val="full">Full post</button>
-          <button class="tgl-btn" data-val="hook">Hook only</button>
-        </div>
-      </div>
-
-      <!-- Contrarian belief -->
-      <div class="filter-full">
-        <span class="lbl">Contrarian Belief <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
-        <textarea id="fContrarian" placeholder="What do you believe that most in your niche disagree with?" rows="2"></textarea>
-      </div>
-
-      <!-- Personal result -->
-      <div class="filter-full">
-        <span class="lbl">Personal Result to Include <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
-        <textarea id="fResult" placeholder="e.g. 3x revenue in 60 days, grew from 0 to 12,000 followers in 4 months" rows="2"></textarea>
-      </div>
-
     </div>
 
-    <div class="btn-action-row">
-      <button class="btn-primary" id="findTrendsBtn" disabled>
-        <div class="spinner" id="sp1"></div>
-        <svg id="sp1Icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <span id="sp1Label">Find Trending Topics</span>
+    <!-- STEP 2 -->
+    <div class="step-view" id="view2">
+      <button class="btn-back" id="backTo1">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to filters
       </button>
-      <div class="err" id="err1"></div>
+      <h2 class="section-title">Trending topics</h2>
+      <p class="section-sub" id="trendsSubLabel">Check the topics you want your posts based on.</p>
+
+      <div class="card">
+        <div class="trends-loading" id="trendsLoading">
+          <div class="loader-ring"></div>
+          <div class="trends-loading-label">Scanning Reddit, Hacker News, and News...</div>
+          <div class="trends-loading-sub" id="trendsLoadingSub">Fetching hot posts in your niche</div>
+        </div>
+        <div class="trends-list" id="trendsList">
+          <div class="select-row">
+            <button class="sel-link" id="selAllBtn">Select all</button>
+            <button class="sel-link" id="selNoneBtn">Deselect all</button>
+            <span class="trend-count-note" id="trendCountNote"></span>
+          </div>
+          <div id="trendsItems"></div>
+          <div class="trends-empty" id="trendsEmpty" style="display:none">No trending topics found. Try a different niche or trend window.</div>
+        </div>
+        <div class="btn-action-row">
+          <button class="btn-primary" id="generateBtn" disabled>
+            <div class="spinner" id="sp2"></div>
+            <svg id="sp2Icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <span id="sp2Label">Generate Posts</span>
+          </button>
+          <div class="err" id="err2"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- STEP 3 -->
+    <div class="step-view" id="view3">
+      <button class="btn-back" id="backTo2">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to trends
+      </button>
+      <div class="posts-loading" id="postsLoading">
+        <div class="loader-ring"></div>
+        <div class="trends-loading-label">Writing your posts...</div>
+        <div class="trends-loading-sub">Applying all 6 viral frameworks</div>
+        <div id="skelGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:28px;text-align:left"></div>
+      </div>
+      <div id="postsResults" style="display:none">
+        <div class="results-bar">
+          <span class="results-label" id="postsResultsLabel"></span>
+          <button class="regen-all-btn" id="regenAllBtn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+            Regenerate all
+          </button>
+        </div>
+        <div class="posts-grid" id="postsGrid"></div>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     CLOSING / SIGNATURE
+══════════════════════════════════════════════════ -->
+<section id="closing">
+  <div class="closing-glow"></div>
+  <div class="closing-inner">
+
+    <div class="closing-eyebrow">Built with one obsession</div>
+
+    <h2 class="closing-headline">Content should not be this hard.<br>So I made it easy.</h2>
+
+    <div class="closing-body">
+      <p>Most creators spend hours staring at a blank screen.</p>
+      <p>They do not know what to say. They do not know what is trending. They do not know if anyone will care.</p>
+      <p>I built XLink because that problem deserved a real solution. Not a template library. Not a prompt sheet. A tool that finds what is already working, understands your niche, and writes posts people actually read.</p>
+      <p>It is free. It will stay free. Because good tools should be accessible to everyone building something worth building.</p>
+    </div>
+
+    <div class="closing-sig">
+      <div class="sig-photo-wrap">
+        <div class="sig-photo-ring"></div>
+        <img
+          src="/usama.jpg"
+          alt="Usama Ashraf"
+          class="sig-photo"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        />
+        <div class="sig-photo-fallback" style="display:none">UA</div>
+      </div>
+
+      <div class="sig-info">
+        <div class="sig-dash">— Usama Ashraf</div>
+        <div class="sig-title">Founder, XLink</div>
+        <div class="sig-divider"></div>
+        <a href="https://www.linkedin.com/in/sellwithusama/" target="_blank" rel="noopener noreferrer" class="sig-linkedin">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+          Connect on LinkedIn
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="footer-bar">
+  Built by Usama Ashraf &nbsp;&middot;&nbsp; XLink &nbsp;&middot;&nbsp; Free forever
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     LEAD CAPTURE MODAL (required gate before generate)
+══════════════════════════════════════════════════ -->
+<div class="lead-overlay" id="leadOverlay">
+  <div class="lead-modal">
+    <div class="lead-modal-glow"></div>
+    <div class="lead-badge"><span class="lead-badge-dot"></span>Free forever</div>
+    <h3 class="lead-title">One quick thing before we write</h3>
+    <p class="lead-sub">XLink is free. In return, tell me who you are so I can send you what is actually working. Drop at least one below.</p>
+
+    <div class="lead-field"><input class="lead-input" id="leadName" placeholder="Your name" autocomplete="name"/></div>
+    <div class="lead-field"><input class="lead-input" id="leadEmail" type="email" placeholder="Email" autocomplete="email"/></div>
+    <div class="lead-field"><input class="lead-input" id="leadLinkedin" placeholder="LinkedIn URL or handle"/></div>
+    <div class="lead-field"><input class="lead-input" id="leadTwitter" placeholder="X (Twitter) handle"/></div>
+
+    <label class="lead-check-row"><input type="checkbox" class="lead-check" id="leadStarting"/> I am just starting out</label>
+
+    <div class="lead-err" id="leadErr"></div>
+
+    <button class="btn-primary" id="leadSubmit">
+      <div class="spinner" id="leadSpinner"></div>
+      <span id="leadSubmitLabel">Continue to my posts</span>
+    </button>
+    <p class="lead-foot">At least one contact (email, LinkedIn, or X) is required. No spam, ever.</p>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ STEP 2 ═══ -->
-<div class="step-view" id="view2">
-  <button class="btn-back" id="backTo1">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-    Back to filters
-  </button>
-
-  <h1 class="section-title">Trending topics</h1>
-  <p class="section-sub" id="trendsSubLabel">Check the topics you want your posts to be based on.</p>
-
-  <div class="card">
-    <!-- Loading -->
-    <div class="trends-loading" id="trendsLoading">
-      <div class="loader-ring"></div>
-      <div class="trends-loading-label">Scanning Reddit, Hacker News, and News...</div>
-      <div class="trends-loading-sub" id="trendsLoadingSub">Fetching hot posts in your niche</div>
-    </div>
-
-    <!-- Trends list -->
-    <div class="trends-list" id="trendsList">
-      <div class="select-row">
-        <button class="sel-link" id="selAllBtn">Select all</button>
-        <button class="sel-link" id="selNoneBtn">Deselect all</button>
-        <span class="trend-count-note" id="trendCountNote"></span>
-      </div>
-      <div id="trendsItems"></div>
-      <div class="trends-empty" id="trendsEmpty" style="display:none">No trending topics found for this niche. Try a different niche or trend window.</div>
-    </div>
-
-    <div class="btn-action-row">
-      <button class="btn-primary" id="generateBtn" disabled>
-        <div class="spinner" id="sp2"></div>
-        <svg id="sp2Icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        <span id="sp2Label">Generate Posts</span>
-      </button>
-      <div class="err" id="err2"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════ STEP 3 ═══ -->
-<div class="step-view" id="view3">
-  <button class="btn-back" id="backTo2">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-    Back to trends
-  </button>
-
-  <!-- Loading -->
-  <div class="posts-loading" id="postsLoading">
-    <div class="loader-ring"></div>
-    <div class="trends-loading-label">Writing your posts...</div>
-    <div class="trends-loading-sub">Applying all 6 viral frameworks</div>
-    <div id="skelGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:28px;text-align:left"></div>
-  </div>
-
-  <!-- Results -->
-  <div id="postsResults" style="display:none">
-    <div class="results-bar">
-      <span class="results-label" id="postsResultsLabel"></span>
-      <button class="regen-all-btn" id="regenAllBtn">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
-          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-        Regenerate all
-      </button>
-    </div>
-    <div class="posts-grid" id="postsGrid"></div>
-  </div>
-</div>
-
-</div><!-- /page -->
-
+<!-- ══════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════ -->
 <script>
-// ─── Niche data ───────────────────────────────────────────────────────────────
 const NICHES = {
-  'Business':          ['Agency','Consulting','Freelancing','SaaS','Startup','E-commerce','Dropshipping','Amazon FBA','Real Estate','Investing','Crypto','Stock Market','Personal Finance','Insurance','Accounting','B2B Sales','Venture Capital','Side Hustles','Monetization','Private Equity'],
-  'Marketing':         ['SEO','Paid Ads','Email Marketing','Social Media','Content Marketing','Copywriting','Branding','PR','Influencer Marketing','Affiliate Marketing','Video Marketing','TikTok Growth','LinkedIn Growth','Community Building','Conversion Optimization'],
-  'Health & Fitness':  ['Weight Loss','Bodybuilding','Nutrition','Yoga','Mental Health','Meditation','Running','CrossFit','Biohacking','Longevity','Sleep Optimization','Fasting','Cycling','Martial Arts','Flexibility'],
-  'Creator Economy':   ['YouTube','Podcasting','Newsletter','Blogging','Twitch Streaming','Photography','Videography','Graphic Design','UI/UX','Substack','Course Creation','Personal Branding','Ghostwriting','Notion Templates'],
-  'Career':            ['Job Hunting','Remote Work','Productivity','Leadership','Management','Public Speaking','Personal Development','Career Coaching','Networking','Resume Writing','Executive Coaching','Negotiation'],
-  'Education':         ['Online Courses','Tutoring','Parenting','Homeschooling','Language Learning','E-Learning','EdTech','Study Skills'],
-  'Lifestyle':         ['Travel','Fashion','Food & Cooking','Relationships','Dating','Minimalism','Sustainability','Luxury Lifestyle','Spirituality'],
-  'Tech':              ['AI Tools','No-Code','Web Development','Cybersecurity','Blockchain','Gaming','Data Science','DevOps','SaaS Tools','Automation','Prompt Engineering','AR/VR','Mobile Development','Cloud Computing'],
-  'Niche Professions': ['Law','Medicine','Dentistry','Architecture','Interior Design','Wedding','Pets','Cars & Automotive','Sports Coaching','Finance Coaching','Therapy & Counseling','Chiropractic','Veterinary'],
+  'Business & Entrepreneurship': ['Agency owner','Freelancer','Consultant','Business coach','Executive coach','Life coach','Startup founder','SaaS founder','Bootstrapped founder','VC-backed founder','E-commerce brand','Dropshipping','Amazon FBA','Print on demand','Wholesale','B2B sales','B2C sales','Sales coach','Business development','Franchise owner','Brick and mortar','Restaurant owner','Retail store','Service business','Productized service','Info product creator','Course creator','Membership site','Mastermind host','Community builder'],
+  'Marketing & Growth': ['SEO','Paid ads','Facebook ads','Google ads','TikTok ads','Email marketing','SMS marketing','Content marketing','Copywriting','Direct response','Conversion rate optimization','Landing page design','Funnel building','Growth hacking','Viral marketing','Influencer marketing','Affiliate marketing','Partnership marketing','Community marketing','Event marketing','PR and media','Podcast marketing','Video marketing','Short form content','Long form content','Newsletter','Personal branding','Thought leadership','LinkedIn growth','X (Twitter) growth','Instagram growth','TikTok growth','YouTube growth'],
+  'Finance & Investing': ['Personal finance','Budgeting','Debt payoff','Financial independence','FIRE movement','Stock market investing','Index funds','Day trading','Options trading','Crypto investing','Bitcoin','DeFi','NFTs','Real estate investing','Rental properties','House flipping','Commercial real estate','REITs','Angel investing','Venture capital','Private equity','Family office','Wealth management','Tax strategy','Accounting','Bookkeeping','CFO services','Financial planning','Retirement planning','Insurance'],
+  'Health & Wellness': ['Weight loss','Fat loss','Muscle building','Bodybuilding','Powerlifting','Olympic lifting','CrossFit','Calisthenics','Running','Marathon training','Triathlon','Cycling','Swimming','Yoga','Pilates','Stretching','Mobility','Functional fitness','Sports performance','Athletic training','Nutrition coaching','Meal planning','Macro counting','Keto diet','Carnivore diet','Vegan diet','Intermittent fasting','Gut health','Hormone health','Biohacking','Longevity','Sleep optimization','Stress management','Mental health','Anxiety','Depression','Therapy','Mindfulness','Meditation','Breathwork'],
+  'Creator & Media': ['YouTuber','Podcaster','Blogger','Newsletter writer','Substack writer','Ghostwriter','Speechwriter','Author','Self-publishing','Traditional publishing','Journalist','Documentarian','Filmmaker','Photographer','Videographer','Editor','Motion graphics','Animation','Graphic designer','UI/UX designer','Brand designer','Web designer','Illustrator','Comic creator','Game developer','Indie hacker','App developer','No-code builder','Prompt engineer','AI tools creator'],
+  'Career & Professional': ['Job hunting','Resume writing','Interview coaching','Career coaching','Executive career','Leadership development','Management consulting','Strategy consulting','HR consulting','Recruiting','Talent acquisition','Executive search','Organizational development','Team building','Remote work','Digital nomad','Work life balance','Productivity','Time management','Project management','Agile','Scrum','Operations','Process improvement','Six sigma','Supply chain','Logistics'],
+  'Education & Learning': ['Online education','Tutoring','Test prep','Language learning','Kids education','Homeschooling','College admissions','MBA','Law school','Medical school','Professional certification','Skill development','Corporate training','Learning and development','Instructional design','Curriculum design','EdTech'],
+  'Tech & Engineering': ['Software engineering','Frontend development','Backend development','Full stack','Mobile development','iOS','Android','DevOps','Cloud computing','AWS','Data science','Machine learning','AI development','Cybersecurity','Blockchain development','Web3','AR/VR','IoT','Hardware','Robotics','Automation','No-code development','Low-code'],
+  'Lifestyle & Culture': ['Travel','Budget travel','Luxury travel','Van life','Expat life','Minimalism','Sustainability','Zero waste','Fashion','Streetwear','Luxury fashion','Beauty','Skincare','Haircare','Food and cooking','Baking','Wine','Coffee','Relationships','Dating','Marriage','Parenting','Fatherhood','Motherhood','Divorce','Self-improvement','Stoicism','Philosophy','Spirituality','Religion','Astrology','True crime','Sports','Football','Basketball','Soccer','Tennis','Golf','Motorsports','Esports','Chess','Cars','Motorcycles','Sneakers','Watches','Luxury goods','Pets','Dogs','Horses'],
 }
 
-// ─── State ────────────────────────────────────────────────────────────────────
 const filters = {
-  niche: '', platform: 'x-post', tone: 'motivational', pov: 'first person (I)',
-  hookType: 'bold claim', postGoal: 'grow followers', targetAudience: 'beginners',
-  cta: 'comment below', writingStyle: 'short punchy lines', trendWindow: '24h',
-  count: 3, outputType: 'full', contrarianBelief: '', personalResult: '',
+  niche:'',topic:'',referencePosts:'',platform:'x-post',tone:'motivational',pov:'first person (I)',
+  hookType:'bold claim',postGoal:'grow followers',targetAudience:'beginners',
+  cta:'comment below',writingStyle:'short punchy lines',trendWindow:'24h',
+  count:3,outputType:'full',contrarianBelief:'',personalResult:'',
 }
-let allTrends   = []
-let lastFilters = null
-let lastTrends  = null
+let allTrends=[], lastFilters=null, lastTrends=null
 
-// ─── Step navigation ──────────────────────────────────────────────────────────
+// ── Step navigation ──
 function goToStep(n) {
-  document.querySelectorAll('.step-view').forEach(v => v.classList.remove('active'))
-  document.getElementById('view' + n).classList.add('active')
-  document.getElementById('navStepLabel').textContent = `Step ${n} of 3`
-  ;[1,2,3].forEach(i => {
-    const circ  = document.getElementById('sc'+i)
-    const label = document.getElementById('sl'+i)
-    circ.classList.remove('active','done')
-    label.classList.remove('active','done')
-    if (i < n)  { circ.classList.add('done');   label.classList.add('done')   }
-    if (i === n){ circ.classList.add('active');  label.classList.add('active') }
+  document.querySelectorAll('.step-view').forEach(v=>v.classList.remove('active'))
+  document.getElementById('view'+n).classList.add('active')
+  ;[1,2,3].forEach(i=>{
+    const c=document.getElementById('sc'+i),l=document.getElementById('sl'+i)
+    c.classList.remove('active','done');l.classList.remove('active','done')
+    if(i<n){c.classList.add('done');l.classList.add('done')}
+    if(i===n){c.classList.add('active');l.classList.add('active')}
   })
-  ;[1,2].forEach(i => {
-    document.getElementById('line'+i).classList.toggle('done', i < n)
-  })
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  ;[1,2].forEach(i=>document.getElementById('line'+i).classList.toggle('done',i<n))
+  document.getElementById('app').scrollIntoView({behavior:'smooth'})
 }
 
-// ─── Niche dropdown ───────────────────────────────────────────────────────────
-function buildNicheList(q = '') {
-  const list = document.getElementById('nicheList')
-  list.innerHTML = ''
-  const lq = q.toLowerCase().trim()
-  let any = false
-  for (const [cat, items] of Object.entries(NICHES)) {
-    const filtered = lq ? items.filter(i => i.toLowerCase().includes(lq)) : items
-    if (!filtered.length) continue
-    any = true
-    if (!lq) {
-      const h = document.createElement('div')
-      h.className = 'dd-cat'
-      h.textContent = cat
-      list.appendChild(h)
-    }
-    filtered.forEach(item => {
-      const el = document.createElement('div')
-      el.className = 'dd-opt' + (item === filters.niche ? ' sel' : '')
-      el.textContent = item
-      el.addEventListener('click', () => {
-        filters.niche = item
-        document.getElementById('nicheTriggerVal').textContent = item
+// ── Niche dropdown ──
+function buildNicheList(q=''){
+  const list=document.getElementById('nicheList');list.innerHTML=''
+  const lq=q.toLowerCase().trim();let any=false
+  for(const[cat,items] of Object.entries(NICHES)){
+    const f=lq?items.filter(i=>i.toLowerCase().includes(lq)):items
+    if(!f.length)continue;any=true
+    if(!lq){const h=document.createElement('div');h.className='dd-cat';h.textContent=cat;list.appendChild(h)}
+    f.forEach(item=>{
+      const el=document.createElement('div');el.className='dd-opt'+(item===filters.niche?' sel':'');el.textContent=item
+      el.addEventListener('click',()=>{
+        filters.niche=item
+        document.getElementById('nicheTriggerVal').textContent=item
         document.getElementById('nicheTriggerVal').classList.remove('ph')
-        closeDD()
-        updateFindBtn()
-      })
-      list.appendChild(el)
+        closeDD();updateFindBtn()
+      });list.appendChild(el)
     })
   }
-  if (!any) {
-    const e = document.createElement('div')
-    e.className = 'dd-empty'
-    e.textContent = `No niches match "${q}"`
-    list.appendChild(e)
-  }
+  if(!any){const e=document.createElement('div');e.className='dd-empty';e.textContent=`No niches match "${q}"`;list.appendChild(e)}
 }
-
-function openDD() {
+function openDD(){
   document.getElementById('nichePanel').classList.add('open')
   document.getElementById('nicheTrigger').classList.add('open')
-  document.getElementById('nicheSearch').value = ''
-  buildNicheList()
-  setTimeout(() => document.getElementById('nicheSearch').focus(), 40)
+  document.getElementById('nicheSearch').value='';buildNicheList()
+  setTimeout(()=>document.getElementById('nicheSearch').focus(),40)
 }
-function closeDD() {
+function closeDD(){
   document.getElementById('nichePanel').classList.remove('open')
   document.getElementById('nicheTrigger').classList.remove('open')
 }
+document.getElementById('nicheTrigger').addEventListener('click',e=>{e.stopPropagation();document.getElementById('nichePanel').classList.contains('open')?closeDD():openDD()})
+document.getElementById('nicheSearch').addEventListener('input',e=>buildNicheList(e.target.value))
+document.getElementById('nicheSearch').addEventListener('click',e=>e.stopPropagation())
+document.getElementById('nichePanel').addEventListener('click',e=>e.stopPropagation())
+document.addEventListener('click',closeDD)
 
-document.getElementById('nicheTrigger').addEventListener('click', e => { e.stopPropagation(); document.getElementById('nichePanel').classList.contains('open') ? closeDD() : openDD() })
-document.getElementById('nicheSearch').addEventListener('input', e => buildNicheList(e.target.value))
-document.getElementById('nicheSearch').addEventListener('click', e => e.stopPropagation())
-document.getElementById('nichePanel').addEventListener('click', e => e.stopPropagation())
-document.addEventListener('click', closeDD)
-
-// ─── Filter controls ──────────────────────────────────────────────────────────
-function makeTglGroup(id, key, monoStyle) {
-  document.getElementById(id).addEventListener('click', e => {
-    const btn = e.target.closest('[data-val]')
-    if (!btn) return
-    document.querySelectorAll(`#${id} [data-val]`).forEach(b => b.classList.remove('active', 'active-mono'))
-    btn.classList.add(monoStyle ? 'active-mono' : 'active')
-    filters[key] = btn.dataset.val
+// ── Filter controls ──
+function makeTgl(id,key,mono){
+  document.getElementById(id).addEventListener('click',e=>{
+    const b=e.target.closest('[data-val]');if(!b)return
+    document.querySelectorAll(`#${id} [data-val]`).forEach(x=>x.classList.remove('active','active-mono'))
+    b.classList.add(mono?'active-mono':'active');filters[key]=b.dataset.val
   })
 }
-makeTglGroup('platformGroup',    'platform',    false)
-makeTglGroup('trendWindowGroup', 'trendWindow', false)
-makeTglGroup('outputGroup',      'outputType',  false)
-makeTglGroup('countGroup',       'count',       true)
-
+makeTgl('platformGroup','platform',false)
+makeTgl('trendWindowGroup','trendWindow',false)
+makeTgl('outputGroup','outputType',false)
+makeTgl('countGroup','count',true)
 ;[['fTone','tone'],['fPov','pov'],['fHookType','hookType'],['fGoal','postGoal'],
-  ['fAudience','targetAudience'],['fCta','cta'],['fStyle','writingStyle']].forEach(([id,key]) => {
-  document.getElementById(id).addEventListener('change', e => { filters[key] = e.target.value })
+  ['fAudience','targetAudience'],['fCta','cta'],['fStyle','writingStyle']].forEach(([id,key])=>{
+  document.getElementById(id).addEventListener('change',e=>{filters[key]=e.target.value})
 })
+document.getElementById('fContrarian').addEventListener('input',e=>{filters.contrarianBelief=e.target.value})
+document.getElementById('fResult').addEventListener('input',e=>{filters.personalResult=e.target.value})
+document.getElementById('fTopic').addEventListener('input',e=>{filters.topic=e.target.value;updateFindBtn()})
+document.getElementById('fRefPosts').addEventListener('input',e=>{filters.referencePosts=e.target.value})
+function updateFindBtn(){document.getElementById('findTrendsBtn').disabled=!(filters.niche&&filters.topic.trim())}
 
-document.getElementById('fContrarian').addEventListener('input', e => { filters.contrarianBelief = e.target.value })
-document.getElementById('fResult').addEventListener('input', e => { filters.personalResult = e.target.value })
-
-function updateFindBtn() {
-  document.getElementById('findTrendsBtn').disabled = !filters.niche
-}
-
-// ─── Step 1 → Step 2 ─────────────────────────────────────────────────────────
-document.getElementById('findTrendsBtn').addEventListener('click', async () => {
-  const btn   = document.getElementById('findTrendsBtn')
-  const sp    = document.getElementById('sp1')
-  const icon  = document.getElementById('sp1Icon')
-  const label = document.getElementById('sp1Label')
-  const err   = document.getElementById('err1')
-
-  err.style.display = 'none'
-  btn.disabled = true
-  sp.style.display = 'block'
-  icon.style.display = 'none'
-  label.textContent  = 'Scanning...'
-
+// ── Step 1 → 2 ──
+document.getElementById('findTrendsBtn').addEventListener('click',async()=>{
+  const btn=document.getElementById('findTrendsBtn')
+  const sp=document.getElementById('sp1'),icon=document.getElementById('sp1Icon'),lbl=document.getElementById('sp1Label')
+  document.getElementById('err1').style.display='none'
+  btn.disabled=true;sp.style.display='block';icon.style.display='none';lbl.textContent='Scanning...'
   goToStep(2)
-  document.getElementById('trendsLoading').style.display = 'block'
-  document.getElementById('trendsList').style.display    = 'none'
-  document.getElementById('generateBtn').disabled        = true
-
-  try {
-    const res  = await fetch('/api/trends', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ niche: filters.niche, trendWindow: filters.trendWindow }),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'Failed to fetch trends')
-    allTrends = data.trends || []
-    renderTrends(allTrends)
-  } catch (e) {
-    document.getElementById('trendsLoading').style.display = 'none'
-    document.getElementById('trendsList').style.display    = 'block'
-    document.getElementById('trendsItems').innerHTML       = ''
-    document.getElementById('trendsEmpty').style.display   = 'block'
-    document.getElementById('err2').textContent = e.message
-    document.getElementById('err2').style.display = 'block'
-  } finally {
-    btn.disabled = false
-    sp.style.display   = 'none'
-    icon.style.display = 'block'
-    label.textContent  = 'Find Trending Topics'
+  document.getElementById('trendsLoading').style.display='block'
+  document.getElementById('trendsList').style.display='none'
+  document.getElementById('generateBtn').disabled=true
+  try{
+    const res=await fetch('/api/trends',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({niche:filters.niche,trendWindow:filters.trendWindow})})
+    const data=await res.json()
+    if(!res.ok)throw new Error(data.error||'Failed to fetch trends')
+    allTrends=data.trends||[];renderTrends(allTrends)
+  }catch(e){
+    document.getElementById('trendsLoading').style.display='none'
+    document.getElementById('trendsList').style.display='block'
+    document.getElementById('trendsItems').innerHTML=''
+    document.getElementById('trendsEmpty').style.display='block'
+    document.getElementById('err2').textContent=e.message;document.getElementById('err2').style.display='block'
+  }finally{
+    btn.disabled=false;sp.style.display='none';icon.style.display='block';lbl.textContent='Find Trending Topics'
   }
 })
 
-// ─── Render trends ────────────────────────────────────────────────────────────
-function renderTrends(trends) {
-  document.getElementById('trendsLoading').style.display = 'none'
-  document.getElementById('trendsList').style.display    = 'block'
-  document.getElementById('err2').style.display          = 'none'
-
-  const container = document.getElementById('trendsItems')
-  container.innerHTML = ''
-
-  if (!trends.length) {
-    document.getElementById('trendsEmpty').style.display = 'block'
-    document.getElementById('generateBtn').disabled      = true
-    return
-  }
-  document.getElementById('trendsEmpty').style.display = 'none'
-
-  document.getElementById('trendsSubLabel').textContent = `Found ${trends.length} trending topics. Check the ones you want used.`
-
-  trends.forEach((t, i) => {
-    const row = document.createElement('div')
-    row.className = 'trend-item checked'
-    row.dataset.idx = i
-
-    const typeClass = t.type === 'reddit' ? 'reddit' : t.type === 'hackernews' ? 'hackernews' : 'news'
-    const scoreHtml = t.score != null ? `<span class="trend-score">${t.score.toLocaleString()} pts</span>` : ''
-
-    row.innerHTML = `
-      <input class="trend-check" type="checkbox" checked data-idx="${i}" id="tc${i}"/>
+// ── Render trends ──
+function renderTrends(trends){
+  document.getElementById('trendsLoading').style.display='none'
+  document.getElementById('trendsList').style.display='block'
+  document.getElementById('err2').style.display='none'
+  const container=document.getElementById('trendsItems');container.innerHTML=''
+  if(!trends.length){document.getElementById('trendsEmpty').style.display='block';document.getElementById('generateBtn').disabled=true;return}
+  document.getElementById('trendsEmpty').style.display='none'
+  document.getElementById('trendsSubLabel').textContent=`Found ${trends.length} trending topics. Check the ones you want used.`
+  trends.forEach((t,i)=>{
+    const row=document.createElement('div');row.className='trend-item checked';row.dataset.idx=i
+    const tc=t.type==='reddit'?'reddit':t.type==='hackernews'?'hackernews':'news'
+    const sc=t.score!=null?`<span class="trend-score">${t.score.toLocaleString()} pts</span>`:''
+    row.innerHTML=`<input class="trend-check" type="checkbox" checked data-idx="${i}" id="tc${i}"/>
       <div class="trend-body">
         <div class="trend-title">${escHtml(t.title)}</div>
-        <div class="trend-meta">
-          <span class="source-badge ${typeClass}">${escHtml(t.source)}</span>
-          ${scoreHtml}
-        </div>
+        <div class="trend-meta"><span class="source-badge ${tc}">${escHtml(t.source)}</span>${sc}</div>
       </div>`
-
-    // Click row = toggle checkbox
-    row.addEventListener('click', e => {
-      if (e.target.classList.contains('trend-check')) return
-      const cb = row.querySelector('.trend-check')
-      cb.checked = !cb.checked
-      row.classList.toggle('checked', cb.checked)
-      updateGenerateBtn()
+    row.addEventListener('click',e=>{
+      if(e.target.classList.contains('trend-check'))return
+      const cb=row.querySelector('.trend-check');cb.checked=!cb.checked
+      row.classList.toggle('checked',cb.checked);updateGenerateBtn()
     })
-    row.querySelector('.trend-check').addEventListener('change', () => {
-      row.classList.toggle('checked', row.querySelector('.trend-check').checked)
-      updateGenerateBtn()
-    })
-
+    row.querySelector('.trend-check').addEventListener('change',()=>{row.classList.toggle('checked',row.querySelector('.trend-check').checked);updateGenerateBtn()})
     container.appendChild(row)
   })
-
-  updateTrendCountNote()
-  updateGenerateBtn()
+  updateTrendCountNote();updateGenerateBtn()
 }
+function getCheckedTrends(){return Array.from(document.querySelectorAll('.trend-check:checked')).map(cb=>allTrends[parseInt(cb.dataset.idx)]).filter(Boolean)}
+function updateGenerateBtn(){document.getElementById('generateBtn').disabled=getCheckedTrends().length===0;updateTrendCountNote()}
+function updateTrendCountNote(){document.getElementById('trendCountNote').textContent=getCheckedTrends().length+' selected'}
+document.getElementById('selAllBtn').addEventListener('click',()=>{document.querySelectorAll('.trend-check').forEach(cb=>{cb.checked=true;cb.closest('.trend-item').classList.add('checked')});updateGenerateBtn()})
+document.getElementById('selNoneBtn').addEventListener('click',()=>{document.querySelectorAll('.trend-check').forEach(cb=>{cb.checked=false;cb.closest('.trend-item').classList.remove('checked')});updateGenerateBtn()})
 
-function getCheckedTrends() {
-  return Array.from(document.querySelectorAll('.trend-check:checked'))
-    .map(cb => allTrends[parseInt(cb.dataset.idx)])
-    .filter(Boolean)
-}
+// ── Lead capture gate (required before first generate) ──
+const LEAD_KEY='xlink_lead_v1'
+let pendingAfterLead=null
+function hasLead(){try{return !!localStorage.getItem(LEAD_KEY)}catch(e){return false}}
+function openLeadModal(cb){pendingAfterLead=cb;document.getElementById('leadErr').style.display='none';document.getElementById('leadOverlay').classList.add('open');setTimeout(()=>document.getElementById('leadName').focus(),60)}
+function closeLeadModal(){document.getElementById('leadOverlay').classList.remove('open')}
 
-function updateGenerateBtn() {
-  document.getElementById('generateBtn').disabled = getCheckedTrends().length === 0
-  updateTrendCountNote()
-}
-
-function updateTrendCountNote() {
-  const n = getCheckedTrends().length
-  document.getElementById('trendCountNote').textContent = `${n} selected`
-}
-
-document.getElementById('selAllBtn').addEventListener('click', () => {
-  document.querySelectorAll('.trend-check').forEach(cb => { cb.checked = true; cb.closest('.trend-item').classList.add('checked') })
-  updateGenerateBtn()
+document.getElementById('leadSubmit').addEventListener('click',async()=>{
+  const name=document.getElementById('leadName').value.trim()
+  const email=document.getElementById('leadEmail').value.trim()
+  const linkedin=document.getElementById('leadLinkedin').value.trim()
+  const twitter=document.getElementById('leadTwitter').value.trim()
+  const startingOut=document.getElementById('leadStarting').checked
+  const err=document.getElementById('leadErr')
+  if(!email&&!linkedin&&!twitter){err.textContent='Please add at least one: email, LinkedIn, or X handle.';err.style.display='block';return}
+  if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.textContent='That email does not look right. Check it or use LinkedIn/X instead.';err.style.display='block';return}
+  err.style.display='none'
+  const btn=document.getElementById('leadSubmit'),sp=document.getElementById('leadSpinner'),lbl=document.getElementById('leadSubmitLabel')
+  btn.disabled=true;sp.style.display='block';lbl.textContent='Saving...'
+  const lead={name,email,linkedin,twitter,startingOut,niche:filters.niche,topic:filters.topic}
+  try{
+    await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lead)})
+  }catch(e){/* best-effort: never trap the user on a network hiccup */}
+  try{localStorage.setItem(LEAD_KEY,JSON.stringify({...lead,at:Date.now()}))}catch(e){}
+  btn.disabled=false;sp.style.display='none';lbl.textContent='Continue to my posts'
+  closeLeadModal()
+  const cb=pendingAfterLead;pendingAfterLead=null
+  if(cb)cb()
 })
-document.getElementById('selNoneBtn').addEventListener('click', () => {
-  document.querySelectorAll('.trend-check').forEach(cb => { cb.checked = false; cb.closest('.trend-item').classList.remove('checked') })
-  updateGenerateBtn()
+
+// ── Step 2 → 3 ──
+document.getElementById('generateBtn').addEventListener('click',()=>{
+  if(hasLead())runGenerate()
+  else openLeadModal(()=>runGenerate())
 })
-
-// ─── Step 2 → Step 3 ─────────────────────────────────────────────────────────
-document.getElementById('generateBtn').addEventListener('click', () => runGenerate())
-
-async function runGenerate(singleTrend = null) {
-  const usedTrends = singleTrend ? [singleTrend] : getCheckedTrends()
-  const usedFilters = singleTrend
-    ? { ...filters, count: 1 }
-    : { ...filters, count: Number(document.querySelector('#countGroup .active-mono')?.dataset.val || 3) }
-
-  lastFilters = usedFilters
-  lastTrends  = usedTrends
-
+async function runGenerate(singleTrend=null){
+  const usedTrends=singleTrend?[singleTrend]:getCheckedTrends()
+  const usedFilters=singleTrend?{...filters,count:1}:{...filters,count:Number(document.querySelector('#countGroup .active-mono')?.dataset.val||3)}
+  lastFilters=usedFilters;lastTrends=usedTrends
   goToStep(3)
-  document.getElementById('postsLoading').style.display  = 'block'
-  document.getElementById('postsResults').style.display  = 'none'
-
+  document.getElementById('postsLoading').style.display='block'
+  document.getElementById('postsResults').style.display='none'
   showSkelCards(usedFilters.count)
-
-  try {
-    const res  = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filters: usedFilters, trends: usedTrends }),
-    })
-    const data = await res.json()
-    if (!res.ok || data.error) throw new Error(data.error || 'Unknown error')
-    renderPosts(data.posts, usedFilters, usedTrends)
-  } catch (e) {
-    document.getElementById('postsLoading').style.display = 'none'
-    document.getElementById('postsResults').style.display = 'block'
-    document.getElementById('postsGrid').style.display    = 'none'
-    document.getElementById('postsResultsLabel').textContent = 'Error: ' + e.message
+  try{
+    const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filters:usedFilters,trends:usedTrends})})
+    const data=await res.json()
+    if(!res.ok||data.error)throw new Error(data.error||'Unknown error')
+    renderPosts(data.posts,usedFilters,usedTrends)
+  }catch(e){
+    document.getElementById('postsLoading').style.display='none'
+    document.getElementById('postsResults').style.display='block'
+    document.getElementById('postsGrid').style.display='none'
+    document.getElementById('postsResultsLabel').textContent='Error: '+e.message
   }
 }
-
-// ─── Skeleton cards while loading ─────────────────────────────────────────────
-function showSkelCards(count) {
-  const g = document.getElementById('skelGrid')
-  g.innerHTML = ''
-  for (let i = 0; i < count; i++) {
-    g.innerHTML += `<div class="skel-card">
-      <div class="skel-ln" style="width:28%;height:9px;margin-bottom:14px"></div>
-      <div class="skel-ln" style="width:100%"></div>
-      <div class="skel-ln" style="width:90%"></div>
-      <div class="skel-ln" style="width:95%"></div>
-      <div class="skel-ln" style="width:78%"></div>
-      <div class="skel-ln" style="width:60%;margin-top:14px"></div>
-    </div>`
-  }
+function showSkelCards(count){
+  const g=document.getElementById('skelGrid');g.innerHTML=''
+  for(let i=0;i<count;i++)g.innerHTML+=`<div class="skel-card"><div class="skel-ln" style="width:28%;height:9px;margin-bottom:14px"></div><div class="skel-ln" style="width:100%"></div><div class="skel-ln" style="width:90%"></div><div class="skel-ln" style="width:95%"></div><div class="skel-ln" style="width:78%"></div><div class="skel-ln" style="width:60%;margin-top:14px"></div></div>`
 }
-
-// ─── Render generated posts ────────────────────────────────────────────────────
-const ALL_FW = ['STIMULATED','CAPTIVATED','ANTICIPATION','VALIDATION','AFFECTION','REVELATION']
-
-function renderPosts(posts, usedFilters, usedTrends) {
-  document.getElementById('postsLoading').style.display = 'none'
-  document.getElementById('postsResults').style.display = 'block'
-  document.getElementById('postsGrid').style.display    = 'grid'
-
-  const plat = usedFilters.platform === 'x-post' ? 'X Post' : usedFilters.platform === 'x-thread' ? 'X Thread' : 'LinkedIn'
-  document.getElementById('postsResultsLabel').textContent =
-    `${posts.length} post${posts.length !== 1 ? 's' : ''} for "${usedFilters.niche}" on ${plat}`
-
-  const grid = document.getElementById('postsGrid')
-  grid.innerHTML = ''
-
-  posts.forEach((post, idx) => {
-    const hit = new Set((post.frameworks || []).map(f => f.toUpperCase()))
-
-    const fwBadges = ALL_FW.map(fw =>
-      `<span class="fw-badge ${hit.has(fw) ? 'hit' : ''}">${fw.toLowerCase()}</span>`
-    ).join('')
-
-    const card = document.createElement('div')
-    card.className = 'post-card'
-    card.innerHTML = `
-      <div class="pc-top">
-        <div class="pc-badges">
-          <span class="fmt-badge">${escHtml(post.format || 'Post')}</span>
-        </div>
-      </div>
+const ALL_FW=['STIMULATED','CAPTIVATED','ANTICIPATION','VALIDATION','AFFECTION','REVELATION']
+function renderPosts(posts,usedFilters,usedTrends){
+  document.getElementById('postsLoading').style.display='none'
+  document.getElementById('postsResults').style.display='block'
+  document.getElementById('postsGrid').style.display='grid'
+  const plat=usedFilters.platform==='x-post'?'X Post':usedFilters.platform==='x-thread'?'X Thread':'LinkedIn'
+  document.getElementById('postsResultsLabel').textContent=`${posts.length} post${posts.length!==1?'s':''} for "${usedFilters.niche}" on ${plat}`
+  const grid=document.getElementById('postsGrid');grid.innerHTML=''
+  posts.forEach((post,idx)=>{
+    const hit=new Set((post.frameworks||[]).map(f=>f.toUpperCase()))
+    const fwBadges=ALL_FW.map(fw=>`<span class="fw-badge ${hit.has(fw)?'hit':''}">${fw.toLowerCase()}</span>`).join('')
+    const card=document.createElement('div');card.className='post-card'
+    card.innerHTML=`<div class="pc-top"><div class="pc-badges"><span class="fmt-badge">${escHtml(post.format||'Post')}</span></div></div>
       <div class="pc-badges" style="margin-bottom:10px;gap:4px;display:flex;flex-wrap:wrap">${fwBadges}</div>
-      ${post.source_title ? `<div class="post-source">Based on: ${escHtml(post.source_title)}</div>` : ''}
+      ${post.source_title?`<div class="post-source">Based on: ${escHtml(post.source_title)}</div>`:''}
       <div class="post-text">${escHtml(post.text)}</div>
-      <div class="post-reason">${escHtml(post.reason || '')}</div>
+      <div class="post-reason">${escHtml(post.reason||'')}</div>
       <div class="pc-actions">
         <button class="pc-btn copy-btn" data-text="${escAttr(post.text)}">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-          </svg>Copy
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy
         </button>
         <button class="pc-btn regen-btn-inline" data-idx="${idx}">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
-            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
-          </svg>Regenerate this
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Regenerate this
         </button>
       </div>`
-
-    // Copy
-    card.querySelector('.copy-btn').addEventListener('click', function() {
-      navigator.clipboard.writeText(this.dataset.text).then(() => {
+    card.querySelector('.copy-btn').addEventListener('click',function(){
+      navigator.clipboard.writeText(this.dataset.text).then(()=>{
         this.classList.add('copied')
-        this.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied`
-        setTimeout(() => {
-          this.classList.remove('copied')
-          this.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy`
-        }, 2000)
+        this.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied`
+        setTimeout(()=>{this.classList.remove('copied');this.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy`},2000)
       })
     })
-
-    // Regenerate single post — find the trend this post was based on
-    card.querySelector('.regen-btn-inline').addEventListener('click', async function() {
-      this.disabled = true
-      this.textContent = 'Writing...'
-      const sourceTrend = usedTrends.find(t => post.source_title && t.title === post.source_title)
-        || usedTrends[idx % usedTrends.length]
-      try {
-        const res  = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filters: { ...usedFilters, count: 1 }, trends: [sourceTrend] }),
-        })
-        const data = await res.json()
-        if (!res.ok || data.error) throw new Error(data.error)
-        // Replace just this card
-        const newPosts = [...posts]
-        newPosts[idx] = data.posts[0]
-        renderPosts(newPosts, usedFilters, usedTrends)
-      } catch (e) {
-        this.disabled = false
-        this.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Regenerate this`
-        alert('Error: ' + e.message)
-      }
+    card.querySelector('.regen-btn-inline').addEventListener('click',async function(){
+      this.disabled=true;this.textContent='Writing...'
+      const sourceTrend=usedTrends.find(t=>post.source_title&&t.title===post.source_title)||usedTrends[idx%usedTrends.length]
+      try{
+        const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filters:{...usedFilters,count:1},trends:[sourceTrend]})})
+        const data=await res.json()
+        if(!res.ok||data.error)throw new Error(data.error)
+        const np=[...posts];np[idx]=data.posts[0];renderPosts(np,usedFilters,usedTrends)
+      }catch(e){this.disabled=false;this.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Regenerate this`;alert('Error: '+e.message)}
     })
-
     grid.appendChild(card)
   })
 }
-
-// ─── Regen all ────────────────────────────────────────────────────────────────
-document.getElementById('regenAllBtn').addEventListener('click', () => {
-  if (lastFilters && lastTrends) runGenerate()
-})
-
-// ─── Back navigation ──────────────────────────────────────────────────────────
-document.getElementById('backTo1').addEventListener('click', () => goToStep(1))
-document.getElementById('backTo2').addEventListener('click', () => goToStep(2))
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+document.getElementById('regenAllBtn').addEventListener('click',()=>{if(lastFilters&&lastTrends)runGenerate()})
+document.getElementById('backTo1').addEventListener('click',()=>goToStep(1))
+document.getElementById('backTo2').addEventListener('click',()=>goToStep(2))
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function escAttr(s){return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-
-// Init
 buildNicheList()
 </script>
 </body>

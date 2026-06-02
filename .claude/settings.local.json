@@ -17,7 +17,11 @@
       "Bash(curl -s http://localhost:3000/health)",
       "Bash(curl -s -X POST http://localhost:3000/api/trends -H 'Content-Type: application/json' -d '{\"niche\":\"SaaS\",\"trendWindow\":\"24h\"}')",
       "Bash(node -e ' *)",
-      "Bash(curl -s -X POST http://localhost:3000/api/trends -H 'Content-Type: application/json' -d '{\"niche\":\"SaaS\",\"trendWindow\":\"7d\"}')"
+      "Bash(curl -s -X POST http://localhost:3000/api/trends -H 'Content-Type: application/json' -d '{\"niche\":\"SaaS\",\"trendWindow\":\"7d\"}')",
+      "Bash(find /tmp /var/folders -name \"*.jpg\" -o -name \"*.jpeg\" -o -name \"*.png\" 2>/dev/null | grep -v \".Trash\" | head -20)",
+      "Bash(cp /Users/usamaashraf/Downloads/DSC09600.jpg /Users/usamaashraf/xlink/public/usama.jpg && echo \"copied\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/trends -H \"Content-Type: application/json\" -d '{\"niche\":\"Agency owner\",\"trendWindow\":\"7d\"}')",
+      "Bash(node -e \"const p=JSON.parse\\(require\\('fs'\\).readFileSync\\(0,'utf8'\\)\\);console.log\\('trends:',p.trends?.length\\);p.trends?.slice\\(0,4\\).forEach\\(t=>console.log\\(' ['+t.source+']',t.title?.slice\\(0,55\\)\\)\\)\")"
     ]
   }
 }
