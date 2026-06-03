@@ -3,6 +3,7 @@ const Anthropic = require('@anthropic-ai/sdk')
 const path = require('path')
 const fs = require('fs')
 const crypto = require('crypto')
+const { refreshCache, getCachedFeed, isCacheStale, fetchAllFeeds } = require('./scraper/index.js')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -1235,6 +1236,39 @@ app.get('/api/admin/stats', requireAdmin, (_req, res) => {
   })
 })
 
+// GET /api/admin/feed-stats — full feed health breakdown
+app.get('/api/admin/feed-stats', requireAdmin, (_req, res) => {
+  const cache = getCachedFeed()
+  if (!cache) {
+    return res.json({ refreshedAt: null, totalArticles: 0, isStale: true, nextRefreshIn: null, byCategory: [], topSources: [] })
+  }
+  const sourceTotals = {}
+  const byCategory = Object.keys(cache.byCategory || {}).map(category => {
+    const arr = cache.byCategory[category] || []
+    const srcCount = {}
+    arr.forEach(a => { srcCount[a.source] = (srcCount[a.source] || 0) + 1; sourceTotals[a.source] = (sourceTotals[a.source] || 0) + 1 })
+    const sources = Object.entries(srcCount).sort((a, b) => b[1] - a[1]).map(s => s[0])
+    return { category, count: arr.length, sources }
+  }).sort((a, b) => b.count - a.count)
+
+  const topSources = Object.entries(sourceTotals).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name, count]) => ({ name, count }))
+  // minutes until next 6-hour refresh from last refresh
+  const elapsed = Date.now() - Date.parse(cache.refreshedAt)
+  const nextRefreshIn = Math.max(0, Math.round((6 * 60 * 60 * 1000 - elapsed) / 60000))
+
+  res.json({ refreshedAt: cache.refreshedAt, totalArticles: cache.totalArticles, isStale: isCacheStale(), nextRefreshIn, byCategory, topSources })
+})
+
+// POST /api/admin/feed-refresh — force an immediate refresh
+app.post('/api/admin/feed-refresh', requireAdmin, async (_req, res) => {
+  try {
+    const cache = await refreshCache()
+    res.json({ success: true, totalArticles: cache.totalArticles })
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message })
+  }
+})
+
 // GET /api/admin/users
 app.get('/api/admin/users', requireAdmin, (_req, res) => {
   const users = loadAllProfiles().map(summarizeProfile)
@@ -1348,57 +1382,87 @@ async function generateDailyIdeas() {
   let client
   try { client = getClient() } catch (e) { console.warn('[ideas] no API key, skipping'); return null }
 
-  const results = await Promise.allSettled([
-    rssItems('https://techcrunch.com/feed/', 'TechCrunch', 10),
-    rssItems('https://www.fastcompany.com/feed', 'Fast Company', 10),
-    hnTop(15),
-    redditHot('Entrepreneur', 10),
-    redditHot('freelance', 8),
-    redditHot('marketing', 8),
-    redditHot('SaaS', 8),
-    rssItems('https://www.producthunt.com/feed', 'Product Hunt', 8),
-  ])
+  const existing = readIdeasCache()
+
+  // Build the corpus from the background feed cache (sample 5-6 per category for diversity).
   let items = []
-  results.forEach(r => { if (r.status === 'fulfilled' && Array.isArray(r.value)) items.push(...r.value) })
+  const fc = getCachedFeed()
+  if (fc && fc.byCategory) {
+    Object.values(fc.byCategory).forEach(arr => {
+      (arr || []).slice(0, 6).forEach(a => items.push({ title: a.title, source: a.source }))
+    })
+    console.log(`[ideas] sampled ${items.length} articles from feed cache`)
+  }
+  // Fall back to a direct fetch if the cache is empty/missing.
+  if (!items.length) {
+    console.log('[ideas] feed cache empty — fetching directly')
+    try { items = (await fetchAllFeeds()).slice(0, 80).map(a => ({ title: a.title, source: a.source })) } catch (e) {}
+  }
 
   // dedupe by first 40 chars
   const seen = new Set(), uniq = []
   for (const it of items) {
-    const key = it.title.toLowerCase().slice(0, 40)
-    if (seen.has(key)) continue
+    const key = (it.title || '').toLowerCase().slice(0, 40)
+    if (!key || seen.has(key)) continue
     seen.add(key); uniq.push(it)
   }
-  console.log(`[ideas] scraped ${items.length}, unique ${uniq.length}`)
-  if (!uniq.length) return null
+  console.log(`[ideas] corpus unique ${uniq.length}`)
+  if (!uniq.length) return existing || null
 
   const headlineList = uniq.slice(0, 70).map(it => `- [${it.source}] ${it.title}`).join('\n')
-  const system = `You are a viral content strategist. Here are real headlines scraped from the internet today:
+  const CATEGORIES = 'Business, Marketing, Tech, Finance, Creator Economy, Health, Mindset, Productivity, Ecommerce, AI, Leadership'
+
+  // one batch of ~30 ideas, balanced across all 11 categories, avoiding repeats
+  async function oneBatch(avoidHeadlines) {
+    const avoid = avoidHeadlines && avoidHeadlines.length
+      ? `\n\nDo NOT repeat or closely paraphrase any of these headlines already in the library:\n${avoidHeadlines.slice(-80).map(h => '- ' + h).join('\n')}`
+      : ''
+    const system = `You are a viral content strategist. Here are real headlines scraped from the internet recently:
 
 ${headlineList}
 
-Generate exactly 15 viral post ideas for creators, founders, freelancers, and LinkedIn/X users. Each idea must:
-- Be inspired by or connected to one of the headlines above (cite the source)
-- Have a clear angle that someone can post about on X or LinkedIn
-- Cover a mix of these categories: Business, Marketing, Tech, Finance, Creator Economy, Health, Mindset, Productivity, Ecommerce, AI, Leadership
-- Feel like a real insight or take, not generic advice
+Generate exactly 30 viral post ideas for creators, founders, freelancers, and LinkedIn/X users.
+- Spread them across ALL of these categories with AT LEAST 2 ideas in each: ${CATEGORIES}
+- Each idea must connect to one of the headlines above (cite the source)
+- Each must have a clear angle someone can post about on X or LinkedIn
+- Feel like a real insight or take, never generic advice${avoid}
 
 Return ONLY valid JSON, no markdown, no backticks:
-{ "ideas": [ { "id": "uuid", "headline": "The viral hook, under 12 words, stops the scroll", "angle": "The specific take, 2 sentences", "why_it_works": "one sentence", "category": "one of the categories", "source_headline": "original scraped headline", "source_name": "TechCrunch | HackerNews | Reddit | Fast Company | Product Hunt", "suggested_tone": "Contrarian | Motivational | Educational | Storytelling | Provocative", "suggested_platform": "X Post | X Thread | LinkedIn" } ] }`
-
-  try {
-    const msg = await client.messages.create({ model: 'claude-sonnet-4-5', max_tokens: 4096, system, messages: [{ role: 'user', content: 'Generate the 15 ideas now.' }] })
-    const cleaned = stripFences(msg.content[0].text.trim())
-    const parsed = JSON.parse(cleaned)
-    const ideas = (Array.isArray(parsed) ? parsed : parsed.ideas || []).map((x, i) => Object.assign({ id: 'idea_' + Date.now() + '_' + i }, x))
-    const cache = { generatedAt: new Date().toISOString(), ideas }
-    try { fs.writeFileSync(DAILY_IDEAS_FILE, JSON.stringify(cache)) } catch (e) {}
-    console.log(`[ideas] generated ${ideas.length} ideas`)
-    return cache
-  } catch (e) {
-    console.error('[ideas] synthesis failed:', e.message)
-    return null
+{ "ideas": [ { "headline": "viral hook under 12 words", "angle": "the specific take, 2 sentences", "why_it_works": "one sentence", "category": "one of the categories", "source_headline": "original scraped headline", "source_name": "TechCrunch | HackerNews | Reddit | Fast Company | Product Hunt", "suggested_tone": "Contrarian | Motivational | Educational | Storytelling | Provocative", "suggested_platform": "X Post | X Thread | LinkedIn" } ] }`
+    try {
+      const msg = await client.messages.create({ model: 'claude-sonnet-4-5', max_tokens: 6000, system, messages: [{ role: 'user', content: 'Generate the 30 ideas now, balanced across every category.' }] })
+      const parsed = JSON.parse(stripFences(msg.content[0].text.trim()))
+      return (Array.isArray(parsed) ? parsed : parsed.ideas || [])
+    } catch (e) { console.error('[ideas] batch failed:', e.message); return [] }
   }
+
+  const prior = (existing && Array.isArray(existing.ideas)) ? existing.ideas : []
+  // Bootstrap: when the library is sparse, generate several batches now to reach hundreds.
+  const batches = prior.length < 100 ? 4 : 1
+  const now = new Date().toISOString()
+  let fresh = []
+  for (let b = 0; b < batches; b++) {
+    const got = await oneBatch(prior.map(i => i.headline).concat(fresh.map(i => i.headline)))
+    fresh.push(...got)
+    if (prior.length + fresh.length >= 160) break
+  }
+  fresh = fresh.map((x, i) => Object.assign({ id: 'idea_' + Date.now() + '_' + b8(i) }, x, { addedAt: now }))
+  if (!fresh.length && prior.length) { console.warn('[ideas] no new ideas, keeping archive'); return existing }
+
+  // merge archive + new, dedupe by headline, prune 30 days, cap 400
+  const merged = [...prior, ...fresh]
+  const seenH = new Set(), dedup = []
+  for (const it of merged) { const k = (it.headline || '').toLowerCase().slice(0, 40); if (!k || seenH.has(k)) continue; seenH.add(k); dedup.push(it) }
+  const cut = Date.now() - 30 * 24 * 60 * 60 * 1000
+  let kept = dedup.filter(it => !it.addedAt || Date.parse(it.addedAt) > cut)
+  if (kept.length > 400) kept = kept.slice(-400)
+
+  const cache = { generatedAt: now, ideas: kept }
+  try { fs.writeFileSync(DAILY_IDEAS_FILE, JSON.stringify(cache)) } catch (e) {}
+  console.log(`[ideas] added ${fresh.length}, library now ${kept.length}`)
+  return cache
 }
+function b8(i) { return i.toString(36) + Math.random().toString(36).slice(2, 5) }
 
 let ideasGenerating = false
 async function ensureDailyIdeas(force) {
@@ -1418,6 +1482,15 @@ app.get('/api/ideas/daily', async (_req, res) => {
   const fresh = await ensureDailyIdeas(false)
   if (fresh) return res.json(fresh)
   res.json({ generatedAt: cache ? cache.generatedAt : null, ideas: cache ? cache.ideas : [], preparing: true })
+})
+
+// GET /api/feed/cache — cache metadata (counts only, no article bodies)
+app.get('/api/feed/cache', (_req, res) => {
+  const cache = getCachedFeed()
+  if (!cache) return res.json({ refreshedAt: null, totalArticles: 0, isStale: true, byCategory: {} })
+  const byCategory = {}
+  Object.keys(cache.byCategory || {}).forEach(c => { byCategory[c] = (cache.byCategory[c] || []).length })
+  res.json({ refreshedAt: cache.refreshedAt, totalArticles: cache.totalArticles, isStale: isCacheStale(), byCategory })
 })
 
 // GET /api/headlines — live RSS for the "Live headlines" tab
@@ -1451,3 +1524,18 @@ setInterval(() => { ensureDailyIdeas(false).catch(() => {}) }, 60 * 60 * 1000)
 app.get('/health', (_req, res) => res.json({ ok: true, keySet: !!process.env.ANTHROPIC_API_KEY, sheetHook: !!process.env.GOOGLE_SHEET_WEBHOOK_URL, node: process.version }))
 
 app.listen(PORT, () => console.log(`XLink running on port ${PORT}`))
+
+// ─── Background feed refresher (every 6 hours) ────────────────────────────────
+async function startFeedRefresher() {
+  if (isCacheStale()) {
+    console.log('Feed cache is stale — refreshing on startup...')
+    refreshCache().catch(e => console.error('Initial feed refresh failed:', e.message))
+  } else {
+    console.log('Feed cache is fresh — skipping initial refresh')
+  }
+  setInterval(() => {
+    console.log('Running scheduled feed refresh...')
+    refreshCache().catch(e => console.error('Scheduled feed refresh failed:', e.message))
+  }, 6 * 60 * 60 * 1000)
+}
+startFeedRefresher()

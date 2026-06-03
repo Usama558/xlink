@@ -31,6 +31,12 @@ header{display:flex;align-items:center;justify-content:space-between;gap:16px;pa
 .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)}
 .stat-v{font-size:30px;font-weight:900;letter-spacing:-1px;margin-bottom:3px}
 .stat-l{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.feed-health{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:20px;margin-bottom:26px;position:relative;overflow:hidden}
+.feed-health::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)}
+.fh-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.fh-title{font-size:15px;font-weight:800}
+.fh-sub{font-size:12px;color:var(--t4);margin-top:3px}
+.fh-src{color:var(--t4);font-size:12px}
 
 .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .search{background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:10px;padding:9px 13px;font-size:13px;color:var(--t1);font-family:'Inter',sans-serif;outline:none;width:280px;max-width:100%}
@@ -106,6 +112,22 @@ tbody tr:last-child td{border-bottom:none}
 <div class="wrap">
   <div class="stats" id="stats"></div>
 
+  <!-- Feed Health -->
+  <div class="feed-health" id="feedHealth">
+    <div class="fh-head">
+      <div>
+        <div class="fh-title">Feed Health</div>
+        <div class="fh-sub" id="fhSub">Loading feed cache...</div>
+      </div>
+      <button class="hbtn" id="feedRefreshBtn">Force Refresh</button>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <div class="table-scroll">
+        <table><thead><tr><th>Category</th><th>Articles</th><th>Top sources</th></tr></thead><tbody id="fhBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
   <div class="toolbar">
     <input class="search" id="search" placeholder="Search by User ID or niche..."/>
     <span class="refreshed" id="count"></span>
@@ -160,6 +182,20 @@ async function loadAll(){
     renderTable()
     document.getElementById('refreshed').textContent='Refreshed '+new Date().toLocaleTimeString()
   }catch(e){/* redirected on 401 */}
+  loadFeedHealth()
+}
+
+async function loadFeedHealth(){
+  try{
+    const f=await api('/api/admin/feed-stats')
+    const when=f.refreshedAt?new Date(f.refreshedAt).toLocaleString():'never'
+    const stale=f.isStale?' · stale':''
+    const next=f.nextRefreshIn!=null?(' · next refresh in '+f.nextRefreshIn+' min'):''
+    document.getElementById('fhSub').textContent=`${num(f.totalArticles)} articles · last refreshed ${when}${stale}${next}`
+    const body=document.getElementById('fhBody')
+    if(!f.byCategory||!f.byCategory.length){body.innerHTML='<tr><td colspan="3" style="color:var(--t4)">No feed cache yet. Click Force Refresh.</td></tr>';return}
+    body.innerHTML=f.byCategory.map(c=>`<tr><td style="color:var(--t1);font-weight:600">${esc(c.category)}</td><td>${c.count}</td><td class="fh-src">${esc((c.sources||[]).slice(0,3).join(', ')||'—')}</td></tr>`).join('')
+  }catch(e){}
 }
 
 function renderStats(s){
@@ -290,6 +326,16 @@ document.getElementById('pclose').addEventListener('click',closePanel)
 
 // ── Header actions ──
 document.getElementById('refreshBtn').addEventListener('click',loadAll)
+document.getElementById('feedRefreshBtn').addEventListener('click',async function(){
+  const b=this;b.disabled=true;b.textContent='Refreshing feeds...'
+  try{
+    const r=await fetch('/api/admin/feed-refresh',{method:'POST'})
+    const d=await r.json()
+    if(d.success)document.getElementById('fhSub').textContent=d.totalArticles+' articles cached just now'
+  }catch(e){}
+  await loadFeedHealth()
+  b.disabled=false;b.textContent='Force Refresh'
+})
 document.getElementById('exportBtn').addEventListener('click',()=>{window.location.href='/api/admin/export'})
 document.getElementById('logoutBtn').addEventListener('click',async()=>{
   try{await fetch('/api/admin/logout',{method:'POST'})}catch(e){}

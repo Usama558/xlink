@@ -73,7 +73,7 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
 
 <div class="wrap">
   <h1>Daily Ideas</h1>
-  <p class="sub">Fresh viral post ideas scraped from the internet every 24 hours. Filtered to your niche and positioning.</p>
+  <p class="sub">Fresh viral post ideas scraped from the internet every 24 hours. A rolling 30-day library — hundreds of ideas across every category, always growing.</p>
 
   <div class="topbar">
     <span class="updated" id="updated">Loading...</span>
@@ -151,13 +151,24 @@ function wireCards(scope){
 }
 function findIdea(id){return ideas.find(x=>x.id===id)||getSaved().find(x=>x.id===id)}
 
+function isFresh(it){return it.addedAt && (Date.now()-Date.parse(it.addedAt))<24*60*60*1000}
 function renderIdeas(){
   const c=document.getElementById('content')
+  if(!ideas.length){c.innerHTML=`<div class="empty">Ideas are being prepared. Check back in a few minutes.<br><button id="emptyRefresh">Refresh</button></div>`;const e=document.getElementById('emptyRefresh');if(e)e.addEventListener('click',()=>load(true));return}
   let rows=ideas
   if(filter!=='All')rows=rows.filter(i=>(i.category||'')===filter)
-  if(!ideas.length){c.innerHTML=`<div class="empty">Ideas are being prepared. Check back in a few minutes.<br><button id="emptyRefresh">Refresh</button></div>`;const e=document.getElementById('emptyRefresh');if(e)e.addEventListener('click',()=>load(true));return}
   if(!rows.length){c.innerHTML=`<div class="empty">No ideas in this category right now.</div>`;return}
-  c.innerHTML='<div class="grid">'+rows.map(it=>ideaCard(it,false)).join('')+'</div>'
+  const fresh=rows.filter(isFresh), earlier=rows.filter(it=>!isFresh(it))
+  let html=''
+  if(fresh.length){
+    html+=`<div class="section-h" style="margin-top:0">Fresh — last 24 hours <span style="color:var(--t4);font-weight:600;font-size:13px">(${fresh.length})</span></div>`
+    html+='<div class="grid">'+fresh.map(it=>ideaCard(it,false)).join('')+'</div>'
+  }
+  if(earlier.length){
+    html+=`<div class="section-h">Previous ideas <span style="color:var(--t4);font-weight:600;font-size:13px">· last 30 days (${earlier.length})</span></div>`
+    html+='<div class="grid">'+earlier.map(it=>ideaCard(it,false)).join('')+'</div>'
+  }
+  c.innerHTML=html
   wireCards(c)
 }
 function renderSaved(){
