@@ -68,6 +68,22 @@
   html[data-theme="light"] .xl-voice-link{color:#1d4ed8}
   .xl-theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b2);color:var(--t2);cursor:pointer;transition:all .15s;flex-shrink:0;padding:0}
   .xl-theme-toggle:hover{color:var(--t1);border-color:var(--b3)}
+
+  /* mobile nav: hamburger + slide-down menu */
+  .xl-hamburger{display:none;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b2);color:var(--t1);cursor:pointer;padding:0;flex-shrink:0}
+  .xl-mobile-menu{display:none;position:fixed;top:62px;left:0;right:0;z-index:190;background:var(--s1);border-bottom:1px solid var(--b2);padding:10px 16px;flex-direction:column;gap:3px;box-shadow:0 24px 50px rgba(0,0,0,.45)}
+  .xl-mobile-menu.open{display:flex}
+  .xl-mobile-menu a{padding:12px 12px;border-radius:10px;font-size:15px;font-weight:600;color:var(--t1);text-decoration:none}
+  .xl-mobile-menu a.cta{background:var(--accent);color:#fff;text-align:center;margin-top:4px}
+  .xl-mobile-menu a:not(.cta):active,.xl-mobile-menu a:not(.cta):hover{background:rgba(var(--ink-rgb),0.06)}
+  @media(max-width:760px){
+    nav{padding:0 16px !important}
+    .xl-hamburger{display:inline-flex}
+    nav .nav-link,nav .nav-cta,nav .nav-magnet,nav #voiceBadgeSlot{display:none !important}
+  }
+  @media(max-width:420px){
+    .nav-wordmark{display:none}
+  }
   `
   const style = document.createElement('style')
   style.textContent = css
@@ -100,6 +116,36 @@
     if (slot && slot.parentNode) slot.parentNode.insertBefore(btn, slot)
     else { const nav = document.querySelector('nav'); if (nav) nav.appendChild(btn) }
     updateThemeIcon()
+  }
+
+  // ─── Mobile hamburger menu (keeps every page reachable on phones) ──────────
+  function mountMobileMenu() {
+    if (document.getElementById('xlBurger')) return
+    const toggle = document.getElementById('xlThemeToggle')
+    const container = toggle ? toggle.parentNode : (document.querySelector('nav .nav-right') || document.querySelector('nav'))
+    if (!container) return
+
+    const burger = document.createElement('button')
+    burger.id = 'xlBurger'
+    burger.className = 'xl-hamburger'
+    burger.setAttribute('aria-label', 'Open menu')
+    burger.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>'
+    container.appendChild(burger)
+
+    const menu = document.createElement('div')
+    menu.id = 'xlMobileMenu'
+    menu.className = 'xl-mobile-menu'
+    menu.innerHTML =
+      '<a href="/">Home</a>' +
+      '<a href="/voice">Set Up Voice</a>' +
+      '<a href="/results">Results</a>' +
+      '<a href="/lead-magnet">Lead Magnet</a>' +
+      '<a href="/#app" class="cta">Start Creating</a>'
+    document.body.appendChild(menu)
+
+    burger.addEventListener('click', e => { e.stopPropagation(); menu.classList.toggle('open') })
+    menu.addEventListener('click', e => e.stopPropagation())
+    document.addEventListener('click', () => menu.classList.remove('open'))
   }
 
   // ─── Voice profile helpers ────────────────────────────────────────────────
@@ -150,16 +196,35 @@
   let recognition = null
   if (SR) {
     recognition = new SR()
-    recognition.continuous = false
-    recognition.interimResults = false
+    recognition.continuous = true       // keep listening while Option is held
+    recognition.interimResults = true   // show words live as they are spoken
     recognition.lang = 'en-US'
+    recognition.maxAlternatives = 1
   }
+  const HOLD_MS = 450                    // short hold so it feels instant
   let holdTimer = null
-  let isRecording = false
+  let isRecording = false               // a session is active (key held)
   let activeField = null
   let pillEl = null
+  let baseValue = ''                    // field text when the session started
+  let finalText = ''                    // committed transcript this session
 
   function isTextField(el) { return el && el.matches && el.matches('input[type=text], textarea') }
+
+  function writeField(interim) {
+    if (!activeField) return
+    const add = (finalText + interim).replace(/\s+/g, ' ').trim()
+    activeField.value = baseValue + (baseValue && add ? ' ' : '') + add
+    activeField.dispatchEvent(new Event('input', { bubbles: true }))
+  }
+  function startSession() {
+    if (!SR) { showTip(activeField); return }
+    isRecording = true
+    baseValue = activeField.value || ''
+    finalText = ''
+    showListening(activeField)
+    try { recognition.start() } catch (err) {}
+  }
 
   function makePill() {
     if (pillEl) return pillEl
@@ -196,35 +261,42 @@
   function hidePill() { if (pillEl) { pillEl.remove(); pillEl = null } }
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Alt' && !isRecording && isTextField(document.activeElement)) {
-      if (holdTimer) return
+    if (e.key === 'Alt' && !isRecording && !holdTimer && isTextField(document.activeElement)) {
+      e.preventDefault()
       activeField = document.activeElement
-      holdTimer = setTimeout(() => {
-        holdTimer = null
-        if (!SR) { showTip(activeField); return }
-        isRecording = true
-        showListening(activeField)
-        try { recognition.start() } catch (err) { isRecording = false; hidePill() }
-      }, 1500)
+      holdTimer = setTimeout(() => { holdTimer = null; startSession() }, HOLD_MS)
     }
   })
   document.addEventListener('keyup', e => {
     if (e.key === 'Alt') {
       if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
-      if (isRecording) { try { recognition.stop() } catch (err) {} }
+      if (isRecording) {
+        isRecording = false              // user released -> end session
+        try { recognition.stop() } catch (err) {}
+        showProcessingThenHide()
+      }
     }
   })
   if (recognition) {
     recognition.onresult = e => {
-      const transcript = e.results[0][0].transcript
-      const f = activeField || document.activeElement
-      if (isTextField(f)) {
-        f.value += (f.value ? ' ' : '') + transcript
-        f.dispatchEvent(new Event('input', { bubbles: true }))
+      let interim = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i]
+        if (r.isFinal) finalText += ' ' + r[0].transcript
+        else interim += ' ' + r[0].transcript
+      }
+      writeField(interim)
+    }
+    recognition.onerror = ev => {
+      // 'no-speech' / transient errors: ignore and let onend handle restart
+      if (ev && (ev.error === 'not-allowed' || ev.error === 'service-not-allowed')) {
+        isRecording = false; hidePill()
       }
     }
-    recognition.onerror = () => {}
-    recognition.onend = () => { isRecording = false; showProcessingThenHide() }
+    recognition.onend = () => {
+      // browsers auto-stop on a pause; if the user is still holding, keep going
+      if (isRecording) { try { recognition.start() } catch (err) {} }
+    }
   }
 
   // ─── Repurpose modal (Feature 4) ──────────────────────────────────────────
@@ -311,7 +383,7 @@
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
 
   // ─── Init ─────────────────────────────────────────────────────────────────
-  function init() { mountThemeToggle(); renderVoiceBadge(); addHints(); buildRepurposeModal() }
+  function init() { mountThemeToggle(); mountMobileMenu(); renderVoiceBadge(); addHints(); buildRepurposeModal() }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init)
   else init()
 
