@@ -277,6 +277,19 @@ html[data-theme="light"] .hvf-text b,html[data-theme="light"] .hvf-text kbd{colo
 .filters-grid{padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
 @media(max-width:600px){.filters-grid{grid-template-columns:1fr;padding:18px}}
 .filter-full{grid-column:1/-1}
+/* mode selector */
+.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:600px){.mode-cards{grid-template-columns:1fr}}
+.mode-card{text-align:left;background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:18px;cursor:pointer;transition:all .18s;font-family:'Inter',sans-serif}
+.mode-card:hover{border-color:var(--b2)}
+.mode-card.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 28px rgba(37,99,235,.18)}
+.mode-card-t{font-size:15px;font-weight:800;color:var(--t1);margin-bottom:5px}
+.mode-card-d{font-size:12.5px;color:var(--t3);line-height:1.5}
+/* researched trend cards */
+.trend-sum{font-size:12px;color:var(--t2);line-height:1.55;margin:6px 0}
+.trend-why{font-size:11.5px;color:var(--accent-l);line-height:1.5}
+html[data-theme="light"] .trend-why{color:#1d4ed8}
+.trend-srcs{font-size:10px;color:var(--t4);margin-top:6px}
 .email-fld{width:100%;background:rgba(var(--ink-rgb),0.04);border:1px solid var(--b1);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s}
 .email-fld:focus{border-color:var(--accent)}
 .email-fld::placeholder{color:var(--t4)}
@@ -690,7 +703,7 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
       <span class="step-label active" id="sl1">Filters</span>
     </div>
     <div class="step-line" id="line1"></div>
-    <div class="step-node">
+    <div class="step-node" id="stepMid">
       <div class="step-circle" id="sc2">2</div>
       <span class="step-label" id="sl2">Trends</span>
     </div>
@@ -705,15 +718,37 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
 
     <!-- STEP 1 -->
     <div class="step-view active" id="view1">
-      <h2 class="section-title">Set your filters</h2>
-      <p class="section-sub">Every setting shapes what the AI writes. Fill them out, then find what is trending.</p>
+      <h2 class="section-title" id="setupTitle">How do you want to create?</h2>
+      <p class="section-sub" id="setupSub">Write your own content, or research a live trend and post about it with full context.</p>
+
+      <div class="mode-cards" id="modeCards">
+        <button type="button" class="mode-card active" data-mode="own">
+          <div class="mode-card-t">Create your own content</div>
+          <div class="mode-card-d">Write posts from your own topic and voice. No trend research.</div>
+        </button>
+        <button type="button" class="mode-card" data-mode="trends">
+          <div class="mode-card-t">Post with trends</div>
+          <div class="mode-card-d">Research what is actually happening in the last 15 days, then post about it with context.</div>
+        </button>
+      </div>
 
       <div class="card">
         <div class="filters-grid">
 
-          <div class="filter-full">
+          <div class="filter-full own-only">
             <span class="lbl">What do you want to post about? <span style="color:#f87171;font-weight:700;text-transform:none;letter-spacing:0">required</span></span>
             <textarea id="fTopic" placeholder="e.g. Why most agency owners price themselves out of clients, How I closed my first $10K deal, The mistake killing your conversion rate" rows="2"></textarea>
+          </div>
+
+          <div class="filter-full trends-only" style="display:none">
+            <span class="lbl">Keywords to research <span style="color:#f87171;font-weight:700;text-transform:none;letter-spacing:0">up to 5</span></span>
+            <input type="text" id="fKeywords" class="email-fld" placeholder="e.g. AI agents, OpenAI, layoffs, pricing, funding — comma separated" data-no-hint/>
+            <div style="font-size:11px;color:var(--t4);margin-top:6px">Separate keywords with commas. We research the last 15 days across Reddit, Hacker News and news, then surface the real trends.</div>
+          </div>
+
+          <div class="filter-full trends-only" style="display:none">
+            <span class="lbl">More details to find the perfect trend <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
+            <textarea id="fDetails" placeholder="What angle or audience are you after? e.g. how this affects indie founders, focus on pricing shifts, only product launches" rows="2"></textarea>
           </div>
 
           <div>
@@ -834,14 +869,6 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
           </div>
 
           <div>
-            <span class="lbl">Trend Window</span>
-            <div class="tgl" id="trendWindowGroup">
-              <button class="tgl-btn active" data-val="24h">Last 24 hours</button>
-              <button class="tgl-btn" data-val="7d">Last 7 days</button>
-            </div>
-          </div>
-
-          <div>
             <span class="lbl">Number of Posts</span>
             <div class="count-grp" id="countGroup">
               <button class="count-btn" data-val="1">1</button>
@@ -898,14 +925,14 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
         Back to filters
       </button>
-      <h2 class="section-title">Trending topics</h2>
-      <p class="section-sub" id="trendsSubLabel">Check the topics you want your posts based on.</p>
+      <h2 class="section-title">Trends from the last 15 days</h2>
+      <p class="section-sub" id="trendsSubLabel">Select the trends you want to post about.</p>
 
       <div class="card">
         <div class="trends-loading" id="trendsLoading">
           <div class="loader-ring"></div>
-          <div class="trends-loading-label">Scanning Reddit, Hacker News, and News...</div>
-          <div class="trends-loading-sub" id="trendsLoadingSub">Fetching hot posts in your niche</div>
+          <div class="trends-loading-label" id="researchLabel">Researching the last 15 days...</div>
+          <div class="trends-loading-sub" id="trendsLoadingSub">Scanning Reddit, Hacker News and news across your keywords</div>
         </div>
         <div class="trends-list" id="trendsList">
           <div class="select-row">
@@ -914,7 +941,7 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
             <span class="trend-count-note" id="trendCountNote"></span>
           </div>
           <div id="trendsItems"></div>
-          <div class="trends-empty" id="trendsEmpty" style="display:none">No trending topics found. Try a different niche or trend window.</div>
+          <div class="trends-empty" id="trendsEmpty" style="display:none">No live trends found for these keywords in the last 15 days. Try broader or different keywords.</div>
         </div>
         <div class="btn-action-row">
           <button class="btn-primary" id="generateBtn" disabled>
@@ -1051,9 +1078,9 @@ const NICHES = {
 }
 
 const filters = {
-  niche:'',topic:'',referencePosts:'',platform:'x-post',tone:'motivational',pov:'first person (I)',
+  mode:'own',niche:'',topic:'',keywords:'',details:'',referencePosts:'',platform:'x-post',tone:'motivational',pov:'first person (I)',
   hookType:'bold claim',postGoal:'grow followers',targetAudience:'beginners',
-  cta:'comment below',writingStyle:'short punchy lines',trendWindow:'24h',
+  cta:'comment below',writingStyle:'short punchy lines',
   count:3,outputType:'full',contrarianBelief:'',personalResult:'',
 }
 let allTrends=[], lastFilters=null, lastTrends=null
@@ -1117,7 +1144,6 @@ function makeTgl(id,key,mono){
   })
 }
 makeTgl('platformGroup','platform',false)
-makeTgl('trendWindowGroup','trendWindow',false)
 makeTgl('outputGroup','outputType',false)
 makeTgl('countGroup','count',true)
 ;[['fTone','tone'],['fPov','pov'],['fHookType','hookType'],['fGoal','postGoal'],
@@ -1128,6 +1154,26 @@ document.getElementById('fContrarian').addEventListener('input',e=>{filters.cont
 document.getElementById('fResult').addEventListener('input',e=>{filters.personalResult=e.target.value})
 document.getElementById('fTopic').addEventListener('input',e=>{filters.topic=e.target.value;updateFindBtn()})
 document.getElementById('fRefPosts').addEventListener('input',e=>{filters.referencePosts=e.target.value})
+document.getElementById('fKeywords').addEventListener('input',e=>{filters.keywords=e.target.value;updateFindBtn()})
+document.getElementById('fDetails').addEventListener('input',e=>{filters.details=e.target.value})
+
+// ── Mode selector (Create your own content / Post with trends) ──
+function keywordList(){return filters.keywords.split(',').map(k=>k.trim()).filter(Boolean).slice(0,5)}
+function setMode(mode){
+  filters.mode=mode
+  document.querySelectorAll('#modeCards .mode-card').forEach(c=>c.classList.toggle('active',c.dataset.mode===mode))
+  document.querySelectorAll('.own-only').forEach(el=>el.style.display=mode==='own'?'':'none')
+  document.querySelectorAll('.trends-only').forEach(el=>el.style.display=mode==='trends'?'':'none')
+  // primary button label + middle step node visibility
+  document.getElementById('sp1Label').textContent=mode==='trends'?'Research trends':'Write posts'
+  document.getElementById('sl2').textContent=mode==='trends'?'Trends':'—'
+  document.getElementById('stepMid').style.display=mode==='trends'?'':'none'
+  document.getElementById('line1').style.display=mode==='trends'?'':'none'
+  updateFindBtn()
+}
+document.getElementById('modeCards').addEventListener('click',e=>{
+  const c=e.target.closest('.mode-card');if(!c)return;setMode(c.dataset.mode)
+})
 let emailLoadTimer=null,loadedEmail=''
 document.getElementById('fEmail').addEventListener('input',e=>{
   const v=e.target.value.trim()
@@ -1149,7 +1195,12 @@ async function loadProfileFor(email){
     banner.classList.add('show')
   }catch(e){/* silent */}
 }
-function updateFindBtn(){document.getElementById('findTrendsBtn').disabled=!(filters.niche&&filters.topic.trim())}
+function updateFindBtn(){
+  const ok = filters.mode==='trends'
+    ? (filters.niche && keywordList().length>0)
+    : (filters.niche && filters.topic.trim())
+  document.getElementById('findTrendsBtn').disabled=!ok
+}
 
 // ── Profile persistence (email-keyed, silent) ──
 let profileSaveTimer=null
@@ -1175,13 +1226,8 @@ function applySettings(s){
   updateFindBtn()
 }
 
-// ── Step 1 → 2 ──
-document.getElementById('findTrendsBtn').addEventListener('click',async()=>{
-  const btn=document.getElementById('findTrendsBtn')
-  const sp=document.getElementById('sp1'),icon=document.getElementById('sp1Icon'),lbl=document.getElementById('sp1Label')
-  document.getElementById('err1').style.display='none'
-
-  // Email-based profile load: if this email has a saved profile, restore it
+// ── Primary action (mode-aware) ──
+async function maybeLoadProfile(){
   const emailVal=document.getElementById('fEmail').value.trim()
   if(emailVal && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailVal)){
     XL.setEmail(emailVal)
@@ -1189,23 +1235,58 @@ document.getElementById('findTrendsBtn').addEventListener('click',async()=>{
       const profile=await XL.fetchProfile(emailVal)
       if(profile){
         applySettings(profile.lastSettings)
-        if(profile.voiceProfile){XL.setVoiceProfile(profile.voiceProfile)}
+        if(profile.voiceProfile)XL.setVoiceProfile(profile.voiceProfile)
         const banner=document.getElementById('profileBanner')
         banner.textContent='Welcome back. Your voice profile and last settings have been loaded.'
         banner.classList.add('show')
       }
-    }catch(e){/* silent — keep going */}
+    }catch(e){}
+  }
+}
+
+// research progress messages (the research genuinely takes time across many sources)
+const RESEARCH_STEPS=[
+  'Scanning Reddit across your keywords...',
+  'Searching Hacker News for the last 15 days...',
+  'Pulling Google News and articles...',
+  'Reading thousands of public posts...',
+  'Cross-referencing sources...',
+  'Synthesizing the real trends...',
+]
+let researchTimer=null
+function startResearchProgress(){
+  let i=0
+  const sub=document.getElementById('trendsLoadingSub')
+  sub.textContent=RESEARCH_STEPS[0]
+  researchTimer=setInterval(()=>{i=(i+1)%RESEARCH_STEPS.length;sub.textContent=RESEARCH_STEPS[i]},6000)
+}
+function stopResearchProgress(){if(researchTimer){clearInterval(researchTimer);researchTimer=null}}
+
+document.getElementById('findTrendsBtn').addEventListener('click',async()=>{
+  const btn=document.getElementById('findTrendsBtn')
+  const sp=document.getElementById('sp1'),icon=document.getElementById('sp1Icon'),lbl=document.getElementById('sp1Label')
+  document.getElementById('err1').style.display='none'
+  await maybeLoadProfile()
+
+  // OWN MODE — straight to generation, no research (still gated by lead capture)
+  if(filters.mode!=='trends'){
+    if(hasLead())runGenerate()
+    else openLeadModal(()=>runGenerate())
+    return
   }
 
-  btn.disabled=true;sp.style.display='block';icon.style.display='none';lbl.textContent='Scanning...'
+  // TRENDS MODE — deep research
+  btn.disabled=true;sp.style.display='block';icon.style.display='none';lbl.textContent='Researching...'
   goToStep(2)
   document.getElementById('trendsLoading').style.display='block'
   document.getElementById('trendsList').style.display='none'
   document.getElementById('generateBtn').disabled=true
+  startResearchProgress()
   try{
-    const res=await fetch('/api/trends',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({niche:filters.niche,trendWindow:filters.trendWindow})})
+    const res=await fetch('/api/research',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({niche:filters.niche,keywords:keywordList(),details:filters.details})})
     const data=await res.json()
-    if(!res.ok)throw new Error(data.error||'Failed to fetch trends')
+    if(!res.ok)throw new Error(data.error||'Research failed')
     allTrends=data.trends||[];renderTrends(allTrends)
   }catch(e){
     document.getElementById('trendsLoading').style.display='none'
@@ -1214,11 +1295,12 @@ document.getElementById('findTrendsBtn').addEventListener('click',async()=>{
     document.getElementById('trendsEmpty').style.display='block'
     document.getElementById('err2').textContent=e.message;document.getElementById('err2').style.display='block'
   }finally{
-    btn.disabled=false;sp.style.display='none';icon.style.display='block';lbl.textContent='Find Trending Topics'
+    stopResearchProgress()
+    btn.disabled=false;sp.style.display='none';icon.style.display='block';lbl.textContent='Research trends'
   }
 })
 
-// ── Render trends ──
+// ── Render researched trends ──
 function renderTrends(trends){
   document.getElementById('trendsLoading').style.display='none'
   document.getElementById('trendsList').style.display='block'
@@ -1226,15 +1308,16 @@ function renderTrends(trends){
   const container=document.getElementById('trendsItems');container.innerHTML=''
   if(!trends.length){document.getElementById('trendsEmpty').style.display='block';document.getElementById('generateBtn').disabled=true;return}
   document.getElementById('trendsEmpty').style.display='none'
-  document.getElementById('trendsSubLabel').textContent=`Found ${trends.length} trending topics. Check the ones you want used.`
+  document.getElementById('trendsSubLabel').textContent=`Found ${trends.length} trend${trends.length!==1?'s':''} in the last 15 days. Select the ones to post about.`
   trends.forEach((t,i)=>{
     const row=document.createElement('div');row.className='trend-item checked';row.dataset.idx=i
-    const tc=t.type==='reddit'?'reddit':t.type==='hackernews'?'hackernews':'news'
-    const sc=t.score!=null?`<span class="trend-score">${t.score.toLocaleString()} pts</span>`:''
-    row.innerHTML=`<input class="trend-check" type="checkbox" checked data-idx="${i}" id="tc${i}"/>
+    const srcs=Array.isArray(t.sources)&&t.sources.length?`<div class="trend-srcs">Sources: ${escHtml(t.sources.join(', '))}</div>`:''
+    row.innerHTML=`<input class="trend-check" type="checkbox" checked data-idx="${i}"/>
       <div class="trend-body">
-        <div class="trend-title">${escHtml(t.title)}</div>
-        <div class="trend-meta"><span class="source-badge ${tc}">${escHtml(t.source)}</span>${sc}</div>
+        <div class="trend-title">${escHtml(t.title||'Untitled trend')}</div>
+        ${t.summary?`<div class="trend-sum">${escHtml(t.summary)}</div>`:''}
+        ${t.why_it_matters?`<div class="trend-why">Why it matters: ${escHtml(t.why_it_matters)}</div>`:''}
+        ${srcs}
       </div>`
     row.addEventListener('click',e=>{
       if(e.target.classList.contains('trend-check'))return
@@ -1412,6 +1495,7 @@ document.getElementById('backTo2').addEventListener('click',()=>goToStep(2))
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function escAttr(s){return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 buildNicheList()
+setMode('own')
 </script>
 </body>
 </html>

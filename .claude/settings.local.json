@@ -60,7 +60,9 @@
       "Bash(curl -s -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"x@x.com\",\"password\":\"y\"}')",
       "Bash(node -e \"new Function\\(require\\('fs'\\).readFileSync\\('public/xlink.js','utf8'\\)\\);console.log\\('xlink.js OK'\\)\")",
       "Bash(sed -n '10,18p' xlink.js)",
-      "Bash(sed -n '295p' index.html)"
+      "Bash(sed -n '295p' index.html)",
+      "Bash(grep -n 'buildNicheList\\(\\)$\\\\|^buildNicheList\\(\\)' index.html)",
+      "Bash(time curl -s -X POST http://localhost:3000/api/research -H \"Content-Type: application/json\" -d '{\"niche\":\"SaaS founder\",\"keywords\":[\"AI agents\",\"OpenAI\",\"pricing\"],\"details\":\"impact on indie founders\"}')"
     ]
   }
 }

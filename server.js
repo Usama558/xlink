@@ -339,6 +339,129 @@ function parseRSSItems(xml, sourceName) {
   return out
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// DEEP TREND RESEARCH (last 15 days, keyword-driven, multi-source)
+// ══════════════════════════════════════════════════════════════════════════
+const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000
+
+// Reddit keyword search (last month, then filtered to 15 days)
+async function redditSearchRecent(query) {
+  try {
+    const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&sort=top&t=month&limit=25`
+    const res = await fetch(url, { headers: { 'User-Agent': 'XLink/3.0 research' }, signal: AbortSignal.timeout(9000) })
+    if (!res.ok) return []
+    const data = await res.json()
+    return (data?.data?.children || []).filter(c => c.data && c.data.title && !c.data.stickied).map(c => ({
+      title: c.data.title,
+      score: c.data.score || 0,
+      source: 'Reddit r/' + (c.data.subreddit || '?'),
+      ts: (c.data.created_utc || 0) * 1000,
+    }))
+  } catch (e) { return [] }
+}
+// Hacker News keyword search within last 15 days
+async function hnSearchRecent(query) {
+  try {
+    const cutoff = Math.floor((Date.now() - FIFTEEN_DAYS_MS) / 1000)
+    const url = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&tags=story&numericFilters=created_at_i>${cutoff}&hitsPerPage=20`
+    const res = await fetch(url, { signal: AbortSignal.timeout(9000) })
+    if (!res.ok) return []
+    const data = await res.json()
+    return (data.hits || []).filter(h => h.title).map(h => ({
+      title: h.title, score: h.points || 0, source: 'Hacker News', ts: (h.created_at_i || 0) * 1000,
+    }))
+  } catch (e) { return [] }
+}
+// Google News keyword search (RSS, with pubDate)
+async function googleNewsRecent(query) {
+  try {
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}%20when:15d&hl=en-US&gl=US&ceid=US:en`
+    const res = await fetch(url, { signal: AbortSignal.timeout(9000) })
+    if (!res.ok) return []
+    const xml = await res.text()
+    const out = []
+    for (const m of [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 12)) {
+      const block = m[1]
+      const tm = block.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)
+      const dm = block.match(/<pubDate>([\s\S]*?)<\/pubDate>/)
+      if (!tm) continue
+      const title = tm[1].trim().replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      if (!title || title.length < 8) continue
+      out.push({ title, score: null, source: 'Google News', ts: dm ? Date.parse(dm[1]) : 0 })
+    }
+    return out
+  } catch (e) { return [] }
+}
+
+// POST /api/research — deep multi-source research over the last 15 days
+app.post('/api/research', async (req, res) => {
+  const { niche, keywords, details } = req.body || {}
+  const kws = (Array.isArray(keywords) ? keywords : String(keywords || '').split(','))
+    .map(k => String(k).trim()).filter(Boolean).slice(0, 5)
+  if (!niche && !kws.length) return res.status(400).json({ error: 'Provide a niche or at least one keyword' })
+
+  let client
+  try { client = getClient() }
+  catch (e) { return res.status(500).json({ error: e.message }) }
+
+  const queries = [...new Set([...kws, niche].filter(Boolean))]
+  const now = Date.now()
+
+  // Fan out across every query × every source
+  const tasks = []
+  for (const q of queries) {
+    tasks.push(redditSearchRecent(q))
+    tasks.push(hnSearchRecent(q))
+    tasks.push(googleNewsRecent(q))
+  }
+  const settled = await Promise.allSettled(tasks)
+  let items = []
+  settled.forEach(s => { if (s.status === 'fulfilled' && Array.isArray(s.value)) items.push(...s.value) })
+
+  // keep only last 15 days (when a timestamp exists), dedupe, rank
+  items = items.filter(it => !it.ts || (now - it.ts) <= FIFTEEN_DAYS_MS)
+  const seen = new Set(), uniq = []
+  for (const it of items.sort((a, b) => (b.score || 0) - (a.score || 0))) {
+    const key = it.title.toLowerCase().replace(/\W+/g, ' ').trim().slice(0, 70)
+    if (!key || seen.has(key)) continue
+    seen.add(key); uniq.push(it)
+  }
+  const corpus = uniq.slice(0, 60)
+  console.log(`[research] niche="${niche}" kws=[${kws.join(', ')}] gathered=${items.length} unique=${uniq.length}`)
+
+  if (!corpus.length) {
+    return res.json({ trends: [], scanned: 0, note: 'No recent public data found for these keywords in the last 15 days.' })
+  }
+
+  const system = `You are a sharp trend research analyst. You are given raw public data items (titles + sources) collected from Reddit, Hacker News, and Google News over the LAST 15 DAYS for a niche and a set of keywords. Identify the most significant REAL, current trends.
+
+Rules:
+- Base every trend strictly on the provided items. Do not invent facts, numbers, or companies.
+- Each trend must be concrete: who/what happened.
+- Write the implication for the niche audience.
+
+Return ONLY valid JSON, no markdown:
+{ "trends": [ { "title": "short trend headline", "summary": "2 to 3 sentences on what is actually happening, with specifics", "why_it_matters": "one sentence implication for the niche audience", "sources": ["short source labels"] } ] }
+Provide 6 to 10 distinct trends, most significant first.`
+
+  const user = `Niche: ${niche || 'general'}
+Keywords: ${kws.join(', ') || 'none'}
+${details ? 'Extra direction: ' + details + '\n' : ''}Raw items collected (title — source):
+${corpus.map((it, i) => `${i + 1}. ${it.title} — ${it.source}`).join('\n')}`
+
+  try {
+    const msg = await client.messages.create({ model: 'claude-sonnet-4-5', max_tokens: 3200, system, messages: [{ role: 'user', content: user }] })
+    const cleaned = stripFences(msg.content[0].text.trim())
+    let parsed
+    try { parsed = JSON.parse(cleaned) } catch (e) { return res.status(500).json({ error: 'Research synthesis returned invalid JSON' }) }
+    const trends = Array.isArray(parsed) ? parsed : (parsed.trends || [])
+    res.json({ trends, scanned: corpus.length })
+  } catch (err) {
+    console.error('[research] API error:', err.message)
+    res.status(500).json({ error: 'API error: ' + (err.message || 'unknown') })
+  }
+})
+
 // ─── POST /api/trends ─────────────────────────────────────────────────────────
 app.post('/api/trends', async (req, res) => {
   const { niche, trendWindow } = req.body
@@ -382,30 +505,15 @@ function buildPrompt(filters, trends, voiceProfile) {
     ? 'OUTPUT TYPE: Hook only. Return only the single opening line. Nothing else.'
     : 'OUTPUT TYPE: Full post. Complete from opening hook to closing CTA.'
 
-  const trendBlock = trends
-    .map((t, i) => `${i + 1}. [${t.source}] ${t.title}${t.score ? ` (${t.score} upvotes)` : ''}`)
-    .join('\n')
-
-  const topic = (filters.topic && filters.topic.trim()) || filters.niche
-
   const refBlock = filters.referencePosts && filters.referencePosts.trim()
-    ? `\nREFERENCE POSTS — the user pasted these as style targets. Study their sentence length, paragraph structure, hook style, line breaks, and overall rhythm. Mirror that exact structure and energy in your output, while keeping the content fully original and on the topic. Do not copy their words, names, or specifics:
+    ? `\nREFERENCE POSTS — the user pasted these as style targets. Study their sentence length, paragraph structure, hook style, line breaks, and overall rhythm. Mirror that exact structure and energy in your output, while keeping the content fully original. Do not copy their words, names, or specifics:
 """
 ${filters.referencePosts.trim().slice(0, 4000)}
 """
 `
     : ''
 
-  return {
-    system: `You are a world-class social media ghostwriter. You write posts that spread.
-
-${platformInstructions[filters.platform] || platformInstructions['x-post']}
-${outputInstruction}
-
-CENTRAL TOPIC — every post must be about this. The trending items are only angles, hooks, and supporting material. Never drift off this topic:
-"${topic}"
-
-FILTERS TO APPLY:
+  const filtersBlock = `FILTERS TO APPLY:
 - Tone: ${filters.tone}
 - POV: ${filters.pov}
 - Hook type: ${filters.hookType}
@@ -414,38 +522,84 @@ FILTERS TO APPLY:
 - CTA: ${filters.cta}
 - Writing style: ${filters.writingStyle}
 ${filters.contrarianBelief ? `- Contrarian belief to embed: "${filters.contrarianBelief}"` : ''}
-${filters.personalResult ? `- Personal result to include: "${filters.personalResult}"` : ''}
-${refBlock}
-VIRAL FRAMEWORK — hit all 6 in every post:
+${filters.personalResult ? `- Personal result to include: "${filters.personalResult}"` : ''}`
+
+  const framework = `VIRAL FRAMEWORK — hit all 6 in every post:
 1. STIMULATED: first line triggers curiosity or emotion. No warm-up.
 2. CAPTIVATED: middle builds tension or contrast. Never lose momentum.
 3. ANTICIPATION: signal early that something the reader needs is coming.
 4. VALIDATION: make the reader feel seen. Confirm a belief they hold but rarely hear out loud.
 5. AFFECTION: be human, be specific. Show a real person wrote this.
-6. REVELATION: close with an insight that feels surprising then immediately obvious.
+6. REVELATION: close with an insight that feels surprising then immediately obvious.`
+
+  const isTrends = filters.mode === 'trends' && Array.isArray(trends) && trends.length
+
+  if (isTrends) {
+    const trendBlock = trends.map((t, i) =>
+      `${i + 1}. ${t.title}\n   What is happening: ${t.summary || ''}\n   Why it matters: ${t.why_it_matters || ''}`
+    ).join('\n\n')
+
+    return {
+      system: `You are a world-class social media ghostwriter who writes timely posts about REAL, current trends.
+
+${platformInstructions[filters.platform] || platformInstructions['x-post']}
+${outputInstruction}
+
+CRITICAL — TREND-GROUNDED POSTS:
+Every post must be about ONE of the specific researched trends below. Lead with the concrete development (name the company, product, event, or number from the trend). Then deliver the implication for ${filters.niche} readers: this happened, here is what it means, here is what to do. Never write generic advice that could have been posted any day. No fabricated facts beyond the research provided.
+
+${filtersBlock}
+${refBlock}
+${framework}
 
 ${GLOBAL_WRITING_RULES}${voiceLine(voiceProfile)}
 
 OUTPUT FORMAT:
-Return ONLY a valid JSON array. No markdown fences. No extra text before or after.
-Each element must have exactly these keys:
-{
-  "format": "one of: Hot Take / Contrarian / Story / Tactical / Mindset Shift / Listicle Hook / Personal Confession / Insight Drop / Question Hook / Prediction",
-  "text": "the complete post text, ready to publish",
-  "source_title": "the exact trending topic title this post is based on",
-  "frameworks": ["array of framework names this post hits from: STIMULATED CAPTIVATED ANTICIPATION VALIDATION AFFECTION REVELATION"],
-  "reason": "one sentence on why this specific angle drives engagement"
+Return ONLY a valid JSON array. No markdown fences. No extra text.
+Each element: {
+  "format": "one of: Hot Take / Contrarian / Story / Tactical / Insight Drop / Prediction / Question Hook",
+  "text": "the complete post, grounded in the specific trend",
+  "source_title": "the exact trend title this post is about",
+  "frameworks": ["framework names hit: STIMULATED CAPTIVATED ANTICIPATION VALIDATION AFFECTION REVELATION"],
+  "reason": "one sentence on why this angle lands"
 }`,
+      user: `Niche: ${filters.niche}
+Generate exactly ${filters.count} post(s). Each post must be grounded in ONE of these researched trends from the last 15 days:
 
-    user: `Write about this topic: "${topic}"
-Niche context: ${filters.niche}
-Platform: ${filters.platform}
-Generate exactly ${filters.count} post(s).
-
-Use these trending items as fresh angles, hooks, or supporting context. Tie each one back to the topic above:
 ${trendBlock}
 
-Spread the posts across different angles and formats. Every post must clearly be about the topic, not just the trending item.`,
+Spread posts across different trends. Reference the actual development in each post. This is trend commentary, not generic content.`,
+    }
+  }
+
+  // ── "Create your own content" mode — topic-driven ──
+  const topic = (filters.topic && filters.topic.trim()) || filters.niche
+  return {
+    system: `You are a world-class social media ghostwriter. You write posts that spread.
+
+${platformInstructions[filters.platform] || platformInstructions['x-post']}
+${outputInstruction}
+
+CENTRAL TOPIC — every post must be about this. Never drift off it:
+"${topic}"
+
+${filtersBlock}
+${refBlock}
+${framework}
+
+${GLOBAL_WRITING_RULES}${voiceLine(voiceProfile)}
+
+OUTPUT FORMAT:
+Return ONLY a valid JSON array. No markdown fences. No extra text.
+Each element: {
+  "format": "one of: Hot Take / Contrarian / Story / Tactical / Mindset Shift / Listicle Hook / Personal Confession / Insight Drop / Question Hook / Prediction",
+  "text": "the complete post text, ready to publish",
+  "frameworks": ["framework names hit: STIMULATED CAPTIVATED ANTICIPATION VALIDATION AFFECTION REVELATION"],
+  "reason": "one sentence on why this angle drives engagement"
+}`,
+    user: `Write about this topic: "${topic}"
+Niche: ${filters.niche}
+Generate exactly ${filters.count} post(s). Vary the angles and formats. Every post must clearly be about the topic.`,
   }
 }
 
@@ -453,15 +607,16 @@ Spread the posts across different angles and formats. Every post must clearly be
 app.post('/api/generate', async (req, res) => {
   const { filters, trends, voiceProfile } = req.body
 
-  if (!filters || !trends?.length) {
-    return res.status(400).json({ error: 'Missing filters or trends' })
+  if (!filters) return res.status(400).json({ error: 'Missing filters' })
+  if (filters.mode === 'trends' && !(Array.isArray(trends) && trends.length)) {
+    return res.status(400).json({ error: 'No trends selected' })
   }
 
   let client
   try { client = getClient() }
   catch (e) { return res.status(500).json({ error: e.message }) }
 
-  const { system, user } = buildPrompt(filters, trends, voiceProfile)
+  const { system, user } = buildPrompt(filters, Array.isArray(trends) ? trends : [], voiceProfile)
   console.log(`[generate] niche="${filters.niche}" platform=${filters.platform} count=${filters.count} trends=${trends.length}`)
 
   try {
