@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>XLink — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#08080c;--s1:#111114;--s2:#16161d;--b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.12);--b3:rgba(255,255,255,0.2);--t1:#fff;--t2:rgba(255,255,255,0.6);--t3:rgba(255,255,255,0.4);--t4:rgba(255,255,255,0.22);--accent:#2563eb;--accent-h:#1d4ed8;--accent-l:#60a5fa;--green:#22c55e;--blue:#60a5fa}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:7px;height:7px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:99px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 28px;border-bottom:1px solid var(--b1);flex-wrap:wrap;position:sticky;top:0;background:rgba(8,8,12,0.9);backdrop-filter:blur(20px);z-index:20}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .wm{font-size:17px;font-weight:900;letter-spacing:-.5px}
+.brand .tag{font-size:12px;font-weight:600;color:var(--t3);border-left:1px solid var(--b2);padding-left:10px;margin-left:2px}
+.head-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.refreshed{font-size:11px;color:var(--t4)}
+.hbtn{background:rgba(255,255,255,0.05);border:1px solid var(--b2);border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--t1);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.hbtn:hover{background:rgba(255,255,255,0.09)}
+.hbtn.danger{color:#fca5a5;border-color:rgba(239,68,68,.25)}
+.hbtn.danger:hover{background:rgba(239,68,68,.1)}
+
+.wrap{padding:24px 28px 60px;max-width:1500px;margin:0 auto}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+@media(max-width:720px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:20px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)}
+.stat-v{font-size:30px;font-weight:900;letter-spacing:-1px;margin-bottom:3px}
+.stat-l{font-size:11px;color:var(--t4);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.search{background:rgba(255,255,255,0.04);border:1px solid var(--b1);border-radius:10px;padding:9px 13px;font-size:13px;color:var(--t1);font-family:'Inter',sans-serif;outline:none;width:280px;max-width:100%}
+.search:focus{border-color:var(--accent)}
+.search::placeholder{color:var(--t4)}
+
+.table-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:16px;overflow:hidden}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:920px}
+th,td{text-align:left;padding:12px 14px;font-size:13px;white-space:nowrap}
+th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t4);border-bottom:1px solid var(--b1);cursor:pointer;user-select:none;position:sticky;top:0;background:var(--s1)}
+th:hover{color:var(--t2)}
+th .arrow{opacity:.5;font-size:9px}
+td{border-bottom:1px solid var(--b1);color:var(--t2)}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover{background:rgba(255,255,255,0.03)}
+tbody tr:last-child td{border-bottom:none}
+.uid{font-family:ui-monospace,monospace;color:var(--t1);font-weight:600}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700}
+.b-green{background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.25)}
+.b-gray{background:rgba(255,255,255,.05);color:var(--t3);border:1px solid var(--b1)}
+.b-blue{background:rgba(37,99,235,.14);color:var(--accent-l);border:1px solid rgba(37,99,235,.25)}
+.empty{padding:50px 20px;text-align:center;color:var(--t4);font-size:14px}
+
+/* detail panel */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.open{opacity:1;pointer-events:auto}
+.panel{position:fixed;top:0;right:0;height:100%;width:440px;max-width:92vw;background:var(--s1);border-left:1px solid var(--b2);z-index:50;transform:translateX(100%);transition:transform .25s cubic-bezier(.16,1,.3,1);overflow-y:auto;box-shadow:-20px 0 60px rgba(0,0,0,.5)}
+.panel.open{transform:none}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--b1);position:sticky;top:0;background:var(--s1);z-index:2}
+.panel-head h2{font-size:16px;font-weight:800}
+.panel-head .uid{font-size:13px}
+.pclose{background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;line-height:1;padding:4px}
+.pclose:hover{color:var(--t1)}
+.panel-body{padding:20px 22px}
+.psec{margin-bottom:26px}
+.psec-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t4);margin-bottom:12px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kv-item{font-size:12px}
+.kv-item .k{color:var(--t4);margin-bottom:2px}
+.kv-item .v{color:var(--t1);font-weight:600;text-transform:capitalize}
+.pill{display:inline-flex;align-items:center;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.25);color:var(--accent-l);border-radius:99px;padding:4px 11px;font-size:11px;font-weight:600;margin:0 5px 5px 0}
+.pill.gray{background:rgba(255,255,255,0.05);border-color:var(--b1);color:var(--t2)}
+.hookbox{background:#0c0c10;border:1px solid var(--b1);border-radius:10px;padding:12px;font-size:12px;line-height:1.7;color:var(--t2)}
+.perf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.perf-card{background:rgba(255,255,255,0.03);border:1px solid var(--b1);border-radius:12px;padding:13px;text-align:center}
+.perf-v{font-size:20px;font-weight:900;letter-spacing:-.5px}
+.perf-l{font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.tl-item{border:1px solid var(--b1);border-radius:12px;padding:13px;margin-bottom:9px}
+.tl-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:7px}
+.tl-meta{font-size:11px;color:var(--t4)}
+.tl-text{font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:8px}
+.tl-perf{display:flex;flex-wrap:wrap;gap:6px}
+.tl-perf span{font-size:10px;font-weight:600;color:var(--accent-l);background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);border-radius:99px;padding:2px 8px}
+.loading{padding:40px;text-align:center;color:var(--t4);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="url(#lg)"/><defs><linearGradient id="lg" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs><line x1="10" y1="10" x2="24" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="10" x2="10" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="10" r="2.5" fill="white"/><circle cx="24" cy="24" r="2.5" fill="white"/><circle cx="24" cy="10" r="2.5" fill="white"/><circle cx="10" cy="24" r="2.5" fill="white"/></svg>
+    <span class="wm">XLink</span>
+    <span class="tag">Admin Dashboard</span>
+  </div>
+  <div class="head-right">
+    <span class="refreshed" id="refreshed"></span>
+    <button class="hbtn" id="refreshBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Refresh</button>
+    <button class="hbtn" id="exportBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Export CSV</button>
+    <button class="hbtn danger" id="logoutBtn">Logout</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <input class="search" id="search" placeholder="Search by User ID or niche..."/>
+    <span class="refreshed" id="count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead><tr id="thead"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="panel" id="panel"><div class="panel-body loading" id="panelBody">Loading...</div></aside>
+
+<script>
+const COLS=[
+  {key:'_n',label:'#',sortable:false},
+  {key:'userId',label:'User ID'},
+  {key:'joined',label:'Joined'},
+  {key:'lastActive',label:'Last Active'},
+  {key:'niche',label:'Niche'},
+  {key:'postsGenerated',label:'Posts'},
+  {key:'published',label:'Published'},
+  {key:'skipped',label:'Skipped'},
+  {key:'voiceProfile',label:'Voice'},
+  {key:'topPlatform',label:'Top Platform'},
+]
+const PLAT={'x-post':'X Post','x-thread':'X Thread','linkedin':'LinkedIn'}
+let users=[],sortKey='lastActive',sortDir=-1
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtDate(iso){if(!iso)return '—';const d=new Date(iso);if(isNaN(d))return '—';return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})}
+function ago(iso){if(!iso)return '—';const t=Date.parse(iso);if(!t)return '—';const s=(Date.now()-t)/1000;if(s<60)return 'just now';const m=s/60;if(m<60)return Math.floor(m)+'m ago';const h=m/60;if(h<24)return Math.floor(h)+'h ago';const d=h/24;if(d<30)return Math.floor(d)+' day'+(Math.floor(d)!==1?'s':'')+' ago';return fmtDate(iso)}
+function platLabel(p){return PLAT[p]||p||'—'}
+function num(n){n=Number(n)||0;return n>=1000?(n/1000).toFixed(1).replace(/\.0$/,'')+'K':String(n)}
+
+async function api(path){
+  const r=await fetch(path)
+  if(r.status===401){window.location.href='/adminlogin';throw new Error('unauth')}
+  return r.json()
+}
+
+async function loadAll(){
+  try{
+    const [stats,us]=await Promise.all([api('/api/admin/stats'),api('/api/admin/users')])
+    renderStats(stats)
+    users=us.users||[]
+    renderTable()
+    document.getElementById('refreshed').textContent='Refreshed '+new Date().toLocaleTimeString()
+  }catch(e){/* redirected on 401 */}
+}
+
+function renderStats(s){
+  document.getElementById('stats').innerHTML=[
+    ['Total Users',s.totalUsers],
+    ['Active Today',s.activeToday],
+    ['Active This Week',s.activeWeek],
+    ['Total Posts Generated',s.totalPosts],
+  ].map(([l,v])=>`<div class="stat"><div class="stat-v">${num(v)}</div><div class="stat-l">${l}</div></div>`).join('')
+}
+
+function renderHead(){
+  document.getElementById('thead').innerHTML=COLS.map(c=>{
+    const arrow=c.key===sortKey?`<span class="arrow">${sortDir<0?'▼':'▲'}</span>`:''
+    return `<th data-k="${c.key}" data-s="${c.sortable!==false}">${c.label} ${arrow}</th>`
+  }).join('')
+  document.querySelectorAll('#thead th').forEach(th=>{
+    if(th.dataset.s==='false')return
+    th.addEventListener('click',()=>{
+      const k=th.dataset.k
+      if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=(k==='userId'||k==='niche'||k==='topPlatform')?1:-1}
+      renderTable()
+    })
+  })
+}
+
+function renderTable(){
+  renderHead()
+  const q=document.getElementById('search').value.trim().toLowerCase()
+  let rows=users.filter(u=>!q||(u.userId||'').toLowerCase().includes(q)||(u.niche||'').toLowerCase().includes(q))
+  rows.sort((a,b)=>{
+    let av=a[sortKey],bv=b[sortKey]
+    if(sortKey==='lastActive'||sortKey==='joined'){av=Date.parse(av)||0;bv=Date.parse(bv)||0}
+    if(sortKey==='voiceProfile'){av=av?1:0;bv=bv?1:0}
+    if(typeof av==='string'){return av.localeCompare(bv)*sortDir}
+    return (av-bv)*sortDir
+  })
+  const tb=document.getElementById('tbody')
+  document.getElementById('count').textContent=rows.length+' user'+(rows.length!==1?'s':'')
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="${COLS.length}"><div class="empty">No users found.</div></td></tr>`;return}
+  tb.innerHTML=rows.map((u,i)=>`<tr data-hash="${esc(u.hash)}">
+    <td>${i+1}</td>
+    <td class="uid">${esc(u.userId)}</td>
+    <td>${fmtDate(u.joined)}</td>
+    <td>${esc(ago(u.lastActive))}</td>
+    <td>${esc(u.niche||'—')}</td>
+    <td>${u.postsGenerated}</td>
+    <td>${u.published}</td>
+    <td>${u.skipped}</td>
+    <td>${u.voiceProfile?'<span class="badge b-green">Yes</span>':'<span class="badge b-gray">No</span>'}</td>
+    <td>${esc(platLabel(u.topPlatform))}</td>
+  </tr>`).join('')
+  tb.querySelectorAll('tr[data-hash]').forEach(tr=>tr.addEventListener('click',()=>openUser(tr.dataset.hash)))
+}
+
+// ── Detail panel ──
+async function openUser(hash){
+  const panel=document.getElementById('panel'),ov=document.getElementById('overlay')
+  panel.classList.add('open');ov.classList.add('open')
+  const body=document.getElementById('panelBody')
+  body.className='panel-body loading';body.textContent='Loading...'
+  try{
+    const d=await api('/api/admin/user?hash='+encodeURIComponent(hash))
+    renderDetail(d)
+  }catch(e){body.textContent='Could not load user.'}
+}
+function closePanel(){document.getElementById('panel').classList.remove('open');document.getElementById('overlay').classList.remove('open')}
+document.getElementById('overlay').addEventListener('click',closePanel)
+
+function renderDetail(d){
+  const body=document.getElementById('panelBody');body.className='panel-body'
+  const s=d.lastSettings||{},v=d.voiceProfile,perf=d.performance||{}
+  const arr=x=>Array.isArray(x)?x:(x?[x]:[])
+  const settingsFields=[
+    ['Niche',s.niche],['Tone',s.tone],['Hook Type',s.hookType],['Platform',platLabel(s.platform)],
+    ['Audience',s.audience],['Goal',s.goal],['CTA',s.cta],['Writing Style',s.writingStyle],
+    ['Post Count',s.postCount],['Output',s.outputType],
+  ].map(([k,val])=>`<div class="kv-item"><div class="k">${k}</div><div class="v">${esc(val||'—')}</div></div>`).join('')
+
+  let voiceHtml='<span class="pill gray">No voice profile</span>'
+  if(v){
+    voiceHtml=`<div style="margin-bottom:10px">${arr(v.personality).map(x=>`<span class="pill">${esc(x)}</span>`).join('')||'<span class="pill gray">—</span>'}</div>
+      <div style="margin-bottom:10px">${arr(v.hook_styles).map(x=>`<span class="pill gray">${esc(x)}</span>`).join('')}</div>
+      ${arr(v.sample_hooks).length?`<div class="hookbox">${arr(v.sample_hooks).map((h,i)=>`${i+1}. ${esc(h)}`).join('<br>')}</div>`:''}`
+  }
+
+  const posts=(d.posts||[])
+  const tl=posts.length?posts.map(p=>{
+    const st=p.status==='skipped'?'<span class="badge b-gray">Skipped</span>':(p.status==='edited'?'<span class="badge b-blue">Edited</span>':'<span class="badge b-green">Published</span>')
+    const perfPills=[]
+    if(Number(p.impressions)>0)perfPills.push(num(p.impressions)+' impressions')
+    if(Number(p.likes)>0)perfPills.push(num(p.likes)+' likes')
+    if(Number(p.reposts)>0)perfPills.push(num(p.reposts)+' reposts')
+    if(Number(p.comments)>0)perfPills.push(num(p.comments)+' comments')
+    return `<div class="tl-item">
+      <div class="tl-top">${st}<span class="tl-meta">${esc(platLabel(p.platform))} · ${esc(p.niche||'—')} · ${esc(ago(typeof p.timestamp==='number'?new Date(p.timestamp).toISOString():p.timestamp))}</span></div>
+      ${p.topic?`<div class="tl-meta" style="margin-bottom:6px">Topic: ${esc(p.topic)}</div>`:''}
+      <div class="tl-text">${esc(String(p.text||'').slice(0,160))}${(p.text||'').length>160?'…':''}</div>
+      ${perfPills.length?`<div class="tl-perf">${perfPills.map(x=>`<span>${x}</span>`).join('')}</div>`:''}
+    </div>`
+  }).join(''):'<div class="tl-meta">No posts yet.</div>'
+
+  body.innerHTML=`
+    <div class="psec">
+      <div class="psec-h">Last Settings</div>
+      <div class="kv">${settingsFields}</div>
+    </div>
+    <div class="psec">
+      <div class="psec-h">Voice Profile</div>
+      ${voiceHtml}
+    </div>
+    <div class="psec">
+      <div class="psec-h">Performance</div>
+      <div class="perf-grid">
+        <div class="perf-card"><div class="perf-v">${num(perf.avgImpressions)}</div><div class="perf-l">Avg Impr.</div></div>
+        <div class="perf-card"><div class="perf-v">${num(perf.bestImpressions)}</div><div class="perf-l">Best Post</div></div>
+        <div class="perf-card"><div class="perf-v">${perf.winRate||0}%</div><div class="perf-l">Win Rate</div></div>
+      </div>
+    </div>
+    <div class="psec">
+      <div class="psec-h">Recent Posts (last 10)</div>
+      ${tl}
+    </div>`
+}
+
+// panel header (static)
+document.getElementById('panel').insertAdjacentHTML('afterbegin','<div class="panel-head"><h2>User Detail</h2><button class="pclose" id="pclose" aria-label="Close">&times;</button></div>')
+document.getElementById('pclose').addEventListener('click',closePanel)
+
+// ── Header actions ──
+document.getElementById('refreshBtn').addEventListener('click',loadAll)
+document.getElementById('exportBtn').addEventListener('click',()=>{window.location.href='/api/admin/export'})
+document.getElementById('logoutBtn').addEventListener('click',async()=>{
+  try{await fetch('/api/admin/logout',{method:'POST'})}catch(e){}
+  window.location.href='/adminlogin'
+})
+document.getElementById('search').addEventListener('input',renderTable)
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel()})
+
+loadAll()
+</script>
+</body>
+</html>

@@ -7,6 +7,7 @@ const crypto = require('crypto')
 const app = express()
 const PORT = process.env.PORT || 3000
 
+app.set('trust proxy', 1) // Railway terminates TLS; trust x-forwarded-* for req.ip / req.secure
 app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')))
 
@@ -890,6 +891,176 @@ app.get('/api/profile/posts', (req, res) => {
   if (!email) return res.status(400).json({ posts: [] })
   const profile = readProfile(email)
   res.json({ posts: (profile && Array.isArray(profile.posts)) ? profile.posts : [] })
+})
+
+// ══════════════════════════════════════════════════════════════════════════
+// ADMIN — private dashboard
+// ══════════════════════════════════════════════════════════════════════════
+const ADMIN_DIR = path.join(__dirname, 'admin')
+const adminSessions = new Map()            // token -> expiresAt (ms)
+const ADMIN_SESSION_MS = 24 * 60 * 60 * 1000
+const adminFails = new Map()               // ip -> { count, blockedUntil }
+const MAX_FAILS = 5
+const BLOCK_MS = 15 * 60 * 1000
+
+function getCookie(req, name) {
+  const h = req.headers.cookie || ''
+  const m = h.match(new RegExp('(?:^|; )' + name + '=([^;]*)'))
+  return m ? decodeURIComponent(m[1]) : null
+}
+function newAdminSession() {
+  const t = crypto.randomUUID()
+  adminSessions.set(t, Date.now() + ADMIN_SESSION_MS)
+  return t
+}
+function validAdminSession(req) {
+  const t = getCookie(req, 'xlink_admin_session')
+  if (!t) return false
+  const exp = adminSessions.get(t)
+  if (!exp) return false
+  if (Date.now() > exp) { adminSessions.delete(t); return false }
+  return true
+}
+function requireAdmin(req, res, next) {
+  if (validAdminSession(req)) return next()
+  res.status(401).json({ error: 'Unauthorized' })
+}
+function setSessionCookie(req, res, token, maxAge) {
+  const secure = req.secure ? '; Secure' : ''
+  res.setHeader('Set-Cookie', `xlink_admin_session=${token}; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}`)
+}
+
+// profile aggregation helpers
+function loadAllProfiles() {
+  let files = []
+  try { files = fs.readdirSync(PROFILES_DIR).filter(f => f.endsWith('.json')) } catch (e) {}
+  const out = []
+  for (const f of files) {
+    try { out.push(JSON.parse(fs.readFileSync(path.join(PROFILES_DIR, f), 'utf8'))) } catch (e) {}
+  }
+  return out
+}
+function topPlatform(posts) {
+  const c = {}
+  ;(posts || []).forEach(p => { if (p && p.platform) c[p.platform] = (c[p.platform] || 0) + 1 })
+  let best = '', n = -1
+  for (const k in c) if (c[k] > n) { n = c[k]; best = k }
+  return best
+}
+function summarizeProfile(p) {
+  const posts = Array.isArray(p.posts) ? p.posts : []
+  return {
+    userId:         (p.emailHash || '').slice(0, 8),
+    hash:           p.emailHash || '',
+    joined:         p.createdAt || '',
+    lastActive:     p.updatedAt || '',
+    niche:          (p.lastSettings && p.lastSettings.niche) || '',
+    postsGenerated: posts.length,
+    published:      posts.filter(x => x.status === 'published' || x.status === 'edited').length,
+    skipped:        posts.filter(x => x.status === 'skipped').length,
+    voiceProfile:   !!p.voiceProfile,
+    topPlatform:    topPlatform(posts),
+  }
+}
+
+// POST /api/admin/login
+app.post('/api/admin/login', (req, res) => {
+  const ip = req.ip || 'unknown'
+  const rec = adminFails.get(ip)
+  if (rec && rec.blockedUntil && rec.blockedUntil > Date.now()) {
+    return res.status(429).json({ error: 'Too many attempts. Try again in 15 minutes.' })
+  }
+  const { email, password } = req.body || {}
+  const AE = process.env.ADMIN_EMAIL, AP = process.env.ADMIN_PASSWORD
+  if (!AE || !AP) return res.status(500).json({ error: 'Admin is not configured' })
+
+  const ok = email && password &&
+    String(email).trim().toLowerCase() === AE.trim().toLowerCase() &&
+    String(password) === AP
+
+  if (!ok) {
+    const r = rec || { count: 0 }
+    r.count++
+    if (r.count >= MAX_FAILS) r.blockedUntil = Date.now() + BLOCK_MS
+    adminFails.set(ip, r)
+    return res.status(401).json({ error: 'Invalid credentials' })
+  }
+  adminFails.delete(ip)
+  const token = newAdminSession()
+  setSessionCookie(req, res, token, 86400)
+  res.json({ ok: true })
+})
+
+// POST /api/admin/logout
+app.post('/api/admin/logout', (req, res) => {
+  const t = getCookie(req, 'xlink_admin_session')
+  if (t) adminSessions.delete(t)
+  setSessionCookie(req, res, '', 0)
+  res.json({ ok: true })
+})
+
+// GET /api/admin/stats
+app.get('/api/admin/stats', requireAdmin, (_req, res) => {
+  const ps = loadAllProfiles(), now = Date.now()
+  const within = (iso, ms) => { const t = Date.parse(iso); return t && (now - t) <= ms }
+  res.json({
+    totalUsers:  ps.length,
+    activeToday: ps.filter(p => within(p.updatedAt, 864e5)).length,
+    activeWeek:  ps.filter(p => within(p.updatedAt, 7 * 864e5)).length,
+    totalPosts:  ps.reduce((s, p) => s + ((p.posts || []).length), 0),
+  })
+})
+
+// GET /api/admin/users
+app.get('/api/admin/users', requireAdmin, (_req, res) => {
+  const users = loadAllProfiles().map(summarizeProfile)
+  users.sort((a, b) => (Date.parse(b.lastActive) || 0) - (Date.parse(a.lastActive) || 0))
+  res.json({ users })
+})
+
+// GET /api/admin/user?hash=
+app.get('/api/admin/user', requireAdmin, (req, res) => {
+  const hash = String(req.query.hash || '')
+  if (!/^[a-f0-9]{64}$/.test(hash)) return res.status(400).json({ error: 'Bad hash' })
+  let p = null
+  try { p = JSON.parse(fs.readFileSync(path.join(PROFILES_DIR, hash + '.json'), 'utf8')) } catch (e) {}
+  if (!p) return res.status(404).json({ error: 'Not found' })
+
+  const posts = Array.isArray(p.posts) ? p.posts : []
+  const withImp = posts.filter(x => Number(x.impressions) > 0)
+  const published = posts.filter(x => x.status === 'published' || x.status === 'edited').length
+  const skipped = posts.filter(x => x.status === 'skipped').length
+  res.json({
+    userId:       (p.emailHash || '').slice(0, 8),
+    lastSettings: p.lastSettings || {},
+    voiceProfile: p.voiceProfile || null,
+    posts:        posts.slice(-10).reverse(),
+    performance: {
+      avgImpressions: withImp.length ? Math.round(withImp.reduce((s, x) => s + Number(x.impressions), 0) / withImp.length) : 0,
+      bestImpressions: posts.reduce((m, x) => Math.max(m, Number(x.impressions) || 0), 0),
+      winRate: (published + skipped) ? Math.round(published / (published + skipped) * 100) : 0,
+    },
+  })
+})
+
+// GET /api/admin/export  (CSV — table columns only, no content)
+app.get('/api/admin/export', requireAdmin, (_req, res) => {
+  const rows = loadAllProfiles().map(summarizeProfile)
+  rows.sort((a, b) => (Date.parse(b.lastActive) || 0) - (Date.parse(a.lastActive) || 0))
+  const header = ['User ID', 'Joined', 'Last Active', 'Niche', 'Posts Generated', 'Published', 'Skipped', 'Voice Profile', 'Top Platform']
+  const esc = v => { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v }
+  const lines = [header.join(',')]
+  rows.forEach(r => lines.push([r.userId, r.joined, r.lastActive, r.niche, r.postsGenerated, r.published, r.skipped, r.voiceProfile ? 'Yes' : 'No', r.topPlatform].map(esc).join(',')))
+  res.setHeader('Content-Type', 'text/csv')
+  res.setHeader('Content-Disposition', 'attachment; filename="xlink-users.csv"')
+  res.send(lines.join('\n'))
+})
+
+// Admin pages (served from /admin dir, NOT public, so the gate cannot be bypassed)
+app.get('/adminlogin', (_req, res) => res.sendFile(path.join(ADMIN_DIR, 'adminlogin.html')))
+app.get('/admin', (req, res) => {
+  if (validAdminSession(req)) return res.sendFile(path.join(ADMIN_DIR, 'admin.html'))
+  res.redirect('/adminlogin')
 })
 
 // ─── Clean URLs for the extra pages ───────────────────────────────────────────

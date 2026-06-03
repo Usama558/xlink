@@ -37,7 +37,27 @@
       "Bash(node -e \"new Function\\(require\\('fs'\\).readFileSync\\('public/xlink.js','utf8'\\)\\);console.log\\('xlink.js parses OK'\\)\")",
       "Bash(rm -f profiles/*.json && echo \"test profile cleaned\")",
       "Bash(grep -n '^render\\(\\)\\\\|^render\\(\\);\\\\|render\\(\\)$' results.html)",
-      "Bash(curl -s -X POST http://localhost:3000/api/profile/posts -H \"Content-Type: application/json\" -d '{\"email\":\"welcome@back.com\",\"post\":{\"id\":\"backendonly1\",\"text\":\"This post lives only on the server, not in this browser cache.\",\"niche\":\"Freelancer\",\"topic\":\"pricing\",\"hook_type\":\"confession\",\"tone\":\"sarcastic\",\"platform\":\"linkedin\",\"timestamp\":1717000000000,\"status\":\"published\",\"impressions\":15400,\"likes\":612,\"reposts\":88,\"comments\":40}}')"
+      "Bash(curl -s -X POST http://localhost:3000/api/profile/posts -H \"Content-Type: application/json\" -d '{\"email\":\"welcome@back.com\",\"post\":{\"id\":\"backendonly1\",\"text\":\"This post lives only on the server, not in this browser cache.\",\"niche\":\"Freelancer\",\"topic\":\"pricing\",\"hook_type\":\"confession\",\"tone\":\"sarcastic\",\"platform\":\"linkedin\",\"timestamp\":1717000000000,\"status\":\"published\",\"impressions\":15400,\"likes\":612,\"reposts\":88,\"comments\":40}}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@xlink.com\",\"password\":\"wrong\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/api/admin/stats)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/admin)",
+      "Bash(curl -s -c /tmp/admincookie.txt -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@xlink.com\",\"password\":\"secret123\"}')",
+      "Read(//tmp/**)",
+      "Bash(awk '{print $6, \"\\(value hidden:\", length\\($7\\), \"chars\\)\"}')",
+      "Bash(curl -s -b /tmp/admincookie.txt http://localhost:3000/api/admin/stats)",
+      "Bash(curl -s -b /tmp/admincookie.txt http://localhost:3000/api/admin/users)",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\(0\\)\\);console.log\\('count:',d.users.length\\);d.users.forEach\\(u=>console.log\\(' ',u.userId,'| niche:',u.niche,'| posts:',u.postsGenerated,'| pub:',u.published,'| voice:',u.voiceProfile,'| platform:',u.topPlatform\\)\\)\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\(0\\)\\);console.log\\('userId:',d.userId,'| settings.tone:',d.lastSettings.tone,'| voice personality:',JSON.stringify\\(d.voiceProfile.personality\\),'| posts:',d.posts.length,'| perf:',JSON.stringify\\(d.performance\\)\\)\")",
+      "Bash(curl -s -b /tmp/admincookie.txt http://localhost:3000/api/admin/export)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/api/admin/export)",
+      "Bash(curl -s -b /tmp/admincookie.txt -X POST http://localhost:3000/api/admin/logout)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -b /tmp/admincookie.txt http://localhost:3000/api/admin/stats)",
+      "Bash(printf 'attempt __TRACKED_VAR__: ')",
+      "Bash(curl -s -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@xlink.com\",\"password\":\"nope\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} \" -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@xlink.com\",\"password\":\"secret123\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@xlink.com\",\"password\":\"secret123\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/adminlogin)",
+      "Bash(curl -s -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"x@x.com\",\"password\":\"y\"}')"
     ]
   }
 }
