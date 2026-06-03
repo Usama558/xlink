@@ -47,7 +47,7 @@ textarea::placeholder{color:var(--t4)}
 .kv{display:flex;flex-wrap:wrap;gap:8px}
 .kv-item{font-size:13px;color:var(--t2)}
 .kv-item b{color:var(--ink);font-weight:600;text-transform:capitalize}
-.hooks-box{background:#0c0c10;border:1px solid var(--b1);border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;color:rgba(var(--ink-rgb),0.8)}
+.hooks-box{background:rgba(var(--ink-rgb),0.04);border:1px solid var(--b1);border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;color:rgba(var(--ink-rgb),0.82)}
 .hooks-box .hk{display:flex;gap:10px;margin-bottom:8px}
 .hooks-box .hk:last-child{margin-bottom:0}
 .hooks-box .hk span{color:var(--accent-l)}
@@ -60,6 +60,10 @@ textarea::placeholder{color:var(--t4)}
 .gen-loading{display:none;text-align:center;padding:40px 12px}
 .loader-ring{width:38px;height:38px;border:3px solid var(--b1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
 html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#eceff3;--ink:#0e0f16;--ink-rgb:14,15,22}
+/* light-mode contrast for accent highlights on the profile card */
+html[data-theme="light"] .pill{color:#1d4ed8;background:rgba(37,99,235,0.1);border-color:rgba(37,99,235,0.3)}
+html[data-theme="light"] .hooks-box .hk span{color:#1d4ed8}
+html[data-theme="light"] .header-glow{opacity:.5}
 </style>
 </head>
 <body>
