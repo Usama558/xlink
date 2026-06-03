@@ -231,7 +231,7 @@ document.getElementById('overlay').addEventListener('click',closePanel)
 
 function renderDetail(d){
   const body=document.getElementById('panelBody');body.className='panel-body'
-  const s=d.lastSettings||{},v=d.voiceProfile,perf=d.performance||{}
+  const s=d.lastSettings||{},v=d.voiceProfile,counts=d.counts||{}
   const arr=x=>Array.isArray(x)?x:(x?[x]:[])
   const settingsFields=[
     ['Niche',s.niche],['Tone',s.tone],['Hook Type',s.hookType],['Platform',platLabel(s.platform)],
@@ -248,17 +248,13 @@ function renderDetail(d){
 
   const posts=(d.posts||[])
   const tl=posts.length?posts.map(p=>{
-    const st=p.status==='skipped'?'<span class="badge b-gray">Skipped</span>':(p.status==='edited'?'<span class="badge b-blue">Edited</span>':'<span class="badge b-green">Published</span>')
-    const perfPills=[]
-    if(Number(p.impressions)>0)perfPills.push(num(p.impressions)+' impressions')
-    if(Number(p.likes)>0)perfPills.push(num(p.likes)+' likes')
-    if(Number(p.reposts)>0)perfPills.push(num(p.reposts)+' reposts')
-    if(Number(p.comments)>0)perfPills.push(num(p.comments)+' comments')
+    const lbl={skipped:'Skipped',edited:'Edited',published:'Published',unsaved:'Unsaved'}[p.status]||'Unsaved'
+    const cls={skipped:'b-gray',edited:'b-blue',published:'b-green',unsaved:'b-gray'}[p.status]||'b-gray'
+    const st=`<span class="badge ${cls}">${lbl}</span>`
     return `<div class="tl-item">
       <div class="tl-top">${st}<span class="tl-meta">${esc(platLabel(p.platform))} · ${esc(p.niche||'—')} · ${esc(ago(typeof p.timestamp==='number'?new Date(p.timestamp).toISOString():p.timestamp))}</span></div>
       ${p.topic?`<div class="tl-meta" style="margin-bottom:6px">Topic: ${esc(p.topic)}</div>`:''}
       <div class="tl-text">${esc(String(p.text||'').slice(0,160))}${(p.text||'').length>160?'…':''}</div>
-      ${perfPills.length?`<div class="tl-perf">${perfPills.map(x=>`<span>${x}</span>`).join('')}</div>`:''}
     </div>`
   }).join(''):'<div class="tl-meta">No posts yet.</div>'
 
@@ -272,11 +268,11 @@ function renderDetail(d){
       ${voiceHtml}
     </div>
     <div class="psec">
-      <div class="psec-h">Performance</div>
+      <div class="psec-h">Activity</div>
       <div class="perf-grid">
-        <div class="perf-card"><div class="perf-v">${num(perf.avgImpressions)}</div><div class="perf-l">Avg Impr.</div></div>
-        <div class="perf-card"><div class="perf-v">${num(perf.bestImpressions)}</div><div class="perf-l">Best Post</div></div>
-        <div class="perf-card"><div class="perf-v">${perf.winRate||0}%</div><div class="perf-l">Win Rate</div></div>
+        <div class="perf-card"><div class="perf-v">${counts.total||0}</div><div class="perf-l">Total Posts</div></div>
+        <div class="perf-card"><div class="perf-v">${counts.published||0}</div><div class="perf-l">Published</div></div>
+        <div class="perf-card"><div class="perf-v">${counts.skipped||0}</div><div class="perf-l">Skipped</div></div>
       </div>
     </div>
     <div class="psec">

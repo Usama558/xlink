@@ -194,16 +194,14 @@ nav{
 /* illuminated green lead magnet nav link */
 .nav-magnet{
   display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;
-  color:#86efac;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.45);
+  color:var(--t3);background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b2);
   border-radius:10px;padding:7px 14px;text-decoration:none;transition:all .2s;
-  box-shadow:0 0 18px rgba(34,197,94,.3),0 0 2px rgba(34,197,94,.4);
 }
-.nav-magnet:hover{background:rgba(34,197,94,0.22);color:#dcfce7;transform:translateY(-1px);box-shadow:0 0 30px rgba(34,197,94,.5)}
+.nav-magnet.locked{opacity:0.5;cursor:not-allowed}
+.nav-magnet.locked:hover{opacity:0.65}
 /* light-mode contrast for the illuminated buttons */
 html[data-theme="light"] .btn-hero-voice{color:#1d4ed8;background:rgba(37,99,235,0.1)}
 html[data-theme="light"] .btn-hero-voice:hover{color:#1e3a8a}
-html[data-theme="light"] .nav-magnet{color:#15803d;background:rgba(34,197,94,0.13)}
-html[data-theme="light"] .nav-magnet:hover{color:#166534}
 
 /* Free badge row */
 .hero-free-note{
@@ -600,11 +598,11 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
   </a>
   <div class="nav-right">
     <span id="voiceBadgeSlot"></span>
-    <a href="/results" class="nav-link">Results</a>
-    <a href="/lead-magnet" class="nav-magnet">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+    <a href="/results" class="nav-link">Your Posts</a>
+    <span class="nav-magnet locked" title="Coming soon" aria-disabled="true">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       Lead Magnet
-    </a>
+    </span>
     <a href="#app" class="nav-cta">
       Start Creating Free
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -1303,6 +1301,7 @@ async function runGenerate(singleTrend=null){
     const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filters:usedFilters,trends:usedTrends,voiceProfile:XL.getVoiceProfileRaw()})})
     const data=await res.json()
     if(!res.ok||data.error)throw new Error(data.error||'Unknown error')
+    autoSavePosts(data.posts,usedFilters)
     renderPosts(data.posts,usedFilters,usedTrends)
   }catch(e){
     document.getElementById('postsLoading').style.display='none'
@@ -1316,6 +1315,17 @@ function showSkelCards(count){
   for(let i=0;i<count;i++)g.innerHTML+=`<div class="skel-card"><div class="skel-ln" style="width:28%;height:9px;margin-bottom:14px"></div><div class="skel-ln" style="width:100%"></div><div class="skel-ln" style="width:90%"></div><div class="skel-ln" style="width:95%"></div><div class="skel-ln" style="width:78%"></div><div class="skel-ln" style="width:60%;margin-top:14px"></div></div>`
 }
 const ALL_FW=['STIMULATED','CAPTIVATED','ANTICIPATION','VALIDATION','AFFECTION','REVELATION']
+// Auto-save every generated post to the Your Posts library with status "unsaved"
+function autoSavePosts(posts,usedFilters){
+  (posts||[]).forEach((p,i)=>{
+    if(!p.id)p.id='p_'+Date.now()+'_'+i+'_'+Math.random().toString(36).slice(2,6)
+    if(!p.status)p.status='unsaved'
+    const rec={id:p.id,text:p.text,format:p.format||'',niche:usedFilters.niche,topic:usedFilters.topic,
+      hook_type:usedFilters.hookType,tone:usedFilters.tone,platform:usedFilters.platform,
+      timestamp:Date.now(),status:'unsaved'}
+    XL.upsertPost(rec); XL.syncPost(rec)
+  })
+}
 function renderPosts(posts,usedFilters,usedTrends){
   document.getElementById('postsLoading').style.display='none'
   document.getElementById('postsResults').style.display='block'
@@ -1348,19 +1358,7 @@ function renderPosts(posts,usedFilters,usedTrends){
         <button class="track-btn" data-st="edited">Edited &amp; Published</button>
         <button class="track-btn" data-st="skipped">Skipped</button>
       </div>
-      <div class="track-form">
-        <div class="track-inputs">
-          <input type="number" min="0" placeholder="Impressions" data-m="impressions"/>
-          <input type="number" min="0" placeholder="Likes" data-m="likes"/>
-          <input type="number" min="0" placeholder="Reposts" data-m="reposts"/>
-          <input type="number" min="0" placeholder="Comments" data-m="comments"/>
-        </div>
-        <div class="track-save-row">
-          <button class="track-save">Save results</button>
-          <button class="track-skip-link">Skip for now</button>
-        </div>
-      </div>
-      <div class="track-saved">Saved to your results.</div>`
+      <div class="track-saved" style="display:none">Saved to Your Posts.</div>`
     card.querySelector('.copy-btn').addEventListener('click',function(){
       navigator.clipboard.writeText(this.dataset.text).then(()=>{
         this.classList.add('copied')
@@ -1375,6 +1373,7 @@ function renderPosts(posts,usedFilters,usedTrends){
         const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filters:{...usedFilters,count:1},trends:[sourceTrend],voiceProfile:XL.getVoiceProfileRaw()})})
         const data=await res.json()
         if(!res.ok||data.error)throw new Error(data.error)
+        autoSavePosts(data.posts,usedFilters)
         const np=[...posts];np[idx]=data.posts[0];renderPosts(np,usedFilters,usedTrends)
       }catch(e){this.disabled=false;this.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Regenerate this`;alert('Error: '+e.message)}
     })
@@ -1382,47 +1381,25 @@ function renderPosts(posts,usedFilters,usedTrends){
     // Repurpose
     card.querySelector('.repurpose-btn').addEventListener('click',()=>XL.openRepurpose(post.text))
 
-    // Publish tracking
-    const postId='p_'+Date.now()+'_'+idx+'_'+Math.random().toString(36).slice(2,7)
-    const trackForm=card.querySelector('.track-form')
+    // Publish tracking — silent status update (post was auto-saved on generation)
+    const postId=post.id
     const trackSaved=card.querySelector('.track-saved')
-    function baseRecord(status){
-      return {id:postId,text:post.text,niche:usedFilters.niche,topic:usedFilters.topic,
-        hook_type:usedFilters.hookType,tone:usedFilters.tone,platform:usedFilters.platform,
-        timestamp:Date.now(),status}
+    function highlight(st){
+      card.querySelectorAll('.track-btn').forEach(b=>{
+        b.classList.remove('sel-pub','sel-skip')
+        if(b.dataset.st===st)b.classList.add(st==='skipped'?'sel-skip':'sel-pub')
+      })
     }
+    if(post.status&&post.status!=='unsaved')highlight(post.status)
     card.querySelectorAll('.track-btn').forEach(btn=>{
       btn.addEventListener('click',()=>{
         const st=btn.dataset.st
-        card.querySelectorAll('.track-btn').forEach(b=>b.classList.remove('sel-pub','sel-skip'))
-        const rec=baseRecord(st)
-        if(st==='skipped'){
-          btn.classList.add('sel-skip')
-          XL.upsertPost(rec); XL.syncPost(rec)
-          trackForm.classList.remove('open')
-          trackSaved.style.display='none'
-        }else{
-          btn.classList.add('sel-pub')
-          XL.upsertPost(rec); XL.syncPost(rec)
-          trackForm.classList.add('open')
-          trackSaved.style.display='none'
-        }
+        post.status=st
+        highlight(st)
+        const rec={id:postId,status:st,timestamp:Date.now()}
+        XL.upsertPost(rec); XL.syncPost(rec)
+        trackSaved.style.display='block'
       })
-    })
-    card.querySelector('.track-save').addEventListener('click',()=>{
-      const metrics={id:postId}
-      trackForm.querySelectorAll('input[data-m]').forEach(inp=>{
-        const v=parseInt(inp.value,10); metrics[inp.dataset.m]=isNaN(v)?0:v
-      })
-      XL.upsertPost(metrics); XL.syncPost(metrics)
-      trackForm.classList.remove('open')
-      trackSaved.textContent='Saved to your results.'
-      trackSaved.style.display='block'
-    })
-    card.querySelector('.track-skip-link').addEventListener('click',()=>{
-      trackForm.classList.remove('open')
-      trackSaved.textContent='Saved to your results.'
-      trackSaved.style.display='block'
     })
 
     grid.appendChild(card)

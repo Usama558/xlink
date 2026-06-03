@@ -76,6 +76,7 @@
   .xl-mobile-menu a{padding:12px 12px;border-radius:10px;font-size:15px;font-weight:600;color:var(--t1);text-decoration:none}
   .xl-mobile-menu a.cta{background:var(--accent);color:#fff;text-align:center;margin-top:4px}
   .xl-mobile-menu a:not(.cta):active,.xl-mobile-menu a:not(.cta):hover{background:rgba(var(--ink-rgb),0.06)}
+  .xl-mobile-menu .locked-item{padding:12px;font-size:15px;font-weight:600;color:var(--t4);opacity:.6}
   @media(max-width:760px){
     nav{padding:0 16px !important}
     .xl-hamburger{display:inline-flex}
@@ -138,8 +139,8 @@
     menu.innerHTML =
       '<a href="/">Home</a>' +
       '<a href="/voice">Set Up Voice</a>' +
-      '<a href="/results">Results</a>' +
-      '<a href="/lead-magnet">Lead Magnet</a>' +
+      '<a href="/results">Your Posts</a>' +
+      '<span class="locked-item">Lead Magnet — coming soon</span>' +
       '<a href="/#app" class="cta">Start Creating</a>'
     document.body.appendChild(menu)
 
@@ -222,6 +223,20 @@
       await fetch('/api/profile/posts', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, post }),
+      })
+    } catch (e) { /* silent */ }
+  }
+  function deletePostLocal(id) {
+    savePosts(getPosts().filter(p => p.id !== id))
+  }
+  async function deletePost(id) {
+    deletePostLocal(id)
+    const email = getEmail()
+    if (!email) return
+    try {
+      await fetch('/api/profile/posts/delete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, id }),
       })
     } catch (e) { /* silent */ }
   }
@@ -439,6 +454,6 @@
     getPosts, savePosts, upsertPost, clearPosts,
     addHints, openRepurpose, esc,
     setTheme, toggleTheme, currentTheme,
-    getEmail, setEmail, fetchProfile, fetchProfilePosts, saveProfile, saveVoiceToAccount, syncPost,
+    getEmail, setEmail, fetchProfile, fetchProfilePosts, saveProfile, saveVoiceToAccount, syncPost, deletePost,
   }
 })()

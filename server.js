@@ -893,6 +893,19 @@ app.get('/api/profile/posts', (req, res) => {
   res.json({ posts: (profile && Array.isArray(profile.posts)) ? profile.posts : [] })
 })
 
+// POST /api/profile/posts/delete → remove a post from the library
+app.post('/api/profile/posts/delete', (req, res) => {
+  const { email, id } = req.body || {}
+  if (!email || !id) return res.status(400).json({ deleted: false })
+  const profile = readProfile(email)
+  if (profile && Array.isArray(profile.posts)) {
+    profile.posts = profile.posts.filter(p => p.id !== id)
+    profile.updatedAt = new Date().toISOString()
+    writeProfile(email, profile)
+  }
+  res.json({ deleted: true })
+})
+
 // ══════════════════════════════════════════════════════════════════════════
 // ADMIN — private dashboard
 // ══════════════════════════════════════════════════════════════════════════
@@ -1027,7 +1040,6 @@ app.get('/api/admin/user', requireAdmin, (req, res) => {
   if (!p) return res.status(404).json({ error: 'Not found' })
 
   const posts = Array.isArray(p.posts) ? p.posts : []
-  const withImp = posts.filter(x => Number(x.impressions) > 0)
   const published = posts.filter(x => x.status === 'published' || x.status === 'edited').length
   const skipped = posts.filter(x => x.status === 'skipped').length
   res.json({
@@ -1035,11 +1047,7 @@ app.get('/api/admin/user', requireAdmin, (req, res) => {
     lastSettings: p.lastSettings || {},
     voiceProfile: p.voiceProfile || null,
     posts:        posts.slice(-10).reverse(),
-    performance: {
-      avgImpressions: withImp.length ? Math.round(withImp.reduce((s, x) => s + Number(x.impressions), 0) / withImp.length) : 0,
-      bestImpressions: posts.reduce((m, x) => Math.max(m, Number(x.impressions) || 0), 0),
-      winRate: (published + skipped) ? Math.round(published / (published + skipped) * 100) : 0,
-    },
+    counts: { published, skipped, total: posts.length },
   })
 })
 
