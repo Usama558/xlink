@@ -58,7 +58,9 @@
       "Bash(curl -s -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@xlink.com\",\"password\":\"secret123\"}')",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/adminlogin)",
       "Bash(curl -s -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"x@x.com\",\"password\":\"y\"}')",
-      "Bash(node -e \"new Function\\(require\\('fs'\\).readFileSync\\('public/xlink.js','utf8'\\)\\);console.log\\('xlink.js OK'\\)\")"
+      "Bash(node -e \"new Function\\(require\\('fs'\\).readFileSync\\('public/xlink.js','utf8'\\)\\);console.log\\('xlink.js OK'\\)\")",
+      "Bash(sed -n '10,18p' xlink.js)",
+      "Bash(sed -n '295p' index.html)"
     ]
   }
 }

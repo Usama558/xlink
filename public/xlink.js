@@ -11,10 +11,10 @@
   const css = `
   .xl-voice-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#86efac;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:99px;padding:4px 11px}
   .xl-voice-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 7px #22c55e}
-  .xl-voice-reset{font-size:12px;font-weight:600;color:rgba(255,255,255,0.35);text-decoration:none;margin-left:8px;transition:color .15s}
-  .xl-voice-reset:hover{color:rgba(255,255,255,0.7)}
-  .xl-voice-link{font-size:13px;font-weight:600;color:rgba(255,255,255,0.6);text-decoration:none}
-  .xl-voice-link:hover{color:#fff}
+  .xl-voice-reset{font-size:12px;font-weight:600;color:var(--t3);text-decoration:none;margin-left:8px;transition:color .15s}
+  .xl-voice-reset:hover{color:var(--ink)}
+  .xl-voice-link{font-size:13px;font-weight:600;color:var(--t2);text-decoration:none}
+  .xl-voice-link:hover{color:var(--ink)}
 
   .xl-speak-hint{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;font-weight:600;color:var(--accent-l);background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.28);border-radius:99px;padding:4px 11px;width:fit-content;max-width:100%}
   .xl-speak-hint svg{flex-shrink:0}
