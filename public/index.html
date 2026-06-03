@@ -559,6 +559,34 @@ textarea::placeholder{color:var(--t4)}
 .lead-check:checked::after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg)}
 .lead-err{font-size:12px;color:#fca5a5;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:9px 12px;margin-bottom:12px;display:none}
 .lead-foot{font-size:11px;color:var(--t4);text-align:center;margin-top:14px;line-height:1.5}
+/* ── content creator (rebuilt) ── */
+.pos-card{padding:28px}
+.pos-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+@media(max-width:600px){.pos-grid{grid-template-columns:1fr}}
+.creator-grid{display:grid;grid-template-columns:55fr 45fr;gap:16px;align-items:start}
+@media(max-width:820px){.creator-grid{grid-template-columns:1fr}}
+.creator-left,.creator-right{padding:22px}
+.ci-head{font-size:13px;font-weight:800;color:var(--t1);margin-bottom:14px}
+.tabs{display:flex;gap:18px;border-bottom:1px solid var(--b1);margin-bottom:16px}
+.tab{background:none;border:none;padding:0 0 11px;font-size:13px;font-weight:600;color:var(--t3);cursor:pointer;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab:hover{color:var(--t1)}
+.tab.active{color:var(--t1);border-bottom-color:var(--accent)}
+.tab-pane textarea,.tab-pane input{width:100%;background:rgba(var(--ink-rgb),0.04);border:1px solid var(--b1);border-radius:12px;padding:13px;font-size:14px;line-height:1.6;color:var(--t1);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s;resize:vertical}
+.tab-pane textarea:focus,.tab-pane input:focus{border-color:var(--accent)}
+.tab-pane textarea::placeholder,.tab-pane input::placeholder{color:var(--t4)}
+.char-count{font-size:11px;color:var(--t4);margin-top:6px}
+.live-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.live-note{font-size:11px;color:var(--t4);line-height:1.4}
+.mini-btn{background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b2);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0}
+.mini-btn:hover{color:var(--t1)}
+.hl-card{background:rgba(var(--ink-rgb),0.03);border:1px solid var(--b1);border-radius:12px;padding:12px 13px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.hl-card:hover{border-color:var(--accent);background:rgba(37,99,235,0.06)}
+.hl-src{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-l)}
+.hl-title{font-size:13px;color:var(--t1);line-height:1.45;margin-top:3px}
+.set-row{margin-bottom:16px}
+.prefill-banner{background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.25);border-radius:12px;padding:11px 15px;font-size:13px;color:var(--accent-l);margin-bottom:18px}
+html[data-theme="light"] .prefill-banner{color:#1d4ed8}
+.tone-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b1);color:var(--t2);text-transform:uppercase;letter-spacing:.04em}
 html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#eceff3;--ink:#0e0f16;--ink-rgb:14,15,22}
 /* ─── mobile ─── */
 @media(max-width:760px){
@@ -612,6 +640,7 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
   <div class="nav-right">
     <span id="voiceBadgeSlot"></span>
     <a href="/results" class="nav-link">Your Posts</a>
+    <a href="/ideas" class="nav-link" id="navIdeas">Daily Ideas</a>
     <span class="nav-magnet locked" title="Coming soon" aria-disabled="true">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       Lead Magnet
@@ -695,292 +724,144 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
      APP — 3-STEP WIZARD
 ══════════════════════════════════════════════════ -->
 <section id="app">
+  <div class="page" style="padding-top:28px">
 
-  <!-- Step indicator -->
-  <div class="step-bar">
-    <div class="step-node">
-      <div class="step-circle active" id="sc1">1</div>
-      <span class="step-label active" id="sl1">Filters</span>
-    </div>
-    <div class="step-line" id="line1"></div>
-    <div class="step-node" id="stepMid">
-      <div class="step-circle" id="sc2">2</div>
-      <span class="step-label" id="sl2">Trends</span>
-    </div>
-    <div class="step-line" id="line2"></div>
-    <div class="step-node">
-      <div class="step-circle" id="sc3">3</div>
-      <span class="step-label" id="sl3">Posts</span>
-    </div>
-  </div>
-
-  <div class="page">
-
-    <!-- STEP 1 -->
-    <div class="step-view active" id="view1">
-      <h2 class="section-title" id="setupTitle">How do you want to create?</h2>
-      <p class="section-sub" id="setupSub">Write your own content, or research a live trend and post about it with full context.</p>
-
-      <div class="mode-cards" id="modeCards">
-        <button type="button" class="mode-card active" data-mode="own">
-          <div class="mode-card-t">Create your own content</div>
-          <div class="mode-card-d">Write posts from your own topic and voice. No trend research.</div>
-        </button>
-        <button type="button" class="mode-card" data-mode="trends">
-          <div class="mode-card-t">Post with trends</div>
-          <div class="mode-card-d">Research what is actually happening in the last 15 days, then post about it with context.</div>
-        </button>
+    <!-- One-time positioning setup -->
+    <div class="card pos-card" id="posSetup" style="display:none">
+      <h2 class="section-title">Tell XLink who you are — takes 30 seconds.</h2>
+      <p class="section-sub">This shapes every post so it comes from your authority and worldview.</p>
+      <div class="pos-grid">
+        <div><span class="lbl">What do you do?</span><input class="email-fld" id="posWhat" data-no-hint placeholder="e.g. I run a Shopify CRO agency, I help SaaS founders with LinkedIn growth"/></div>
+        <div><span class="lbl">Who do you help?</span><input class="email-fld" id="posWho" data-no-hint placeholder="e.g. DTC brands doing $50K-$500K/month, early stage SaaS founders"/></div>
+        <div><span class="lbl">What result do you get them?</span><input class="email-fld" id="posResult" data-no-hint placeholder="e.g. 2-3x conversion rate, first $10K month, consistent inbound"/></div>
+        <div><span class="lbl">What do you believe that most people in your space disagree with?</span><input class="email-fld" id="posBelief" data-no-hint placeholder="e.g. Most agencies over-deliver and under-charge. Cold outreach still works."/></div>
       </div>
+      <button class="btn-primary" id="posSave" style="margin-top:18px">Save My Positioning</button>
+    </div>
 
-      <div class="card">
-        <div class="filters-grid">
+    <!-- Main creator -->
+    <div id="creator" style="display:none">
+      <h2 class="section-title">Create a post</h2>
+      <p class="section-sub">React to a real trend with a strong point of view. <a href="#" id="editPosLink" style="color:var(--accent-l);font-weight:600;text-decoration:none">Edit positioning</a></p>
 
-          <div class="filter-full own-only">
-            <span class="lbl">What do you want to post about? <span style="color:#f87171;font-weight:700;text-transform:none;letter-spacing:0">required</span></span>
-            <textarea id="fTopic" placeholder="e.g. Why most agency owners price themselves out of clients, How I closed my first $10K deal, The mistake killing your conversion rate" rows="2"></textarea>
+      <div class="prefill-banner" id="prefillBanner" style="display:none"></div>
+
+      <div class="creator-grid">
+        <!-- LEFT: trend input -->
+        <div class="card creator-left">
+          <div class="ci-head">What are you reacting to?</div>
+          <div class="tabs" id="inputTabs">
+            <button class="tab active" data-tab="paste" type="button">Paste a trend</button>
+            <button class="tab" data-tab="topic" type="button">Describe a topic</button>
+            <button class="tab" data-tab="live" type="button">Live headlines</button>
           </div>
 
-          <div class="filter-full trends-only" style="display:none">
-            <span class="lbl">Keywords to research <span style="color:#f87171;font-weight:700;text-transform:none;letter-spacing:0">up to 5</span></span>
-            <input type="text" id="fKeywords" class="email-fld" placeholder="e.g. AI agents, OpenAI, layoffs, pricing, funding — comma separated" data-no-hint/>
-            <div style="font-size:11px;color:var(--t4);margin-top:6px">Separate keywords with commas. We research the last 15 days across Reddit, Hacker News and news, then surface the real trends.</div>
+          <div class="tab-pane" data-pane="paste">
+            <textarea id="pasteInput" rows="7" placeholder="Paste anything — a tweet, a LinkedIn post, a news headline, a quote, a statistic, an announcement. XLink will build your post around it."></textarea>
+            <div class="char-count" id="pasteCount">0 characters</div>
           </div>
 
-          <div class="filter-full trends-only" style="display:none">
-            <span class="lbl">More details to find the perfect trend <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
-            <textarea id="fDetails" placeholder="What angle or audience are you after? e.g. how this affects indie founders, focus on pricing shifts, only product launches" rows="2"></textarea>
+          <div class="tab-pane" data-pane="topic" style="display:none">
+            <input id="topicInput" placeholder="e.g. Why most agencies fail in year 2, The truth about cold DMs, What nobody tells you about pricing"/>
           </div>
 
-          <div>
-            <span class="lbl">Niche</span>
-            <div class="dd-wrap" id="nicheWrap">
-              <button class="dd-trigger" id="nicheTrigger" type="button">
-                <span class="dd-val ph" id="nicheTriggerVal">Select a niche</span>
-                <svg class="dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              <div class="dd-panel" id="nichePanel">
-                <div class="dd-search-wrap">
-                  <input class="dd-search" id="nicheSearch" type="text" placeholder="Search niches..." autocomplete="off" data-no-hint/>
-                </div>
-                <div class="dd-list" id="nicheList"></div>
-              </div>
+          <div class="tab-pane" data-pane="live" style="display:none">
+            <div class="live-head">
+              <span class="live-note">Fresh from TechCrunch, HBR, Fast Company, The Hustle, Product Hunt and more.</span>
+              <button class="mini-btn" id="refreshHeadlines" type="button">Refresh</button>
             </div>
+            <div id="headlinesList"></div>
           </div>
+        </div>
 
-          <div>
+        <!-- RIGHT: settings -->
+        <div class="card creator-right">
+          <div class="ci-head">Settings</div>
+
+          <div class="set-row">
             <span class="lbl">Platform</span>
-            <div class="tgl" id="platformGroup">
-              <button class="tgl-btn active" data-val="x-post">X Post</button>
-              <button class="tgl-btn" data-val="x-thread">X Thread</button>
-              <button class="tgl-btn" data-val="linkedin">LinkedIn</button>
+            <div class="tgl" id="genPlatform">
+              <button class="tgl-btn active" data-val="x-post" type="button">X Post</button>
+              <button class="tgl-btn" data-val="x-thread" type="button">X Thread</button>
+              <button class="tgl-btn" data-val="linkedin" type="button">LinkedIn</button>
             </div>
           </div>
 
-          <div>
+          <div class="set-row">
             <span class="lbl">Tone</span>
             <div class="sel-wrap">
-              <select id="fTone">
-                <option value="aggressive">Aggressive</option>
-                <option value="calm">Calm</option>
-                <option value="educational">Educational</option>
-                <option value="controversial">Controversial</option>
-                <option value="storytelling">Storytelling</option>
-                <option value="motivational" selected>Motivational</option>
-                <option value="sarcastic">Sarcastic</option>
+              <select id="genTone">
+                <option>Contrarian</option>
+                <option>Motivational</option>
+                <option>Educational</option>
+                <option>Storytelling</option>
+                <option>Provocative</option>
+                <option>Calm and analytical</option>
               </select>
             </div>
           </div>
 
-          <div>
-            <span class="lbl">Point of View</span>
-            <div class="sel-wrap">
-              <select id="fPov">
-                <option value="first person (I)" selected>First person (I)</option>
-                <option value="brand voice (we)">Brand voice (we)</option>
-                <option value="observer perspective">Observer perspective</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <span class="lbl">Hook Type</span>
-            <div class="sel-wrap">
-              <select id="fHookType">
-                <option value="bold claim" selected>Bold claim</option>
-                <option value="personal story">Personal story</option>
-                <option value="statistic">Statistic</option>
-                <option value="question">Question</option>
-                <option value="list">List</option>
-                <option value="confession">Confession</option>
-                <option value="prediction">Prediction</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <span class="lbl">Post Goal</span>
-            <div class="sel-wrap">
-              <select id="fGoal">
-                <option value="grow followers" selected>Grow followers</option>
-                <option value="get DMs">Get DMs</option>
-                <option value="build authority">Build authority</option>
-                <option value="drive traffic">Drive traffic</option>
-                <option value="sell something">Sell something</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <span class="lbl">Target Audience</span>
-            <div class="sel-wrap">
-              <select id="fAudience">
-                <option value="beginners" selected>Beginners</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="experts">Experts</option>
-                <option value="skeptics">Skeptics</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
+          <div class="set-row">
             <span class="lbl">Call to Action</span>
             <div class="sel-wrap">
-              <select id="fCta">
-                <option value="follow me">Follow me</option>
-                <option value="DM me">DM me</option>
-                <option value="comment below" selected>Comment below</option>
-                <option value="save this">Save this</option>
-                <option value="link in bio">Link in bio</option>
-                <option value="no CTA">No CTA</option>
+              <select id="genCta">
+                <option>Follow me for more</option>
+                <option>DM me</option>
+                <option>Comment your thoughts</option>
+                <option>Save this</option>
+                <option>Share this</option>
+                <option selected>No CTA</option>
               </select>
             </div>
           </div>
 
-          <div>
-            <span class="lbl">Writing Style</span>
-            <div class="sel-wrap">
-              <select id="fStyle">
-                <option value="short punchy lines" selected>Short punchy lines</option>
-                <option value="long-form narrative">Long-form narrative</option>
-                <option value="listicle">Listicle</option>
-                <option value="question-based">Question-based</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
+          <div class="set-row">
             <span class="lbl">Number of Posts</span>
-            <div class="count-grp" id="countGroup">
-              <button class="count-btn" data-val="1">1</button>
-              <button class="count-btn" data-val="2">2</button>
-              <button class="count-btn active-mono" data-val="3">3</button>
-              <button class="count-btn" data-val="5">5</button>
+            <div class="count-grp" id="genCount">
+              <button class="count-btn" data-val="1" type="button">1</button>
+              <button class="count-btn" data-val="2" type="button">2</button>
+              <button class="count-btn active-mono" data-val="3" type="button">3</button>
+              <button class="count-btn" data-val="5" type="button">5</button>
             </div>
           </div>
 
-          <div>
-            <span class="lbl">Output Type</span>
-            <div class="tgl" id="outputGroup">
-              <button class="tgl-btn active" data-val="full">Full post</button>
-              <button class="tgl-btn" data-val="hook">Hook only</button>
+          <div class="set-row">
+            <span class="lbl">Output</span>
+            <div class="tgl" id="genOutput">
+              <button class="tgl-btn active" data-val="full" type="button">Full post</button>
+              <button class="tgl-btn" data-val="hook" type="button">Hook only</button>
             </div>
           </div>
 
-          <div class="filter-full">
-            <span class="lbl">Contrarian Belief <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
-            <textarea id="fContrarian" placeholder="What do you believe that most in your niche disagree with?" rows="2"></textarea>
-          </div>
-
-          <div class="filter-full">
-            <span class="lbl">Personal Result to Include <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
-            <textarea id="fResult" placeholder="e.g. 3x revenue in 60 days, grew from 0 to 12,000 followers in 4 months" rows="2"></textarea>
-          </div>
-
-          <div class="filter-full">
-            <span class="lbl">Paste viral posts you want to match in style/format <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></span>
-            <textarea id="fRefPosts" placeholder="Paste any posts here that you love — the AI will match their structure, rhythm, and energy while creating original content. You can paste 1-3 posts." rows="6"></textarea>
-          </div>
-
-          <div class="filter-full">
-            <span class="lbl">Email <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional — saves your voice, settings, and posts to come back to)</span></span>
-            <input type="email" id="fEmail" class="email-fld" placeholder="you@example.com" autocomplete="email" data-no-hint/>
-            <div class="profile-banner" id="profileBanner"></div>
-          </div>
-
-        </div>
-        <div class="btn-action-row">
-          <button class="btn-primary" id="findTrendsBtn" disabled>
-            <div class="spinner" id="sp1"></div>
-            <svg id="sp1Icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <span id="sp1Label">Find Trending Topics</span>
+          <button class="btn-primary" id="genBtn" disabled>
+            <div class="spinner" id="genSpin"></div>
+            <span id="genLabel">Generate Posts</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
-          <div class="err" id="err1"></div>
+          <div class="err" id="genErr"></div>
         </div>
       </div>
-    </div>
 
-    <!-- STEP 2 -->
-    <div class="step-view" id="view2">
-      <button class="btn-back" id="backTo1">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        Back to filters
-      </button>
-      <h2 class="section-title">Trends from the last 15 days</h2>
-      <p class="section-sub" id="trendsSubLabel">Select the trends you want to post about.</p>
-
-      <div class="card">
-        <div class="trends-loading" id="trendsLoading">
-          <div class="loader-ring"></div>
-          <div class="trends-loading-label" id="researchLabel">Researching the last 15 days...</div>
-          <div class="trends-loading-sub" id="trendsLoadingSub">Scanning Reddit, Hacker News and news across your keywords</div>
-        </div>
-        <div class="trends-list" id="trendsList">
-          <div class="select-row">
-            <button class="sel-link" id="selAllBtn">Select all</button>
-            <button class="sel-link" id="selNoneBtn">Deselect all</button>
-            <span class="trend-count-note" id="trendCountNote"></span>
-          </div>
-          <div id="trendsItems"></div>
-          <div class="trends-empty" id="trendsEmpty" style="display:none">No live trends found for these keywords in the last 15 days. Try broader or different keywords.</div>
-        </div>
-        <div class="btn-action-row">
-          <button class="btn-primary" id="generateBtn" disabled>
-            <div class="spinner" id="sp2"></div>
-            <svg id="sp2Icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-            <span id="sp2Label">Generate Posts</span>
-          </button>
-          <div class="err" id="err2"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- STEP 3 -->
-    <div class="step-view" id="view3">
-      <button class="btn-back" id="backTo2">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        Back to trends
-      </button>
-      <div class="posts-loading" id="postsLoading">
+      <!-- Generated posts -->
+      <div class="posts-loading" id="postsLoading" style="display:none">
         <div class="loader-ring"></div>
         <div class="trends-loading-label">Writing your posts...</div>
-        <div class="trends-loading-sub">Applying all 6 viral frameworks</div>
+        <div class="trends-loading-sub">Taking a strong stance from your positioning</div>
         <div id="skelGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:28px;text-align:left"></div>
       </div>
+
       <div id="postsResults" style="display:none">
         <div class="results-bar">
           <span class="results-label" id="postsResultsLabel"></span>
           <button class="regen-all-btn" id="regenAllBtn">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
-              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
             Regenerate all
           </button>
         </div>
         <div class="posts-grid" id="postsGrid"></div>
       </div>
     </div>
-
-  </div><!-- /page -->
+  </div>
 </section>
 
 <!-- ══════════════════════════════════════════════════
@@ -1065,376 +946,183 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
 ══════════════════════════════════════════════════ -->
 <script src="/xlink.js"></script>
 <script>
-const NICHES = {
-  'Business & Entrepreneurship': ['Agency owner','Freelancer','Consultant','Business coach','Executive coach','Life coach','Startup founder','SaaS founder','Bootstrapped founder','VC-backed founder','E-commerce brand','Dropshipping','Amazon FBA','Print on demand','Wholesale','B2B sales','B2C sales','Sales coach','Business development','Franchise owner','Brick and mortar','Restaurant owner','Retail store','Service business','Productized service','Info product creator','Course creator','Membership site','Mastermind host','Community builder'],
-  'Marketing & Growth': ['SEO','Paid ads','Facebook ads','Google ads','TikTok ads','Email marketing','SMS marketing','Content marketing','Copywriting','Direct response','Conversion rate optimization','Landing page design','Funnel building','Growth hacking','Viral marketing','Influencer marketing','Affiliate marketing','Partnership marketing','Community marketing','Event marketing','PR and media','Podcast marketing','Video marketing','Short form content','Long form content','Newsletter','Personal branding','Thought leadership','LinkedIn growth','X (Twitter) growth','Instagram growth','TikTok growth','YouTube growth'],
-  'Finance & Investing': ['Personal finance','Budgeting','Debt payoff','Financial independence','FIRE movement','Stock market investing','Index funds','Day trading','Options trading','Crypto investing','Bitcoin','DeFi','NFTs','Real estate investing','Rental properties','House flipping','Commercial real estate','REITs','Angel investing','Venture capital','Private equity','Family office','Wealth management','Tax strategy','Accounting','Bookkeeping','CFO services','Financial planning','Retirement planning','Insurance'],
-  'Health & Wellness': ['Weight loss','Fat loss','Muscle building','Bodybuilding','Powerlifting','Olympic lifting','CrossFit','Calisthenics','Running','Marathon training','Triathlon','Cycling','Swimming','Yoga','Pilates','Stretching','Mobility','Functional fitness','Sports performance','Athletic training','Nutrition coaching','Meal planning','Macro counting','Keto diet','Carnivore diet','Vegan diet','Intermittent fasting','Gut health','Hormone health','Biohacking','Longevity','Sleep optimization','Stress management','Mental health','Anxiety','Depression','Therapy','Mindfulness','Meditation','Breathwork'],
-  'Creator & Media': ['YouTuber','Podcaster','Blogger','Newsletter writer','Substack writer','Ghostwriter','Speechwriter','Author','Self-publishing','Traditional publishing','Journalist','Documentarian','Filmmaker','Photographer','Videographer','Editor','Motion graphics','Animation','Graphic designer','UI/UX designer','Brand designer','Web designer','Illustrator','Comic creator','Game developer','Indie hacker','App developer','No-code builder','Prompt engineer','AI tools creator'],
-  'Career & Professional': ['Job hunting','Resume writing','Interview coaching','Career coaching','Executive career','Leadership development','Management consulting','Strategy consulting','HR consulting','Recruiting','Talent acquisition','Executive search','Organizational development','Team building','Remote work','Digital nomad','Work life balance','Productivity','Time management','Project management','Agile','Scrum','Operations','Process improvement','Six sigma','Supply chain','Logistics'],
-  'Education & Learning': ['Online education','Tutoring','Test prep','Language learning','Kids education','Homeschooling','College admissions','MBA','Law school','Medical school','Professional certification','Skill development','Corporate training','Learning and development','Instructional design','Curriculum design','EdTech'],
-  'Tech & Engineering': ['Software engineering','Frontend development','Backend development','Full stack','Mobile development','iOS','Android','DevOps','Cloud computing','AWS','Data science','Machine learning','AI development','Cybersecurity','Blockchain development','Web3','AR/VR','IoT','Hardware','Robotics','Automation','No-code development','Low-code'],
-  'Lifestyle & Culture': ['Travel','Budget travel','Luxury travel','Van life','Expat life','Minimalism','Sustainability','Zero waste','Fashion','Streetwear','Luxury fashion','Beauty','Skincare','Haircare','Food and cooking','Baking','Wine','Coffee','Relationships','Dating','Marriage','Parenting','Fatherhood','Motherhood','Divorce','Self-improvement','Stoicism','Philosophy','Spirituality','Religion','Astrology','True crime','Sports','Football','Basketball','Soccer','Tennis','Golf','Motorsports','Esports','Chess','Cars','Motorcycles','Sneakers','Watches','Luxury goods','Pets','Dogs','Horses'],
-}
+// ══════════ XLink content creator (rebuilt) ══════════
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escAttr(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 
-const filters = {
-  mode:'own',niche:'',topic:'',keywords:'',details:'',referencePosts:'',platform:'x-post',tone:'motivational',pov:'first person (I)',
-  hookType:'bold claim',postGoal:'grow followers',targetAudience:'beginners',
-  cta:'comment below',writingStyle:'short punchy lines',
-  count:3,outputType:'full',contrarianBelief:'',personalResult:'',
-}
-let allTrends=[], lastFilters=null, lastTrends=null
+const gen={platform:'x-post',tone:'Contrarian',cta:'No CTA',count:3,output:'full'}
+let activeTab='paste', prefillAngle='', lastRun=null
 
-// ── Step navigation ──
-function goToStep(n) {
-  document.querySelectorAll('.step-view').forEach(v=>v.classList.remove('active'))
-  document.getElementById('view'+n).classList.add('active')
-  ;[1,2,3].forEach(i=>{
-    const c=document.getElementById('sc'+i),l=document.getElementById('sl'+i)
-    c.classList.remove('active','done');l.classList.remove('active','done')
-    if(i<n){c.classList.add('done');l.classList.add('done')}
-    if(i===n){c.classList.add('active');l.classList.add('active')}
-  })
-  ;[1,2].forEach(i=>document.getElementById('line'+i).classList.toggle('done',i<n))
-  document.getElementById('app').scrollIntoView({behavior:'smooth'})
+// ── Positioning ──
+function showPositioningState(){
+  const pos=XL.getPositioning()
+  document.getElementById('posSetup').style.display=pos?'none':'block'
+  document.getElementById('creator').style.display=pos?'block':'none'
 }
-
-// ── Niche dropdown ──
-function buildNicheList(q=''){
-  const list=document.getElementById('nicheList');list.innerHTML=''
-  const lq=q.toLowerCase().trim();let any=false
-  for(const[cat,items] of Object.entries(NICHES)){
-    const f=lq?items.filter(i=>i.toLowerCase().includes(lq)):items
-    if(!f.length)continue;any=true
-    if(!lq){const h=document.createElement('div');h.className='dd-cat';h.textContent=cat;list.appendChild(h)}
-    f.forEach(item=>{
-      const el=document.createElement('div');el.className='dd-opt'+(item===filters.niche?' sel':'');el.textContent=item
-      el.addEventListener('click',()=>{
-        filters.niche=item
-        document.getElementById('nicheTriggerVal').textContent=item
-        document.getElementById('nicheTriggerVal').classList.remove('ph')
-        closeDD();updateFindBtn();scheduleProfileSave()
-      });list.appendChild(el)
-    })
-  }
-  if(!any){const e=document.createElement('div');e.className='dd-empty';e.textContent=`No niches match "${q}"`;list.appendChild(e)}
+function loadPositioningIntoForm(){
+  const p=XL.getPositioning()||{}
+  document.getElementById('posWhat').value=p.what||''
+  document.getElementById('posWho').value=p.who||''
+  document.getElementById('posResult').value=p.result||''
+  document.getElementById('posBelief').value=p.belief||''
 }
-function openDD(){
-  document.getElementById('nichePanel').classList.add('open')
-  document.getElementById('nicheTrigger').classList.add('open')
-  document.getElementById('nicheSearch').value='';buildNicheList()
-  setTimeout(()=>document.getElementById('nicheSearch').focus(),40)
-}
-function closeDD(){
-  document.getElementById('nichePanel').classList.remove('open')
-  document.getElementById('nicheTrigger').classList.remove('open')
-}
-document.getElementById('nicheTrigger').addEventListener('click',e=>{e.stopPropagation();document.getElementById('nichePanel').classList.contains('open')?closeDD():openDD()})
-document.getElementById('nicheSearch').addEventListener('input',e=>buildNicheList(e.target.value))
-document.getElementById('nicheSearch').addEventListener('click',e=>e.stopPropagation())
-document.getElementById('nichePanel').addEventListener('click',e=>e.stopPropagation())
-document.addEventListener('click',closeDD)
-
-// ── Filter controls ──
-function makeTgl(id,key,mono){
-  document.getElementById(id).addEventListener('click',e=>{
-    const b=e.target.closest('[data-val]');if(!b)return
-    document.querySelectorAll(`#${id} [data-val]`).forEach(x=>x.classList.remove('active','active-mono'))
-    b.classList.add(mono?'active-mono':'active');filters[key]=mono?Number(b.dataset.val):b.dataset.val;scheduleProfileSave()
-  })
-}
-makeTgl('platformGroup','platform',false)
-makeTgl('outputGroup','outputType',false)
-makeTgl('countGroup','count',true)
-;[['fTone','tone'],['fPov','pov'],['fHookType','hookType'],['fGoal','postGoal'],
-  ['fAudience','targetAudience'],['fCta','cta'],['fStyle','writingStyle']].forEach(([id,key])=>{
-  document.getElementById(id).addEventListener('change',e=>{filters[key]=e.target.value;scheduleProfileSave()})
+document.getElementById('posSave').addEventListener('click',()=>{
+  const p={what:document.getElementById('posWhat').value.trim(),who:document.getElementById('posWho').value.trim(),
+    result:document.getElementById('posResult').value.trim(),belief:document.getElementById('posBelief').value.trim()}
+  if(!p.what){document.getElementById('posWhat').focus();return}
+  XL.setPositioning(p)
+  const email=XL.getEmail(); if(email)XL.saveProfile({positioning:p})
+  showPositioningState();updateGenBtn()
 })
-document.getElementById('fContrarian').addEventListener('input',e=>{filters.contrarianBelief=e.target.value})
-document.getElementById('fResult').addEventListener('input',e=>{filters.personalResult=e.target.value})
-document.getElementById('fTopic').addEventListener('input',e=>{filters.topic=e.target.value;updateFindBtn()})
-document.getElementById('fRefPosts').addEventListener('input',e=>{filters.referencePosts=e.target.value})
-document.getElementById('fKeywords').addEventListener('input',e=>{filters.keywords=e.target.value;updateFindBtn()})
-document.getElementById('fDetails').addEventListener('input',e=>{filters.details=e.target.value})
+document.getElementById('editPosLink').addEventListener('click',e=>{e.preventDefault();loadPositioningIntoForm();document.getElementById('posSetup').style.display='block';document.getElementById('creator').style.display='none';document.getElementById('app').scrollIntoView({behavior:'smooth'})})
 
-// ── Mode selector (Create your own content / Post with trends) ──
-function keywordList(){return filters.keywords.split(',').map(k=>k.trim()).filter(Boolean).slice(0,5)}
-function setMode(mode){
-  filters.mode=mode
-  document.querySelectorAll('#modeCards .mode-card').forEach(c=>c.classList.toggle('active',c.dataset.mode===mode))
-  document.querySelectorAll('.own-only').forEach(el=>el.style.display=mode==='own'?'':'none')
-  document.querySelectorAll('.trends-only').forEach(el=>el.style.display=mode==='trends'?'':'none')
-  // primary button label + middle step node visibility
-  document.getElementById('sp1Label').textContent=mode==='trends'?'Research trends':'Write posts'
-  document.getElementById('sl2').textContent=mode==='trends'?'Trends':'—'
-  document.getElementById('stepMid').style.display=mode==='trends'?'':'none'
-  document.getElementById('line1').style.display=mode==='trends'?'':'none'
-  updateFindBtn()
+// ── Tabs ──
+document.getElementById('inputTabs').addEventListener('click',e=>{
+  const b=e.target.closest('.tab');if(!b)return
+  activeTab=b.dataset.tab
+  document.querySelectorAll('#inputTabs .tab').forEach(t=>t.classList.toggle('active',t===b))
+  document.querySelectorAll('#creator .tab-pane').forEach(p=>p.style.display=p.dataset.pane===activeTab?'':'none')
+  if(activeTab==='live'&&!headlinesLoaded)loadHeadlines()
+  updateGenBtn()
+})
+const pasteInput=document.getElementById('pasteInput'),topicInput=document.getElementById('topicInput')
+pasteInput.addEventListener('input',()=>{document.getElementById('pasteCount').textContent=pasteInput.value.length+' characters';updateGenBtn()})
+topicInput.addEventListener('input',updateGenBtn)
+
+function currentInput(){
+  if(activeTab==='topic')return topicInput.value.trim()
+  return pasteInput.value.trim()
 }
-document.getElementById('modeCards').addEventListener('click',e=>{
-  const c=e.target.closest('.mode-card');if(!c)return;setMode(c.dataset.mode)
-})
-let emailLoadTimer=null,loadedEmail=''
-document.getElementById('fEmail').addEventListener('input',e=>{
-  const v=e.target.value.trim()
-  if(!(v&&/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)))return
-  XL.setEmail(v)
-  clearTimeout(emailLoadTimer)
-  emailLoadTimer=setTimeout(()=>loadProfileFor(v),700)
-})
-async function loadProfileFor(email){
-  if(email===loadedEmail)return
+
+// ── Live headlines ──
+let headlinesLoaded=false
+async function loadHeadlines(){
+  const box=document.getElementById('headlinesList')
+  box.innerHTML='<div class="hl-card" style="opacity:.5">Loading headlines...</div>'.repeat(3)
   try{
-    const profile=await XL.fetchProfile(email)
-    if(!profile)return
-    loadedEmail=email
-    applySettings(profile.lastSettings)
-    if(profile.voiceProfile)XL.setVoiceProfile(profile.voiceProfile)
-    const banner=document.getElementById('profileBanner')
-    banner.textContent='Welcome back. Your voice profile and last settings have been loaded.'
-    banner.classList.add('show')
-  }catch(e){/* silent */}
+    const r=await fetch('/api/headlines');const d=await r.json()
+    const hl=d.headlines||[]
+    headlinesLoaded=true
+    if(!hl.length){box.innerHTML='<div class="live-note">Could not load headlines right now. Try refresh.</div>';return}
+    box.innerHTML=hl.map(h=>`<div class="hl-card" data-t="${escAttr(h.title)}" data-s="${escAttr(h.source)}"><div class="hl-src">${escHtml(h.source)}${h.ts?' · '+timeAgo(h.ts):''}</div><div class="hl-title">${escHtml(h.title)}</div></div>`).join('')
+    box.querySelectorAll('.hl-card').forEach(c=>c.addEventListener('click',()=>{
+      pasteInput.value=c.dataset.t+'\n\n(via '+c.dataset.s+')'
+      document.getElementById('pasteCount').textContent=pasteInput.value.length+' characters'
+      // switch to paste tab so user can edit
+      document.querySelector('#inputTabs .tab[data-tab="paste"]').click()
+      pasteInput.focus()
+    }))
+  }catch(e){box.innerHTML='<div class="live-note">Could not load headlines right now. Try refresh.</div>'}
 }
-function updateFindBtn(){
-  const ok = filters.mode==='trends'
-    ? (filters.niche && keywordList().length>0)
-    : (filters.niche && filters.topic.trim())
-  document.getElementById('findTrendsBtn').disabled=!ok
-}
+function timeAgo(ts){const s=(Date.now()-ts)/1000;if(s<3600)return Math.max(1,Math.floor(s/60))+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago'}
+document.getElementById('refreshHeadlines').addEventListener('click',()=>{headlinesLoaded=false;loadHeadlines()})
 
-// ── Profile persistence (email-keyed, silent) ──
-let profileSaveTimer=null
-function settingsPayload(){
-  return {lastNiche:filters.niche,lastTone:filters.tone,lastHookType:filters.hookType,lastPlatform:filters.platform,
-    lastAudience:filters.targetAudience,lastGoal:filters.postGoal,lastCTA:filters.cta,lastWritingStyle:filters.writingStyle,
-    lastPostCount:Number(filters.count),lastOutputType:filters.outputType}
-}
-function scheduleProfileSave(){
-  if(!XL.getEmail())return
-  clearTimeout(profileSaveTimer)
-  profileSaveTimer=setTimeout(()=>{XL.saveProfile(settingsPayload())},2000)
-}
-function applySettings(s){
-  if(!s)return
-  if(s.niche){filters.niche=s.niche;const v=document.getElementById('nicheTriggerVal');v.textContent=s.niche;v.classList.remove('ph')}
-  const setSel=(id,key,val)=>{if(val){const el=document.getElementById(id);el.value=val;filters[key]=val}}
-  setSel('fTone','tone',s.tone);setSel('fHookType','hookType',s.hookType);setSel('fGoal','postGoal',s.goal)
-  setSel('fAudience','targetAudience',s.audience);setSel('fCta','cta',s.cta);setSel('fStyle','writingStyle',s.writingStyle)
-  if(s.platform){filters.platform=s.platform;document.querySelectorAll('#platformGroup [data-val]').forEach(x=>x.classList.toggle('active',x.dataset.val===s.platform))}
-  if(s.outputType){filters.outputType=s.outputType;document.querySelectorAll('#outputGroup [data-val]').forEach(x=>x.classList.toggle('active',x.dataset.val===s.outputType))}
-  if(s.postCount){filters.count=Number(s.postCount);document.querySelectorAll('#countGroup [data-val]').forEach(x=>x.classList.toggle('active-mono',Number(x.dataset.val)===Number(s.postCount)))}
-  updateFindBtn()
+// ── Settings ──
+document.getElementById('genPlatform').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;document.querySelectorAll('#genPlatform [data-val]').forEach(x=>x.classList.remove('active'));b.classList.add('active');gen.platform=b.dataset.val})
+document.getElementById('genOutput').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;document.querySelectorAll('#genOutput [data-val]').forEach(x=>x.classList.remove('active'));b.classList.add('active');gen.output=b.dataset.val})
+document.getElementById('genCount').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;document.querySelectorAll('#genCount [data-val]').forEach(x=>x.classList.remove('active-mono'));b.classList.add('active-mono');gen.count=Number(b.dataset.val)})
+document.getElementById('genTone').addEventListener('change',e=>{gen.tone=e.target.value})
+document.getElementById('genCta').addEventListener('change',e=>{gen.cta=e.target.value})
+
+function updateGenBtn(){document.getElementById('genBtn').disabled=!(XL.getPositioning()&&currentInput())}
+
+// ── Email profile load (positioning + voice) ──
+async function tryLoadProfile(){
+  const email=XL.getEmail();if(!email)return
+  try{const profile=await XL.fetchProfile(email);if(profile){if(profile.positioning)XL.setPositioning(profile.positioning);if(profile.voiceProfile)XL.setVoiceProfile(profile.voiceProfile);showPositioningState();updateGenBtn()}}catch(e){}
 }
 
-// ── Primary action (mode-aware) ──
-async function maybeLoadProfile(){
-  const emailVal=document.getElementById('fEmail').value.trim()
-  if(emailVal && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailVal)){
-    XL.setEmail(emailVal)
-    try{
-      const profile=await XL.fetchProfile(emailVal)
-      if(profile){
-        applySettings(profile.lastSettings)
-        if(profile.voiceProfile)XL.setVoiceProfile(profile.voiceProfile)
-        const banner=document.getElementById('profileBanner')
-        banner.textContent='Welcome back. Your voice profile and last settings have been loaded.'
-        banner.classList.add('show')
-      }
-    }catch(e){}
-  }
-}
-
-// research progress messages (the research genuinely takes time across many sources)
-const RESEARCH_STEPS=[
-  'Scanning Reddit across your keywords...',
-  'Searching Hacker News for the last 15 days...',
-  'Pulling Google News and articles...',
-  'Reading thousands of public posts...',
-  'Cross-referencing sources...',
-  'Synthesizing the real trends...',
-]
-let researchTimer=null
-function startResearchProgress(){
-  let i=0
-  const sub=document.getElementById('trendsLoadingSub')
-  sub.textContent=RESEARCH_STEPS[0]
-  researchTimer=setInterval(()=>{i=(i+1)%RESEARCH_STEPS.length;sub.textContent=RESEARCH_STEPS[i]},6000)
-}
-function stopResearchProgress(){if(researchTimer){clearInterval(researchTimer);researchTimer=null}}
-
-document.getElementById('findTrendsBtn').addEventListener('click',async()=>{
-  const btn=document.getElementById('findTrendsBtn')
-  const sp=document.getElementById('sp1'),icon=document.getElementById('sp1Icon'),lbl=document.getElementById('sp1Label')
-  document.getElementById('err1').style.display='none'
-  await maybeLoadProfile()
-
-  // OWN MODE — straight to generation, no research (still gated by lead capture)
-  if(filters.mode!=='trends'){
-    if(hasLead())runGenerate()
-    else openLeadModal(()=>runGenerate())
-    return
-  }
-
-  // TRENDS MODE — deep research
-  btn.disabled=true;sp.style.display='block';icon.style.display='none';lbl.textContent='Researching...'
-  goToStep(2)
-  document.getElementById('trendsLoading').style.display='block'
-  document.getElementById('trendsList').style.display='none'
-  document.getElementById('generateBtn').disabled=true
-  startResearchProgress()
-  try{
-    const res=await fetch('/api/research',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({niche:filters.niche,keywords:keywordList(),details:filters.details})})
-    const data=await res.json()
-    if(!res.ok)throw new Error(data.error||'Research failed')
-    allTrends=data.trends||[];renderTrends(allTrends)
-  }catch(e){
-    document.getElementById('trendsLoading').style.display='none'
-    document.getElementById('trendsList').style.display='block'
-    document.getElementById('trendsItems').innerHTML=''
-    document.getElementById('trendsEmpty').style.display='block'
-    document.getElementById('err2').textContent=e.message;document.getElementById('err2').style.display='block'
-  }finally{
-    stopResearchProgress()
-    btn.disabled=false;sp.style.display='none';icon.style.display='block';lbl.textContent='Research trends'
-  }
-})
-
-// ── Render researched trends ──
-function renderTrends(trends){
-  document.getElementById('trendsLoading').style.display='none'
-  document.getElementById('trendsList').style.display='block'
-  document.getElementById('err2').style.display='none'
-  const container=document.getElementById('trendsItems');container.innerHTML=''
-  if(!trends.length){document.getElementById('trendsEmpty').style.display='block';document.getElementById('generateBtn').disabled=true;return}
-  document.getElementById('trendsEmpty').style.display='none'
-  document.getElementById('trendsSubLabel').textContent=`Found ${trends.length} trend${trends.length!==1?'s':''} in the last 15 days. Select the ones to post about.`
-  trends.forEach((t,i)=>{
-    const row=document.createElement('div');row.className='trend-item checked';row.dataset.idx=i
-    const srcs=Array.isArray(t.sources)&&t.sources.length?`<div class="trend-srcs">Sources: ${escHtml(t.sources.join(', '))}</div>`:''
-    row.innerHTML=`<input class="trend-check" type="checkbox" checked data-idx="${i}"/>
-      <div class="trend-body">
-        <div class="trend-title">${escHtml(t.title||'Untitled trend')}</div>
-        ${t.summary?`<div class="trend-sum">${escHtml(t.summary)}</div>`:''}
-        ${t.why_it_matters?`<div class="trend-why">Why it matters: ${escHtml(t.why_it_matters)}</div>`:''}
-        ${srcs}
-      </div>`
-    row.addEventListener('click',e=>{
-      if(e.target.classList.contains('trend-check'))return
-      const cb=row.querySelector('.trend-check');cb.checked=!cb.checked
-      row.classList.toggle('checked',cb.checked);updateGenerateBtn()
-    })
-    row.querySelector('.trend-check').addEventListener('change',()=>{row.classList.toggle('checked',row.querySelector('.trend-check').checked);updateGenerateBtn()})
-    container.appendChild(row)
-  })
-  updateTrendCountNote();updateGenerateBtn()
-}
-function getCheckedTrends(){return Array.from(document.querySelectorAll('.trend-check:checked')).map(cb=>allTrends[parseInt(cb.dataset.idx)]).filter(Boolean)}
-function updateGenerateBtn(){document.getElementById('generateBtn').disabled=getCheckedTrends().length===0;updateTrendCountNote()}
-function updateTrendCountNote(){document.getElementById('trendCountNote').textContent=getCheckedTrends().length+' selected'}
-document.getElementById('selAllBtn').addEventListener('click',()=>{document.querySelectorAll('.trend-check').forEach(cb=>{cb.checked=true;cb.closest('.trend-item').classList.add('checked')});updateGenerateBtn()})
-document.getElementById('selNoneBtn').addEventListener('click',()=>{document.querySelectorAll('.trend-check').forEach(cb=>{cb.checked=false;cb.closest('.trend-item').classList.remove('checked')});updateGenerateBtn()})
-
-// ── Lead capture gate (required before first generate) ──
+// ── Lead gate ──
 const LEAD_KEY='xlink_lead_v1'
 let pendingAfterLead=null
 function hasLead(){try{return !!localStorage.getItem(LEAD_KEY)}catch(e){return false}}
 function openLeadModal(cb){pendingAfterLead=cb;document.getElementById('leadErr').style.display='none';document.getElementById('leadOverlay').classList.add('open');setTimeout(()=>document.getElementById('leadName').focus(),60)}
 function closeLeadModal(){document.getElementById('leadOverlay').classList.remove('open')}
-
 document.getElementById('leadSubmit').addEventListener('click',async()=>{
-  const name=document.getElementById('leadName').value.trim()
-  const email=document.getElementById('leadEmail').value.trim()
-  const linkedin=document.getElementById('leadLinkedin').value.trim()
-  const twitter=document.getElementById('leadTwitter').value.trim()
-  const startingOut=document.getElementById('leadStarting').checked
-  const err=document.getElementById('leadErr')
+  const name=document.getElementById('leadName').value.trim(),email=document.getElementById('leadEmail').value.trim()
+  const linkedin=document.getElementById('leadLinkedin').value.trim(),twitter=document.getElementById('leadTwitter').value.trim()
+  const startingOut=document.getElementById('leadStarting').checked,err=document.getElementById('leadErr')
   if(!email&&!linkedin&&!twitter){err.textContent='Please add at least one: email, LinkedIn, or X handle.';err.style.display='block';return}
-  if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.textContent='That email does not look right. Check it or use LinkedIn/X instead.';err.style.display='block';return}
+  if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.textContent='That email does not look right.';err.style.display='block';return}
   err.style.display='none'
   const btn=document.getElementById('leadSubmit'),sp=document.getElementById('leadSpinner'),lbl=document.getElementById('leadSubmitLabel')
   btn.disabled=true;sp.style.display='block';lbl.textContent='Saving...'
-  const lead={name,email,linkedin,twitter,startingOut,niche:filters.niche,topic:filters.topic}
-  try{
-    await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lead)})
-  }catch(e){/* best-effort: never trap the user on a network hiccup */}
+  const lead={name,email,linkedin,twitter,startingOut}
+  try{await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lead)})}catch(e){}
   try{localStorage.setItem(LEAD_KEY,JSON.stringify({...lead,at:Date.now()}))}catch(e){}
-  // identity for profile persistence + immediately save current settings
-  if(email){XL.setEmail(email);XL.saveProfile(settingsPayload())}
+  if(email){XL.setEmail(email);const pos=XL.getPositioning();XL.saveProfile(Object.assign({},pos?{positioning:pos}:{}))}
   btn.disabled=false;sp.style.display='none';lbl.textContent='Continue to my posts'
-  closeLeadModal()
-  const cb=pendingAfterLead;pendingAfterLead=null
-  if(cb)cb()
+  closeLeadModal();const cb=pendingAfterLead;pendingAfterLead=null;if(cb)cb()
 })
 
-// ── Step 2 → 3 ──
-document.getElementById('generateBtn').addEventListener('click',()=>{
-  if(hasLead())runGenerate()
-  else openLeadModal(()=>runGenerate())
+// ── Generate ──
+document.getElementById('genBtn').addEventListener('click',()=>{
+  if(hasLead())runGenerate();else openLeadModal(()=>runGenerate())
 })
-async function runGenerate(singleTrend=null){
-  const usedTrends=singleTrend?[singleTrend]:getCheckedTrends()
-  const usedFilters=singleTrend?{...filters,count:1}:{...filters,count:Number(document.querySelector('#countGroup .active-mono')?.dataset.val||3)}
-  lastFilters=usedFilters;lastTrends=usedTrends
-  goToStep(3)
+document.getElementById('regenAllBtn').addEventListener('click',()=>{if(lastRun)runGenerate()})
+
+async function runGenerate(){
+  const input=currentInput();if(!input||!XL.getPositioning())return
+  let fullInput=input
+  if(prefillAngle){fullInput=input+'\n\nAngle to take: '+prefillAngle}
+  const body={input:fullInput,platform:gen.platform,tone:gen.tone,cta:gen.cta,count:gen.count,output:gen.output,
+    positioning:XL.getPositioning(),voiceProfile:XL.getVoiceProfileRaw()}
+  lastRun=body
   document.getElementById('postsLoading').style.display='block'
   document.getElementById('postsResults').style.display='none'
-  showSkelCards(usedFilters.count)
+  showSkel(gen.count)
+  document.getElementById('postsLoading').scrollIntoView({behavior:'smooth',block:'start'})
+  const btn=document.getElementById('genBtn'),sp=document.getElementById('genSpin'),lbl=document.getElementById('genLabel')
+  btn.disabled=true;sp.style.display='block';lbl.textContent='Writing...'
   try{
-    const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filters:usedFilters,trends:usedTrends,voiceProfile:XL.getVoiceProfileRaw()})})
-    const data=await res.json()
-    if(!res.ok||data.error)throw new Error(data.error||'Unknown error')
-    autoSavePosts(data.posts,usedFilters)
-    renderPosts(data.posts,usedFilters,usedTrends)
+    const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    const d=await r.json()
+    if(!r.ok||d.error)throw new Error(d.error||'Generation failed')
+    autoSavePosts(d.posts,input)
+    renderPosts(d.posts,input)
   }catch(e){
     document.getElementById('postsLoading').style.display='none'
     document.getElementById('postsResults').style.display='block'
     document.getElementById('postsGrid').style.display='none'
     document.getElementById('postsResultsLabel').textContent='Error: '+e.message
+  }finally{
+    btn.disabled=false;sp.style.display='none';lbl.textContent='Generate Posts';updateGenBtn()
   }
 }
-function showSkelCards(count){
-  const g=document.getElementById('skelGrid');g.innerHTML=''
-  for(let i=0;i<count;i++)g.innerHTML+=`<div class="skel-card"><div class="skel-ln" style="width:28%;height:9px;margin-bottom:14px"></div><div class="skel-ln" style="width:100%"></div><div class="skel-ln" style="width:90%"></div><div class="skel-ln" style="width:95%"></div><div class="skel-ln" style="width:78%"></div><div class="skel-ln" style="width:60%;margin-top:14px"></div></div>`
-}
-const ALL_FW=['STIMULATED','CAPTIVATED','ANTICIPATION','VALIDATION','AFFECTION','REVELATION']
-// Auto-save every generated post to the Your Posts library with status "unsaved"
-function autoSavePosts(posts,usedFilters){
+function showSkel(n){const g=document.getElementById('skelGrid');g.innerHTML='';for(let i=0;i<n;i++)g.innerHTML+=`<div class="skel-card"><div class="skel-ln" style="width:30%;height:9px;margin-bottom:14px"></div><div class="skel-ln" style="width:100%"></div><div class="skel-ln" style="width:90%"></div><div class="skel-ln" style="width:95%"></div><div class="skel-ln" style="width:62%;margin-top:14px"></div></div>`}
+
+const PLATL={'x-post':'X Post','x-thread':'X Thread','linkedin':'LinkedIn'}
+const ALL_FW=['Stimulated','Captivated','Anticipation','Validation','Affection','Revelation']
+function autoSavePosts(posts,input){
   (posts||[]).forEach((p,i)=>{
     if(!p.id)p.id='p_'+Date.now()+'_'+i+'_'+Math.random().toString(36).slice(2,6)
-    if(!p.status)p.status='unsaved'
-    const rec={id:p.id,text:p.text,format:p.format||'',niche:usedFilters.niche,topic:usedFilters.topic,
-      hook_type:usedFilters.hookType,tone:usedFilters.tone,platform:usedFilters.platform,
-      timestamp:Date.now(),status:'unsaved'}
-    XL.upsertPost(rec); XL.syncPost(rec)
+    const rec={id:p.id,text:p.text,platform:gen.platform,tone:gen.tone,topic:String(input).slice(0,80),
+      niche:'',hook_type:gen.tone,timestamp:Date.now(),status:'unsaved'}
+    XL.upsertPost(rec);XL.syncPost(rec)
   })
 }
-function renderPosts(posts,usedFilters,usedTrends){
+function renderPosts(posts,input){
   document.getElementById('postsLoading').style.display='none'
   document.getElementById('postsResults').style.display='block'
   document.getElementById('postsGrid').style.display='grid'
-  const plat=usedFilters.platform==='x-post'?'X Post':usedFilters.platform==='x-thread'?'X Thread':'LinkedIn'
-  document.getElementById('postsResultsLabel').textContent=`${posts.length} post${posts.length!==1?'s':''} for "${usedFilters.niche}" on ${plat}`
+  const platLabel=PLATL[gen.platform]||'X Post'
+  document.getElementById('postsResultsLabel').textContent=`${posts.length} post${posts.length!==1?'s':''} on ${platLabel}`
   const grid=document.getElementById('postsGrid');grid.innerHTML=''
-  posts.forEach((post,idx)=>{
-    const hit=new Set((post.frameworks||[]).map(f=>f.toUpperCase()))
-    const fwBadges=ALL_FW.map(fw=>`<span class="fw-badge ${hit.has(fw)?'hit':''}">${fw.toLowerCase()}</span>`).join('')
+  const fwPills=ALL_FW.map(f=>`<span class="fw-badge hit">${f.toLowerCase()}</span>`).join('')
+  posts.forEach(post=>{
+    const src=post.source_preview||String(input).slice(0,60)
     const card=document.createElement('div');card.className='post-card'
-    card.innerHTML=`<div class="pc-top"><div class="pc-badges"><span class="fmt-badge">${escHtml(post.format||'Post')}</span></div></div>
-      <div class="pc-badges" style="margin-bottom:10px;gap:4px;display:flex;flex-wrap:wrap">${fwBadges}</div>
-      ${post.source_title?`<div class="post-source">Based on: ${escHtml(post.source_title)}</div>`:''}
+    card.innerHTML=`
+      <div class="pc-top"><div class="pc-badges">
+        <span class="fmt-badge">${escHtml(post.platform||platLabel)}</span>
+        <span class="tone-badge">${escHtml(post.tone||gen.tone)}</span>
+      </div></div>
+      <div class="post-source">Based on: ${escHtml(src)}</div>
       <div class="post-text">${escHtml(post.text)}</div>
-      <div class="post-reason">${escHtml(post.reason||'')}</div>
+      <div class="pc-badges" style="margin:12px 0;gap:4px;display:flex;flex-wrap:wrap">${fwPills}</div>
       <div class="pc-actions">
-        <button class="pc-btn copy-btn" data-text="${escAttr(post.text)}">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy
-        </button>
-        <button class="pc-btn regen-btn-inline" data-idx="${idx}">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Regenerate this
-        </button>
-        <button class="pc-btn rp repurpose-btn">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Repurpose
-        </button>
+        <button class="pc-btn copy-btn" data-text="${escAttr(post.text)}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
+        <button class="pc-btn rp repurpose-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Repurpose</button>
       </div>
       <div class="track-row">
         <button class="track-btn" data-st="published">Published &#10003;</button>
@@ -1443,59 +1131,43 @@ function renderPosts(posts,usedFilters,usedTrends){
       </div>
       <div class="track-saved" style="display:none">Saved to Your Posts.</div>`
     card.querySelector('.copy-btn').addEventListener('click',function(){
-      navigator.clipboard.writeText(this.dataset.text).then(()=>{
-        this.classList.add('copied')
-        this.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied`
-        setTimeout(()=>{this.classList.remove('copied');this.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy`},2000)
-      })
+      navigator.clipboard.writeText(post.text).then(()=>{this.classList.add('copied');const o=this.innerHTML;this.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied';setTimeout(()=>{this.classList.remove('copied');this.innerHTML=o},1800)})
     })
-    card.querySelector('.regen-btn-inline').addEventListener('click',async function(){
-      this.disabled=true;this.textContent='Writing...'
-      const sourceTrend=usedTrends.find(t=>post.source_title&&t.title===post.source_title)||usedTrends[idx%usedTrends.length]
-      try{
-        const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filters:{...usedFilters,count:1},trends:[sourceTrend],voiceProfile:XL.getVoiceProfileRaw()})})
-        const data=await res.json()
-        if(!res.ok||data.error)throw new Error(data.error)
-        autoSavePosts(data.posts,usedFilters)
-        const np=[...posts];np[idx]=data.posts[0];renderPosts(np,usedFilters,usedTrends)
-      }catch(e){this.disabled=false;this.innerHTML=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>Regenerate this`;alert('Error: '+e.message)}
-    })
-
-    // Repurpose
     card.querySelector('.repurpose-btn').addEventListener('click',()=>XL.openRepurpose(post.text))
-
-    // Publish tracking — silent status update (post was auto-saved on generation)
-    const postId=post.id
-    const trackSaved=card.querySelector('.track-saved')
-    function highlight(st){
-      card.querySelectorAll('.track-btn').forEach(b=>{
-        b.classList.remove('sel-pub','sel-skip')
-        if(b.dataset.st===st)b.classList.add(st==='skipped'?'sel-skip':'sel-pub')
-      })
-    }
-    if(post.status&&post.status!=='unsaved')highlight(post.status)
-    card.querySelectorAll('.track-btn').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const st=btn.dataset.st
-        post.status=st
-        highlight(st)
-        const rec={id:postId,status:st,timestamp:Date.now()}
-        XL.upsertPost(rec); XL.syncPost(rec)
-        trackSaved.style.display='block'
-      })
-    })
-
+    const saved=card.querySelector('.track-saved')
+    card.querySelectorAll('.track-btn').forEach(btn=>btn.addEventListener('click',()=>{
+      const st=btn.dataset.st
+      card.querySelectorAll('.track-btn').forEach(b=>{b.classList.remove('sel-pub','sel-skip');if(b.dataset.st===st)b.classList.add(st==='skipped'?'sel-skip':'sel-pub')})
+      const rec={id:post.id,status:st,timestamp:Date.now()}
+      XL.upsertPost(rec);XL.syncPost(rec);saved.style.display='block'
+    }))
     grid.appendChild(card)
   })
   XL.addHints()
 }
-document.getElementById('regenAllBtn').addEventListener('click',()=>{if(lastFilters&&lastTrends)runGenerate()})
-document.getElementById('backTo1').addEventListener('click',()=>goToStep(1))
-document.getElementById('backTo2').addEventListener('click',()=>goToStep(2))
-function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function escAttr(s){return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-buildNicheList()
-setMode('own')
+
+// ── Prefill from Daily Ideas "Write this post" ──
+function consumePrefill(){
+  let pf=null
+  try{pf=JSON.parse(localStorage.getItem('xlink_prefill')||'null')}catch(e){}
+  if(!pf)return
+  localStorage.removeItem('xlink_prefill')
+  // switch to Describe a topic
+  document.querySelector('#inputTabs .tab[data-tab="topic"]').click()
+  topicInput.value=pf.headline||''
+  prefillAngle=pf.angle||''
+  const b=document.getElementById('prefillBanner')
+  b.textContent='Writing post based on: '+String(pf.headline||'').slice(0,50)+((pf.headline||'').length>50?'…':'')
+  b.style.display='block'
+  updateGenBtn()
+  setTimeout(()=>document.getElementById('genBtn').scrollIntoView({behavior:'smooth',block:'center'}),300)
+}
+
+// ── Init ──
+showPositioningState()
+tryLoadProfile()
+consumePrefill()
+updateGenBtn()
 </script>
 </body>
 </html>

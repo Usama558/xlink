@@ -163,12 +163,15 @@ async function loadAll(){
 }
 
 function renderStats(s){
+  const refresh = s.lastIdeasRefresh ? new Date(s.lastIdeasRefresh).toLocaleString() : '—'
   document.getElementById('stats').innerHTML=[
-    ['Total Users',s.totalUsers],
-    ['Active Today',s.activeToday],
-    ['Active This Week',s.activeWeek],
-    ['Total Posts Generated',s.totalPosts],
-  ].map(([l,v])=>`<div class="stat"><div class="stat-v">${num(v)}</div><div class="stat-l">${l}</div></div>`).join('')
+    ['Total Users',num(s.totalUsers)],
+    ['Active Today',num(s.activeToday)],
+    ['Active This Week',num(s.activeWeek)],
+    ['Total Posts Generated',num(s.totalPosts)],
+    ['Ideas Generated Today',num(s.ideasToday||0)],
+    ['Last Ideas Refresh',refresh],
+  ].map(([l,v])=>`<div class="stat"><div class="stat-v" style="font-size:${String(v).length>10?'15px':'30px'}">${v}</div><div class="stat-l">${l}</div></div>`).join('')
 }
 
 function renderHead(){

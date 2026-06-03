@@ -604,20 +604,71 @@ Generate exactly ${filters.count} post(s). Vary the angles and formats. Every po
 }
 
 // ─── POST /api/generate ───────────────────────────────────────────────────────
-app.post('/api/generate', async (req, res) => {
-  const { filters, trends, voiceProfile } = req.body
-
-  if (!filters) return res.status(400).json({ error: 'Missing filters' })
-  if (filters.mode === 'trends' && !(Array.isArray(trends) && trends.length)) {
-    return res.status(400).json({ error: 'No trends selected' })
+// ─── New positioning-based generation prompt ──────────────────────────────────
+function buildGenPrompt(o) {
+  const platformMap = {
+    'x-post':   'X Post — one punchy single post under 280 characters.',
+    'x-thread': 'X Thread — 5 to 8 short tweets, each under 280 characters, first tweet is the hook.',
+    'linkedin': 'LinkedIn — longer narrative allowed, punchy short paragraphs, line breaks between ideas, zero hashtags.',
   }
+  const platLabel = { 'x-post': 'X Post', 'x-thread': 'X Thread', 'linkedin': 'LinkedIn' }[o.platform] || 'X Post'
+  const p = o.positioning || {}
+  const voice = o.voiceProfile ? (typeof o.voiceProfile === 'string' ? o.voiceProfile : JSON.stringify(o.voiceProfile)) : 'direct, punchy, short sentences'
+  const outputRule = o.output === 'hook' ? 'Hook only mode: return only the first 1 to 2 lines, nothing else.' : 'Full post: complete from hook to close.'
+  const ctaRule = (!o.cta || o.cta === 'No CTA') ? 'No CTA.' : `End with this call to action intent: ${o.cta}.`
+
+  const system = `You are a world-class ghostwriter for ${p.what || 'a creator'}.
+
+WHO THIS IS FOR: ${p.who || 'their audience'}
+THEIR AUTHORITY: ${p.result || 'the real results they deliver'}
+THEIR WORLDVIEW: ${p.belief || 'a strong, specific point of view'}
+VOICE PROFILE: ${voice}
+
+PLATFORM: ${platLabel}
+${platformMap[o.platform] || platformMap['x-post']}
+TONE: ${o.tone || 'Contrarian'}
+FORMAT: ${o.output === 'hook' ? 'Hook only' : 'Full post'}
+CTA: ${o.cta || 'No CTA'}
+
+TASK: Write ${o.count} post(s) that take a strong, specific stance on the trend/topic below, from the worldview above. Each post must feel like it was written by a real person with a real opinion, not a content tool. ${ctaRule} ${outputRule}
+
+VIRAL FRAMEWORK — weave all 6 into every post:
+- STIMULATED: first line triggers curiosity or a strong reaction
+- CAPTIVATED: middle creates tension or contrast that keeps reading
+- ANTICIPATION: reader feels something important is coming
+- VALIDATION: reader feels seen and understood
+- AFFECTION: warmth or realness toward the writer
+- REVELATION: final insight feels surprising yet obvious
+
+${GLOBAL_WRITING_RULES}
+
+Return ONLY valid JSON, no markdown, no backticks:
+{ "posts": [ { "id": "uuid", "text": "full post text", "platform": "${platLabel}", "tone": "${o.tone || 'Contrarian'}", "source_preview": "first 60 chars of the trend input", "hook": "first line only" } ] }`
+
+  const user = `THE TREND/TOPIC TO REACT TO:
+"""
+${String(o.input || '').slice(0, 4000)}
+"""
+
+Write exactly ${o.count} post(s) now.`
+  return { system, user }
+}
+
+app.post('/api/generate', async (req, res) => {
+  const b = req.body || {}
+  const input = (b.input || '').trim()
+  if (!input) return res.status(400).json({ error: 'Provide a trend or topic to react to' })
+  const count = [1, 2, 3, 5].includes(Number(b.count)) ? Number(b.count) : 3
 
   let client
   try { client = getClient() }
   catch (e) { return res.status(500).json({ error: e.message }) }
 
-  const { system, user } = buildPrompt(filters, Array.isArray(trends) ? trends : [], voiceProfile)
-  console.log(`[generate] niche="${filters.niche}" platform=${filters.platform} count=${filters.count} trends=${trends.length}`)
+  const { system, user } = buildGenPrompt({
+    input, platform: b.platform || 'x-post', tone: b.tone || 'Contrarian', cta: b.cta || 'No CTA',
+    count, output: b.output || 'full', positioning: b.positioning || null, voiceProfile: b.voiceProfile || null,
+  })
+  console.log(`[generate] platform=${b.platform} tone=${b.tone} count=${count} input="${input.slice(0, 40)}"`)
 
   try {
     const message = await client.messages.create({
@@ -979,7 +1030,8 @@ function blankProfile(email) {
   return {
     emailHash: hashEmail(email),
     voiceProfile: null,
-    lastSettings: { niche: '', tone: '', hookType: '', platform: '', audience: '', goal: '', cta: '', writingStyle: '', postCount: 3, outputType: 'full' },
+    positioning: null,
+    lastSettings: { tone: '', platform: '', cta: '', postCount: 3, outputType: 'full' },
     posts: [],
     createdAt: now,
     updatedAt: now,
@@ -1001,22 +1053,23 @@ app.post('/api/profile', (req, res) => {
   if (!b.email) return res.status(400).json({ saved: false, error: 'Missing email' })
 
   const profile = readProfile(b.email) || blankProfile(b.email)
+  if (!profile.lastSettings) profile.lastSettings = { tone: '', platform: '', cta: '', postCount: 3, outputType: 'full' }
   if (b.voiceProfile !== undefined && b.voiceProfile !== null) {
     profile.voiceProfile = typeof b.voiceProfile === 'string'
       ? (() => { try { return JSON.parse(b.voiceProfile) } catch (e) { return b.voiceProfile } })()
       : b.voiceProfile
   }
+  if (b.positioning !== undefined && b.positioning !== null) {
+    profile.positioning = typeof b.positioning === 'string'
+      ? (() => { try { return JSON.parse(b.positioning) } catch (e) { return b.positioning } })()
+      : b.positioning
+  }
   profile.lastSettings = {
-    niche:        b.lastNiche        ?? profile.lastSettings.niche,
-    tone:         b.lastTone         ?? profile.lastSettings.tone,
-    hookType:     b.lastHookType     ?? profile.lastSettings.hookType,
-    platform:     b.lastPlatform     ?? profile.lastSettings.platform,
-    audience:     b.lastAudience     ?? profile.lastSettings.audience,
-    goal:         b.lastGoal         ?? profile.lastSettings.goal,
-    cta:          b.lastCTA          ?? profile.lastSettings.cta,
-    writingStyle: b.lastWritingStyle ?? profile.lastSettings.writingStyle,
-    postCount:    b.lastPostCount    ?? profile.lastSettings.postCount,
-    outputType:   b.lastOutputType   ?? profile.lastSettings.outputType,
+    tone:       b.lastTone       ?? profile.lastSettings.tone,
+    platform:   b.lastPlatform   ?? profile.lastSettings.platform,
+    cta:        b.lastCTA        ?? profile.lastSettings.cta,
+    postCount:  b.lastPostCount  ?? profile.lastSettings.postCount,
+    outputType: b.lastOutputType ?? profile.lastSettings.outputType,
   }
   profile.updatedAt = new Date().toISOString()
   writeProfile(b.email, profile)
@@ -1171,11 +1224,14 @@ app.post('/api/admin/logout', (req, res) => {
 app.get('/api/admin/stats', requireAdmin, (_req, res) => {
   const ps = loadAllProfiles(), now = Date.now()
   const within = (iso, ms) => { const t = Date.parse(iso); return t && (now - t) <= ms }
+  const cache = readIdeasCache()
   res.json({
     totalUsers:  ps.length,
     activeToday: ps.filter(p => within(p.updatedAt, 864e5)).length,
     activeWeek:  ps.filter(p => within(p.updatedAt, 7 * 864e5)).length,
     totalPosts:  ps.reduce((s, p) => s + ((p.posts || []).length), 0),
+    ideasToday:  cache && cache.ideas ? cache.ideas.length : 0,
+    lastIdeasRefresh: cache ? cache.generatedAt : null,
   })
 })
 
@@ -1229,6 +1285,167 @@ app.get('/admin', (req, res) => {
 // ─── Clean URLs for the extra pages ───────────────────────────────────────────
 app.get('/voice',   (_req, res) => res.sendFile(path.join(__dirname, 'public', 'voice.html')))
 app.get('/results', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'results.html')))
+
+// ══════════════════════════════════════════════════════════════════════════
+// DAILY IDEAS + LIVE HEADLINES
+// ══════════════════════════════════════════════════════════════════════════
+const DATA_DIR = path.join(__dirname, 'data')
+try { fs.mkdirSync(DATA_DIR, { recursive: true }) } catch (e) {}
+const DAILY_IDEAS_FILE = path.join(DATA_DIR, 'daily-ideas.json')
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function readIdeasCache() {
+  try { return JSON.parse(fs.readFileSync(DAILY_IDEAS_FILE, 'utf8')) } catch (e) { return null }
+}
+function ideasFresh(cache) {
+  return cache && cache.generatedAt && (Date.now() - Date.parse(cache.generatedAt)) < DAY_MS
+}
+
+// Generic RSS fetch → [{title, source, ts, link}]
+async function rssItems(url, source, limit) {
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': 'XLink/3.0' }, signal: AbortSignal.timeout(9000) })
+    if (!res.ok) return []
+    const xml = await res.text()
+    const out = []
+    const blocks = [...xml.matchAll(/<(?:item|entry)\b[\s\S]*?<\/(?:item|entry)>/g)]
+    for (const m of blocks.slice(0, limit)) {
+      const block = m[0]
+      const tm = block.match(/<title[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)
+      const dm = block.match(/<(?:pubDate|published|updated)>([\s\S]*?)<\//)
+      const lm = block.match(/<link[^>]*href="([^"]+)"|<link>([\s\S]*?)<\/link>/)
+      if (!tm) continue
+      const title = tm[1].trim().replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#8217;/g, "'")
+      if (!title || title.length < 8) continue
+      out.push({ title, source, ts: dm ? Date.parse(dm[1]) : 0, link: lm ? (lm[1] || lm[2] || '') : '' })
+    }
+    return out
+  } catch (e) { return [] }
+}
+async function redditHot(sub, limit) {
+  try {
+    const res = await fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=${limit}`, { headers: { 'User-Agent': 'XLink/3.0' }, signal: AbortSignal.timeout(9000) })
+    if (!res.ok) return []
+    const data = await res.json()
+    return (data?.data?.children || []).filter(c => c.data && c.data.title && !c.data.stickied)
+      .map(c => ({ title: c.data.title, source: 'Reddit r/' + sub, ts: (c.data.created_utc || 0) * 1000, link: 'https://reddit.com' + (c.data.permalink || '') }))
+  } catch (e) { return [] }
+}
+async function hnTop(limit) {
+  try {
+    const res = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json', { signal: AbortSignal.timeout(9000) })
+    if (!res.ok) return []
+    const ids = (await res.json()).slice(0, limit)
+    const items = await Promise.all(ids.map(async id => {
+      try { const r = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`, { signal: AbortSignal.timeout(7000) }); const d = await r.json(); return d && d.title ? { title: d.title, source: 'HackerNews', ts: (d.time || 0) * 1000, link: d.url || '' } : null } catch (e) { return null }
+    }))
+    return items.filter(Boolean)
+  } catch (e) { return [] }
+}
+
+// Build the daily ideas (scrape → dedupe → synthesize 15 ideas)
+async function generateDailyIdeas() {
+  let client
+  try { client = getClient() } catch (e) { console.warn('[ideas] no API key, skipping'); return null }
+
+  const results = await Promise.allSettled([
+    rssItems('https://techcrunch.com/feed/', 'TechCrunch', 10),
+    rssItems('https://www.fastcompany.com/feed', 'Fast Company', 10),
+    hnTop(15),
+    redditHot('Entrepreneur', 10),
+    redditHot('freelance', 8),
+    redditHot('marketing', 8),
+    redditHot('SaaS', 8),
+    rssItems('https://www.producthunt.com/feed', 'Product Hunt', 8),
+  ])
+  let items = []
+  results.forEach(r => { if (r.status === 'fulfilled' && Array.isArray(r.value)) items.push(...r.value) })
+
+  // dedupe by first 40 chars
+  const seen = new Set(), uniq = []
+  for (const it of items) {
+    const key = it.title.toLowerCase().slice(0, 40)
+    if (seen.has(key)) continue
+    seen.add(key); uniq.push(it)
+  }
+  console.log(`[ideas] scraped ${items.length}, unique ${uniq.length}`)
+  if (!uniq.length) return null
+
+  const headlineList = uniq.slice(0, 70).map(it => `- [${it.source}] ${it.title}`).join('\n')
+  const system = `You are a viral content strategist. Here are real headlines scraped from the internet today:
+
+${headlineList}
+
+Generate exactly 15 viral post ideas for creators, founders, freelancers, and LinkedIn/X users. Each idea must:
+- Be inspired by or connected to one of the headlines above (cite the source)
+- Have a clear angle that someone can post about on X or LinkedIn
+- Cover a mix of these categories: Business, Marketing, Tech, Finance, Creator Economy, Health, Mindset, Productivity, Ecommerce, AI, Leadership
+- Feel like a real insight or take, not generic advice
+
+Return ONLY valid JSON, no markdown, no backticks:
+{ "ideas": [ { "id": "uuid", "headline": "The viral hook, under 12 words, stops the scroll", "angle": "The specific take, 2 sentences", "why_it_works": "one sentence", "category": "one of the categories", "source_headline": "original scraped headline", "source_name": "TechCrunch | HackerNews | Reddit | Fast Company | Product Hunt", "suggested_tone": "Contrarian | Motivational | Educational | Storytelling | Provocative", "suggested_platform": "X Post | X Thread | LinkedIn" } ] }`
+
+  try {
+    const msg = await client.messages.create({ model: 'claude-sonnet-4-5', max_tokens: 4096, system, messages: [{ role: 'user', content: 'Generate the 15 ideas now.' }] })
+    const cleaned = stripFences(msg.content[0].text.trim())
+    const parsed = JSON.parse(cleaned)
+    const ideas = (Array.isArray(parsed) ? parsed : parsed.ideas || []).map((x, i) => Object.assign({ id: 'idea_' + Date.now() + '_' + i }, x))
+    const cache = { generatedAt: new Date().toISOString(), ideas }
+    try { fs.writeFileSync(DAILY_IDEAS_FILE, JSON.stringify(cache)) } catch (e) {}
+    console.log(`[ideas] generated ${ideas.length} ideas`)
+    return cache
+  } catch (e) {
+    console.error('[ideas] synthesis failed:', e.message)
+    return null
+  }
+}
+
+let ideasGenerating = false
+async function ensureDailyIdeas(force) {
+  const cache = readIdeasCache()
+  if (!force && ideasFresh(cache)) return cache
+  if (ideasGenerating) return cache
+  ideasGenerating = true
+  const fresh = await generateDailyIdeas()
+  ideasGenerating = false
+  return fresh || cache
+}
+
+// GET /api/ideas/daily
+app.get('/api/ideas/daily', async (_req, res) => {
+  const cache = readIdeasCache()
+  if (ideasFresh(cache)) return res.json(cache)
+  const fresh = await ensureDailyIdeas(false)
+  if (fresh) return res.json(fresh)
+  res.json({ generatedAt: cache ? cache.generatedAt : null, ideas: cache ? cache.ideas : [], preparing: true })
+})
+
+// GET /api/headlines — live RSS for the "Live headlines" tab
+app.get('/api/headlines', async (_req, res) => {
+  const results = await Promise.allSettled([
+    rssItems('https://techcrunch.com/feed/', 'TechCrunch', 4),
+    rssItems('https://feeds.feedburner.com/morning-brew-daily-brief', 'Morning Brew', 3),
+    rssItems('https://hbr.org/feed', 'HBR', 3),
+    rssItems('https://www.fastcompany.com/feed', 'Fast Company', 3),
+    rssItems('https://thehustle.co/feed/', 'The Hustle', 3),
+    rssItems('https://www.producthunt.com/feed', 'Product Hunt', 3),
+  ])
+  let items = []
+  results.forEach(r => { if (r.status === 'fulfilled' && Array.isArray(r.value)) items.push(...r.value) })
+  const seen = new Set(), uniq = []
+  for (const it of items.sort((a, b) => (b.ts || 0) - (a.ts || 0))) {
+    const key = it.title.toLowerCase().slice(0, 40)
+    if (seen.has(key)) continue
+    seen.add(key); uniq.push(it)
+  }
+  res.json({ headlines: uniq.slice(0, 10) })
+})
+
+app.get('/ideas', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'ideas.html')))
+
+// Background: keep daily ideas fresh (startup + hourly)
+setTimeout(() => { ensureDailyIdeas(false).catch(() => {}) }, 3000)
+setInterval(() => { ensureDailyIdeas(false).catch(() => {}) }, 60 * 60 * 1000)
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ ok: true, keySet: !!process.env.ANTHROPIC_API_KEY, sheetHook: !!process.env.GOOGLE_SHEET_WEBHOOK_URL, node: process.version }))

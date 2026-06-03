@@ -62,7 +62,17 @@
       "Bash(sed -n '10,18p' xlink.js)",
       "Bash(sed -n '295p' index.html)",
       "Bash(grep -n 'buildNicheList\\(\\)$\\\\|^buildNicheList\\(\\)' index.html)",
-      "Bash(time curl -s -X POST http://localhost:3000/api/research -H \"Content-Type: application/json\" -d '{\"niche\":\"SaaS founder\",\"keywords\":[\"AI agents\",\"OpenAI\",\"pricing\"],\"details\":\"impact on indie founders\"}')"
+      "Bash(time curl -s -X POST http://localhost:3000/api/research -H \"Content-Type: application/json\" -d '{\"niche\":\"SaaS founder\",\"keywords\":[\"AI agents\",\"OpenAI\",\"pricing\"],\"details\":\"impact on indie founders\"}')",
+      "Bash(grep -n '<section id=\"app\">\\\\|</section>\\\\|id=\"closing\"\\\\|<!-- ═.*JAVASCRIPT\\\\|<script src=\"/xlink.js\">\\\\|<script>$\\\\|id=\"postsResults\"\\\\|id=\"postsGrid\"\\\\|id=\"postsLoading\"\\\\|id=\"view3\"\\\\|backTo2\\\\|regenAllBtn\\\\|postsResultsLabel' index.html)",
+      "Bash(awk 'NR>=1066 && /<\\\\/script>/{print NR\": \"$0}' index.html)",
+      "Bash(awk 'NR>=698 && /<\\\\/section>/{print NR\": \"$0; exit}' index.html)",
+      "Bash(awk 'NR>1090 && /<\\\\/script>/{print NR\": \"$0; exit}' index.html)",
+      "Bash(awk 'NR>=726 && $0 ~ /^<\\\\/section>/{print NR\": \"$0; exit}' index.html)",
+      "Bash(awk 'NR>1094 && $0 ~ /^<script>$/{print NR; exit}' index.html)",
+      "Bash(awk 'NR>1095 && $0 ~ /^<\\\\/script>$/{print NR; exit}' index.html)",
+      "Bash(node -e \"const h=require\\('fs'\\).readFileSync\\('public/index.html','utf8'\\);const m=h.match\\(/<script>\\\\n\\([\\\\s\\\\S]*?\\)\\\\n<\\\\/script>/\\);new Function\\(m[1]\\);console.log\\('index inline OK'\\)\")",
+      "Bash(curl -s -c /tmp/c.txt -X POST http://localhost:3000/api/admin/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@xlink.com\",\"password\":\"secret123\"}')",
+      "Bash(curl -s -b /tmp/c.txt http://localhost:3000/api/admin/stats)"
     ]
   }
 }

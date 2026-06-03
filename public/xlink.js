@@ -6,6 +6,8 @@
 (function () {
   const VOICE_KEY = 'xlink_voice_profile'
   const POSTS_KEY = 'xlink_posts'
+  const POS_KEY = 'xlink_positioning'
+  const IDEAS_SEEN_KEY = 'xlink_ideas_seen'
 
   // ─── Injected CSS (keeps page files clean, consistent black/white design) ──
   const css = `
@@ -65,6 +67,9 @@
   html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#eceff3;--ink:#0e0f16;--ink-rgb:14,15,22}
   html[data-theme="light"] body{background:var(--bg)}
   html[data-theme="light"] .xl-voice-badge{color:#15803d}
+  .xl-pos-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#93c5fd;background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.25);border-radius:99px;padding:4px 11px;margin-left:8px}
+  html[data-theme="light"] .xl-pos-badge{color:#1d4ed8}
+  .xl-new-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ef4444;margin-left:5px;vertical-align:middle;box-shadow:0 0 6px rgba(239,68,68,.7)}
   html[data-theme="light"] .xl-voice-link{color:#1d4ed8}
   .xl-theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b2);color:var(--t2);cursor:pointer;transition:all .15s;flex-shrink:0;padding:0}
   .xl-theme-toggle:hover{color:var(--t1);border-color:var(--b3)}
@@ -139,6 +144,7 @@
     menu.innerHTML =
       '<a href="/">Home</a>' +
       '<a href="/voice">Set Up Voice</a>' +
+      '<a href="/ideas">Daily Ideas</a>' +
       '<a href="/results">Your Posts</a>' +
       '<span class="locked-item">Lead Magnet — coming soon</span>' +
       '<a href="/#app" class="cta">Start Creating</a>'
@@ -158,14 +164,24 @@
   function renderVoiceBadge() {
     const slot = document.getElementById('voiceBadgeSlot')
     if (!slot) return
+    let html = ''
     if (getVoiceProfile()) {
-      slot.innerHTML = `<span class="xl-voice-badge"><span class="xl-voice-dot"></span>Voice Active</span><a href="#" class="xl-voice-reset" id="xlVoiceReset">Reset Voice</a>`
-      const r = document.getElementById('xlVoiceReset')
-      if (r) r.addEventListener('click', e => { e.preventDefault(); if (confirm('Reset your voice profile?')) clearVoiceProfile() })
+      html += `<span class="xl-voice-badge"><span class="xl-voice-dot"></span>Voice Active</span><a href="#" class="xl-voice-reset" id="xlVoiceReset">Reset Voice</a>`
     } else {
-      slot.innerHTML = `<a href="/voice" class="xl-voice-link">Set up voice</a>`
+      html += `<a href="/voice" class="xl-voice-link">Set up voice</a>`
     }
+    if (getPositioning()) {
+      html += `<span class="xl-pos-badge"><span class="xl-voice-dot" style="background:#60a5fa;box-shadow:0 0 7px #60a5fa"></span>Positioning</span><a href="/#app" class="xl-voice-reset">Edit</a>`
+    }
+    slot.innerHTML = html
+    const r = document.getElementById('xlVoiceReset')
+    if (r) r.addEventListener('click', e => { e.preventDefault(); if (confirm('Reset your voice profile?')) clearVoiceProfile() })
   }
+
+  // ─── Positioning ──────────────────────────────────────────────────────────
+  function getPositioning() { try { return JSON.parse(localStorage.getItem(POS_KEY) || 'null') } catch (e) { return null } }
+  function setPositioning(p) { localStorage.setItem(POS_KEY, JSON.stringify(p)); renderVoiceBadge() }
+  function clearPositioning() { localStorage.removeItem(POS_KEY); renderVoiceBadge() }
 
   // ─── Post tracking storage ────────────────────────────────────────────────
   function getPosts() { try { return JSON.parse(localStorage.getItem(POSTS_KEY) || '[]') } catch (e) { return [] } }
@@ -444,8 +460,25 @@
 
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
 
+  // ─── "New" ideas badge on the nav link ────────────────────────────────────
+  function markIdeasSeen(genAt) { try { localStorage.setItem(IDEAS_SEEN_KEY, genAt || new Date().toISOString()) } catch (e) {} }
+  async function checkIdeasBadge() {
+    const link = document.getElementById('navIdeas')
+    if (!link) return
+    try {
+      const r = await fetch('/api/ideas/daily'); const d = await r.json()
+      if (!d || !d.generatedAt) return
+      const seen = localStorage.getItem(IDEAS_SEEN_KEY)
+      const fresh = (Date.now() - Date.parse(d.generatedAt)) < 24 * 60 * 60 * 1000
+      const unseen = !seen || Date.parse(d.generatedAt) > Date.parse(seen)
+      if (fresh && unseen && !link.querySelector('.xl-new-dot')) {
+        link.insertAdjacentHTML('beforeend', '<span class="xl-new-dot" title="New ideas"></span>')
+      }
+    } catch (e) {}
+  }
+
   // ─── Init ─────────────────────────────────────────────────────────────────
-  function init() { mountThemeToggle(); mountMobileMenu(); renderVoiceBadge(); addHints(); buildRepurposeModal() }
+  function init() { mountThemeToggle(); mountMobileMenu(); renderVoiceBadge(); addHints(); buildRepurposeModal(); checkIdeasBadge() }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init)
   else init()
 
@@ -455,5 +488,6 @@
     addHints, openRepurpose, esc,
     setTheme, toggleTheme, currentTheme,
     getEmail, setEmail, fetchProfile, fetchProfilePosts, saveProfile, saveVoiceToAccount, syncPost, deletePost,
+    getPositioning, setPositioning, clearPositioning, markIdeasSeen,
   }
 })()
