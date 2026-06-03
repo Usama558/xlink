@@ -279,6 +279,12 @@ html[data-theme="light"] .hvf-text b,html[data-theme="light"] .hvf-text kbd{colo
 .filters-grid{padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
 @media(max-width:600px){.filters-grid{grid-template-columns:1fr;padding:18px}}
 .filter-full{grid-column:1/-1}
+.email-fld{width:100%;background:rgba(var(--ink-rgb),0.04);border:1px solid var(--b1);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:500;color:var(--t1);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s}
+.email-fld:focus{border-color:var(--accent)}
+.email-fld::placeholder{color:var(--t4)}
+.profile-banner{display:none;margin-top:10px;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#86efac;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:9px 13px}
+.profile-banner.show{display:flex}
+html[data-theme="light"] .profile-banner{color:#15803d}
 
 /* ── Label ── */
 .lbl{display:block;font-size:11px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
@@ -870,6 +876,12 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
             <textarea id="fRefPosts" placeholder="Paste any posts here that you love — the AI will match their structure, rhythm, and energy while creating original content. You can paste 1-3 posts." rows="6"></textarea>
           </div>
 
+          <div class="filter-full">
+            <span class="lbl">Email <span style="color:var(--t4);font-weight:500;text-transform:none;letter-spacing:0">(optional — saves your voice, settings, and posts to come back to)</span></span>
+            <input type="email" id="fEmail" class="email-fld" placeholder="you@example.com" autocomplete="email" data-no-hint/>
+            <div class="profile-banner" id="profileBanner"></div>
+          </div>
+
         </div>
         <div class="btn-action-row">
           <button class="btn-primary" id="findTrendsBtn" disabled>
@@ -1076,7 +1088,7 @@ function buildNicheList(q=''){
         filters.niche=item
         document.getElementById('nicheTriggerVal').textContent=item
         document.getElementById('nicheTriggerVal').classList.remove('ph')
-        closeDD();updateFindBtn()
+        closeDD();updateFindBtn();scheduleProfileSave()
       });list.appendChild(el)
     })
   }
@@ -1103,7 +1115,7 @@ function makeTgl(id,key,mono){
   document.getElementById(id).addEventListener('click',e=>{
     const b=e.target.closest('[data-val]');if(!b)return
     document.querySelectorAll(`#${id} [data-val]`).forEach(x=>x.classList.remove('active','active-mono'))
-    b.classList.add(mono?'active-mono':'active');filters[key]=b.dataset.val
+    b.classList.add(mono?'active-mono':'active');filters[key]=mono?Number(b.dataset.val):b.dataset.val;scheduleProfileSave()
   })
 }
 makeTgl('platformGroup','platform',false)
@@ -1112,19 +1124,81 @@ makeTgl('outputGroup','outputType',false)
 makeTgl('countGroup','count',true)
 ;[['fTone','tone'],['fPov','pov'],['fHookType','hookType'],['fGoal','postGoal'],
   ['fAudience','targetAudience'],['fCta','cta'],['fStyle','writingStyle']].forEach(([id,key])=>{
-  document.getElementById(id).addEventListener('change',e=>{filters[key]=e.target.value})
+  document.getElementById(id).addEventListener('change',e=>{filters[key]=e.target.value;scheduleProfileSave()})
 })
 document.getElementById('fContrarian').addEventListener('input',e=>{filters.contrarianBelief=e.target.value})
 document.getElementById('fResult').addEventListener('input',e=>{filters.personalResult=e.target.value})
 document.getElementById('fTopic').addEventListener('input',e=>{filters.topic=e.target.value;updateFindBtn()})
 document.getElementById('fRefPosts').addEventListener('input',e=>{filters.referencePosts=e.target.value})
+let emailLoadTimer=null,loadedEmail=''
+document.getElementById('fEmail').addEventListener('input',e=>{
+  const v=e.target.value.trim()
+  if(!(v&&/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)))return
+  XL.setEmail(v)
+  clearTimeout(emailLoadTimer)
+  emailLoadTimer=setTimeout(()=>loadProfileFor(v),700)
+})
+async function loadProfileFor(email){
+  if(email===loadedEmail)return
+  try{
+    const profile=await XL.fetchProfile(email)
+    if(!profile)return
+    loadedEmail=email
+    applySettings(profile.lastSettings)
+    if(profile.voiceProfile)XL.setVoiceProfile(profile.voiceProfile)
+    const banner=document.getElementById('profileBanner')
+    banner.textContent='Welcome back. Your voice profile and last settings have been loaded.'
+    banner.classList.add('show')
+  }catch(e){/* silent */}
+}
 function updateFindBtn(){document.getElementById('findTrendsBtn').disabled=!(filters.niche&&filters.topic.trim())}
+
+// ── Profile persistence (email-keyed, silent) ──
+let profileSaveTimer=null
+function settingsPayload(){
+  return {lastNiche:filters.niche,lastTone:filters.tone,lastHookType:filters.hookType,lastPlatform:filters.platform,
+    lastAudience:filters.targetAudience,lastGoal:filters.postGoal,lastCTA:filters.cta,lastWritingStyle:filters.writingStyle,
+    lastPostCount:Number(filters.count),lastOutputType:filters.outputType}
+}
+function scheduleProfileSave(){
+  if(!XL.getEmail())return
+  clearTimeout(profileSaveTimer)
+  profileSaveTimer=setTimeout(()=>{XL.saveProfile(settingsPayload())},2000)
+}
+function applySettings(s){
+  if(!s)return
+  if(s.niche){filters.niche=s.niche;const v=document.getElementById('nicheTriggerVal');v.textContent=s.niche;v.classList.remove('ph')}
+  const setSel=(id,key,val)=>{if(val){const el=document.getElementById(id);el.value=val;filters[key]=val}}
+  setSel('fTone','tone',s.tone);setSel('fHookType','hookType',s.hookType);setSel('fGoal','postGoal',s.goal)
+  setSel('fAudience','targetAudience',s.audience);setSel('fCta','cta',s.cta);setSel('fStyle','writingStyle',s.writingStyle)
+  if(s.platform){filters.platform=s.platform;document.querySelectorAll('#platformGroup [data-val]').forEach(x=>x.classList.toggle('active',x.dataset.val===s.platform))}
+  if(s.outputType){filters.outputType=s.outputType;document.querySelectorAll('#outputGroup [data-val]').forEach(x=>x.classList.toggle('active',x.dataset.val===s.outputType))}
+  if(s.postCount){filters.count=Number(s.postCount);document.querySelectorAll('#countGroup [data-val]').forEach(x=>x.classList.toggle('active-mono',Number(x.dataset.val)===Number(s.postCount)))}
+  updateFindBtn()
+}
 
 // ── Step 1 → 2 ──
 document.getElementById('findTrendsBtn').addEventListener('click',async()=>{
   const btn=document.getElementById('findTrendsBtn')
   const sp=document.getElementById('sp1'),icon=document.getElementById('sp1Icon'),lbl=document.getElementById('sp1Label')
   document.getElementById('err1').style.display='none'
+
+  // Email-based profile load: if this email has a saved profile, restore it
+  const emailVal=document.getElementById('fEmail').value.trim()
+  if(emailVal && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailVal)){
+    XL.setEmail(emailVal)
+    try{
+      const profile=await XL.fetchProfile(emailVal)
+      if(profile){
+        applySettings(profile.lastSettings)
+        if(profile.voiceProfile){XL.setVoiceProfile(profile.voiceProfile)}
+        const banner=document.getElementById('profileBanner')
+        banner.textContent='Welcome back. Your voice profile and last settings have been loaded.'
+        banner.classList.add('show')
+      }
+    }catch(e){/* silent — keep going */}
+  }
+
   btn.disabled=true;sp.style.display='block';icon.style.display='none';lbl.textContent='Scanning...'
   goToStep(2)
   document.getElementById('trendsLoading').style.display='block'
@@ -1204,6 +1278,8 @@ document.getElementById('leadSubmit').addEventListener('click',async()=>{
     await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lead)})
   }catch(e){/* best-effort: never trap the user on a network hiccup */}
   try{localStorage.setItem(LEAD_KEY,JSON.stringify({...lead,at:Date.now()}))}catch(e){}
+  // identity for profile persistence + immediately save current settings
+  if(email){XL.setEmail(email);XL.saveProfile(settingsPayload())}
   btn.disabled=false;sp.style.display='none';lbl.textContent='Continue to my posts'
   closeLeadModal()
   const cb=pendingAfterLead;pendingAfterLead=null
@@ -1319,14 +1395,15 @@ function renderPosts(posts,usedFilters,usedTrends){
       btn.addEventListener('click',()=>{
         const st=btn.dataset.st
         card.querySelectorAll('.track-btn').forEach(b=>b.classList.remove('sel-pub','sel-skip'))
+        const rec=baseRecord(st)
         if(st==='skipped'){
           btn.classList.add('sel-skip')
-          XL.upsertPost(baseRecord('skipped'))
+          XL.upsertPost(rec); XL.syncPost(rec)
           trackForm.classList.remove('open')
           trackSaved.style.display='none'
         }else{
           btn.classList.add('sel-pub')
-          XL.upsertPost(baseRecord(st))
+          XL.upsertPost(rec); XL.syncPost(rec)
           trackForm.classList.add('open')
           trackSaved.style.display='none'
         }
@@ -1337,7 +1414,7 @@ function renderPosts(posts,usedFilters,usedTrends){
       trackForm.querySelectorAll('input[data-m]').forEach(inp=>{
         const v=parseInt(inp.value,10); metrics[inp.dataset.m]=isNaN(v)?0:v
       })
-      XL.upsertPost(metrics)
+      XL.upsertPost(metrics); XL.syncPost(metrics)
       trackForm.classList.remove('open')
       trackSaved.textContent='Saved to your results.'
       trackSaved.style.display='block'

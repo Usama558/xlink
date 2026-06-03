@@ -179,6 +179,53 @@
   }
   function clearPosts() { localStorage.removeItem(POSTS_KEY) }
 
+  // ─── Email-based profile sync (silent, never blocks the user) ─────────────
+  const EMAIL_KEY = 'xlink_current_email'
+  function getEmail() { try { return localStorage.getItem(EMAIL_KEY) || '' } catch (e) { return '' } }
+  function setEmail(e) { try { if (e) localStorage.setItem(EMAIL_KEY, e) } catch (err) {} }
+
+  async function fetchProfile(email) {
+    if (!email) return null
+    try {
+      const r = await fetch('/api/profile?email=' + encodeURIComponent(email))
+      const d = await r.json()
+      return d && d.exists ? d : null
+    } catch (e) { return null }
+  }
+  async function fetchProfilePosts(email) {
+    if (!email) return []
+    try {
+      const r = await fetch('/api/profile/posts?email=' + encodeURIComponent(email))
+      const d = await r.json()
+      return (d && Array.isArray(d.posts)) ? d.posts : []
+    } catch (e) { return [] }
+  }
+  async function saveProfile(payload) {
+    const email = payload && payload.email ? payload.email : getEmail()
+    if (!email) return
+    try {
+      await fetch('/api/profile', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ email }, payload)),
+      })
+    } catch (e) { /* silent */ }
+  }
+  async function saveVoiceToAccount(voiceProfile) {
+    const email = getEmail()
+    if (!email) return
+    await saveProfile({ email, voiceProfile: typeof voiceProfile === 'string' ? voiceProfile : JSON.stringify(voiceProfile) })
+  }
+  async function syncPost(post) {
+    const email = getEmail()
+    if (!email || !post) return
+    try {
+      await fetch('/api/profile/posts', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, post }),
+      })
+    } catch (e) { /* silent */ }
+  }
+
   // ─── Speak hints under text fields ────────────────────────────────────────
   function addHints() {
     document.querySelectorAll('textarea, input[type=text]').forEach(el => {
@@ -392,5 +439,6 @@
     getPosts, savePosts, upsertPost, clearPosts,
     addHints, openRepurpose, esc,
     setTheme, toggleTheme, currentTheme,
+    getEmail, setEmail, fetchProfile, fetchProfilePosts, saveProfile, saveVoiceToAccount, syncPost,
   }
 })()

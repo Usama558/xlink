@@ -2,6 +2,7 @@ const express = require('express')
 const Anthropic = require('@anthropic-ai/sdk')
 const path = require('path')
 const fs = require('fs')
+const crypto = require('crypto')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -800,6 +801,95 @@ app.post('/api/repurpose', async (req, res) => {
     console.error('[repurpose] API error:', err.message)
     res.status(500).json({ error: 'API error: ' + (err.message || 'unknown') })
   }
+})
+
+// ─── Email-based profile store (file-based, hashed email as key) ──────────────
+const PROFILES_DIR = path.join(__dirname, 'profiles')
+try { fs.mkdirSync(PROFILES_DIR, { recursive: true }) } catch (e) {}
+
+function hashEmail(email) {
+  return crypto.createHash('sha256').update(String(email).trim().toLowerCase()).digest('hex')
+}
+function profilePath(email) { return path.join(PROFILES_DIR, hashEmail(email) + '.json') }
+function readProfile(email) {
+  try { return JSON.parse(fs.readFileSync(profilePath(email), 'utf8')) } catch (e) { return null }
+}
+function writeProfile(email, profile) {
+  try { fs.writeFileSync(profilePath(email), JSON.stringify(profile)); return true }
+  catch (e) { console.warn('[profile] write failed:', e.message); return false }
+}
+function blankProfile(email) {
+  const now = new Date().toISOString()
+  return {
+    emailHash: hashEmail(email),
+    voiceProfile: null,
+    lastSettings: { niche: '', tone: '', hookType: '', platform: '', audience: '', goal: '', cta: '', writingStyle: '', postCount: 3, outputType: 'full' },
+    posts: [],
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
+// GET /api/profile?email= → full profile or { exists:false }
+app.get('/api/profile', (req, res) => {
+  const email = req.query.email
+  if (!email) return res.status(400).json({ exists: false })
+  const profile = readProfile(email)
+  if (!profile) return res.json({ exists: false })
+  res.json(Object.assign({ exists: true }, profile))
+})
+
+// POST /api/profile → upsert voice profile + last settings
+app.post('/api/profile', (req, res) => {
+  const b = req.body || {}
+  if (!b.email) return res.status(400).json({ saved: false, error: 'Missing email' })
+
+  const profile = readProfile(b.email) || blankProfile(b.email)
+  if (b.voiceProfile !== undefined && b.voiceProfile !== null) {
+    profile.voiceProfile = typeof b.voiceProfile === 'string'
+      ? (() => { try { return JSON.parse(b.voiceProfile) } catch (e) { return b.voiceProfile } })()
+      : b.voiceProfile
+  }
+  profile.lastSettings = {
+    niche:        b.lastNiche        ?? profile.lastSettings.niche,
+    tone:         b.lastTone         ?? profile.lastSettings.tone,
+    hookType:     b.lastHookType     ?? profile.lastSettings.hookType,
+    platform:     b.lastPlatform     ?? profile.lastSettings.platform,
+    audience:     b.lastAudience     ?? profile.lastSettings.audience,
+    goal:         b.lastGoal         ?? profile.lastSettings.goal,
+    cta:          b.lastCTA          ?? profile.lastSettings.cta,
+    writingStyle: b.lastWritingStyle ?? profile.lastSettings.writingStyle,
+    postCount:    b.lastPostCount    ?? profile.lastSettings.postCount,
+    outputType:   b.lastOutputType   ?? profile.lastSettings.outputType,
+  }
+  profile.updatedAt = new Date().toISOString()
+  writeProfile(b.email, profile)
+  res.json({ saved: true })
+})
+
+// POST /api/profile/posts → append a tracked post (cap 200)
+app.post('/api/profile/posts', (req, res) => {
+  const { email, post } = req.body || {}
+  if (!email || !post) return res.status(400).json({ saved: false, error: 'Missing email or post' })
+
+  const profile = readProfile(email) || blankProfile(email)
+  if (!Array.isArray(profile.posts)) profile.posts = []
+  // replace if same id exists (status/metric updates), else append
+  const idx = post.id ? profile.posts.findIndex(p => p.id === post.id) : -1
+  if (idx >= 0) profile.posts[idx] = Object.assign({}, profile.posts[idx], post)
+  else profile.posts.push(post)
+  if (profile.posts.length > 200) profile.posts = profile.posts.slice(-200)
+  profile.updatedAt = new Date().toISOString()
+  writeProfile(email, profile)
+  res.json({ saved: true })
+})
+
+// GET /api/profile/posts?email= → posts array
+app.get('/api/profile/posts', (req, res) => {
+  const email = req.query.email
+  if (!email) return res.status(400).json({ posts: [] })
+  const profile = readProfile(email)
+  res.json({ posts: (profile && Array.isArray(profile.posts)) ? profile.posts : [] })
 })
 
 // ─── Clean URLs for the extra pages ───────────────────────────────────────────

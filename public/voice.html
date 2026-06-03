@@ -165,7 +165,14 @@ analyzeBtn.addEventListener('click',analyze)
 document.getElementById('regenBtn').addEventListener('click',analyze)
 document.getElementById('saveBtn').addEventListener('click',()=>{
   if(profile)XL.setVoiceProfile(profile)
-  document.getElementById('savedNote').style.display='block'
+  const note=document.getElementById('savedNote')
+  if(profile && XL.getEmail()){
+    XL.saveVoiceToAccount(profile)
+    note.innerHTML='Voice profile saved to your account. <a href="/" style="color:var(--accent-l)">Start writing →</a>'
+  }else{
+    note.innerHTML='Voice profile saved. Every post you generate now mirrors your style. <a href="/" style="color:var(--accent-l)">Start writing →</a>'
+  }
+  note.style.display='block'
 })
 
 function arr(v){return Array.isArray(v)?v:(v?[v]:[])}

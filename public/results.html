@@ -94,8 +94,9 @@ function platLabel(p){return PLAT[p]||p||'—'}
 function num(n){n=Number(n)||0;return n>=1000?(n/1000).toFixed(1).replace(/\.0$/,'')+'K':String(n)}
 const WD=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 
+let MERGED=null
 function render(){
-  const posts=XL.getPosts()
+  const posts=MERGED||XL.getPosts()
   const c=document.getElementById('content')
   if(!posts.length){
     c.innerHTML=`<div class="empty">No posts tracked yet.<br><br>Generate posts and mark them as published to see your results here.<br><br><a href="/">Go to the generator →</a></div>`
@@ -217,7 +218,21 @@ function renderInsights(published,skipped){
   return h
 }
 
+// Initial render from localStorage, then merge in backend posts if email is known
 render()
+;(async()=>{
+  const email=XL.getEmail()
+  if(!email)return
+  try{
+    const backend=await XL.fetchProfilePosts(email)
+    if(!backend.length)return
+    const map={}
+    backend.forEach(p=>{if(p&&p.id)map[p.id]=p})
+    XL.getPosts().forEach(p=>{if(p&&p.id)map[p.id]=Object.assign({},map[p.id],p)})
+    MERGED=Object.values(map)
+    render()
+  }catch(e){/* silent — localStorage view stays */}
+})()
 </script>
 </body>
 </html>

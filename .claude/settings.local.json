@@ -34,7 +34,10 @@
       "Bash(perl -0pi -e 's/\\\\.kv-item b\\\\{color:#fff;/.kv-item b{color:var\\(--ink\\);/' voice.html)",
       "Bash(perl -0pi -e 's/\\(\\\\.btn-sec\\\\{[^}]*?\\)color:#fff/$1color:var\\(--ink\\)/' voice.html)",
       "Bash(perl -0pi -e 's/\\(\\\\.big-stat\\\\{[^}]*?\\)color:#fff/$1color:var\\(--ink\\)/' results.html)",
-      "Bash(node -e \"new Function\\(require\\('fs'\\).readFileSync\\('public/xlink.js','utf8'\\)\\);console.log\\('xlink.js parses OK'\\)\")"
+      "Bash(node -e \"new Function\\(require\\('fs'\\).readFileSync\\('public/xlink.js','utf8'\\)\\);console.log\\('xlink.js parses OK'\\)\")",
+      "Bash(rm -f profiles/*.json && echo \"test profile cleaned\")",
+      "Bash(grep -n '^render\\(\\)\\\\|^render\\(\\);\\\\|render\\(\\)$' results.html)",
+      "Bash(curl -s -X POST http://localhost:3000/api/profile/posts -H \"Content-Type: application/json\" -d '{\"email\":\"welcome@back.com\",\"post\":{\"id\":\"backendonly1\",\"text\":\"This post lives only on the server, not in this browser cache.\",\"niche\":\"Freelancer\",\"topic\":\"pricing\",\"hook_type\":\"confession\",\"tone\":\"sarcastic\",\"platform\":\"linkedin\",\"timestamp\":1717000000000,\"status\":\"published\",\"impressions\":15400,\"likes\":612,\"reposts\":88,\"comments\":40}}')"
     ]
   }
 }

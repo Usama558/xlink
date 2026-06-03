@@ -3,3 +3,4 @@ node_modules/
 .env.local
 leads.jsonl
 magnet_usage.json
+profiles/
