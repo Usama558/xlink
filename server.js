@@ -1493,7 +1493,36 @@ app.get('/api/feed/cache', (_req, res) => {
   res.json({ refreshedAt: cache.refreshedAt, totalArticles: cache.totalArticles, isStale: isCacheStale(), byCategory })
 })
 
-// GET /api/headlines — live RSS for the "Live headlines" tab
+// GET /api/feed/trending — rotating sample of real trends from the big feed cache
+// Each call returns a different random set (so "show different" always varies).
+app.get('/api/feed/trending', async (req, res) => {
+  const wantCat = req.query.category
+  let cache = getCachedFeed()
+  // fall back to a direct fetch only if there is no cache yet
+  if (!cache || !cache.byCategory) {
+    try {
+      const arts = await fetchAllFeeds()
+      const byCategory = {}
+      arts.forEach(a => { (byCategory[a.category] = byCategory[a.category] || []).push(a) })
+      cache = { byCategory }
+    } catch (e) { cache = { byCategory: {} } }
+  }
+  let pool = []
+  Object.entries(cache.byCategory).forEach(([cat, arr]) => {
+    if (wantCat && cat !== wantCat) return
+    pool.push(...(arr || []))
+  })
+  // prefer the freshest half, then shuffle for variety on every refresh
+  pool.sort((a, b) => (Date.parse(b.pubDate) || 0) - (Date.parse(a.pubDate) || 0))
+  pool = pool.slice(0, Math.max(60, Math.ceil(pool.length / 2)))
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[pool[i], pool[j]] = [pool[j], pool[i]] }
+  const trends = pool.slice(0, 12).map(a => ({
+    title: a.title, description: a.description || '', source: a.source, category: a.category, pubDate: a.pubDate, link: a.link,
+  }))
+  res.json({ trends, total: Object.values(cache.byCategory).reduce((s, a) => s + (a ? a.length : 0), 0) })
+})
+
+// GET /api/headlines — live RSS for the "Live headlines" tab (legacy)
 app.get('/api/headlines', async (_req, res) => {
   const results = await Promise.allSettled([
     rssItems('https://techcrunch.com/feed/', 'TechCrunch', 4),

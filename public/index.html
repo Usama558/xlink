@@ -581,6 +581,7 @@ textarea::placeholder{color:var(--t4)}
 .mini-btn:hover{color:var(--t1)}
 .hl-card{background:rgba(var(--ink-rgb),0.03);border:1px solid var(--b1);border-radius:12px;padding:12px 13px;margin-bottom:8px;cursor:pointer;transition:all .15s}
 .hl-card:hover{border-color:var(--accent);background:rgba(37,99,235,0.06)}
+.hl-card.sel{border-color:var(--accent);background:rgba(37,99,235,0.12);box-shadow:0 0 0 1px var(--accent)}
 .hl-src{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-l)}
 .hl-title{font-size:13px;color:var(--t1);line-height:1.45;margin-top:3px}
 .set-row{margin-bottom:16px}
@@ -749,28 +750,23 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
       <div class="creator-grid">
         <!-- LEFT: trend input -->
         <div class="card creator-left">
-          <div class="ci-head">What are you reacting to?</div>
+          <div class="ci-head">What do you want to post about?</div>
           <div class="tabs" id="inputTabs">
-            <button class="tab active" data-tab="paste" type="button">Paste a trend</button>
-            <button class="tab" data-tab="topic" type="button">Describe a topic</button>
-            <button class="tab" data-tab="live" type="button">Live headlines</button>
+            <button class="tab active" data-tab="topic" type="button">Describe a topic</button>
+            <button class="tab" data-tab="trend" type="button">Market trend</button>
           </div>
 
-          <div class="tab-pane" data-pane="paste">
-            <textarea id="pasteInput" rows="7" placeholder="Paste anything — a tweet, a LinkedIn post, a news headline, a quote, a statistic, an announcement. XLink will build your post around it."></textarea>
-            <div class="char-count" id="pasteCount">0 characters</div>
-          </div>
-
-          <div class="tab-pane" data-pane="topic" style="display:none">
+          <div class="tab-pane" data-pane="topic">
             <input id="topicInput" placeholder="e.g. Why most agencies fail in year 2, The truth about cold DMs, What nobody tells you about pricing"/>
+            <div class="char-count" style="margin-top:8px">Your own idea. We write a post that takes a strong stance on it.</div>
           </div>
 
-          <div class="tab-pane" data-pane="live" style="display:none">
+          <div class="tab-pane" data-pane="trend" style="display:none">
             <div class="live-head">
-              <span class="live-note">Fresh from TechCrunch, HBR, Fast Company, The Hustle, Product Hunt and more.</span>
-              <button class="mini-btn" id="refreshHeadlines" type="button">Refresh</button>
+              <span class="live-note">Real news from <b id="trendTotal">thousands of</b> scraped articles. Pick one to post about.</span>
+              <button class="mini-btn" id="refreshTrends" type="button">Show different</button>
             </div>
-            <div id="headlinesList"></div>
+            <div id="trendList"></div>
           </div>
         </div>
 
@@ -951,7 +947,7 @@ function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/<
 function escAttr(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 
 const gen={platform:'x-post',tone:'Contrarian',cta:'No CTA',count:3,output:'full'}
-let activeTab='paste', prefillAngle='', lastRun=null
+let activeTab='topic', prefillAngle='', lastRun=null
 
 // ── Positioning ──
 function showPositioningState(){
@@ -982,40 +978,43 @@ document.getElementById('inputTabs').addEventListener('click',e=>{
   activeTab=b.dataset.tab
   document.querySelectorAll('#inputTabs .tab').forEach(t=>t.classList.toggle('active',t===b))
   document.querySelectorAll('#creator .tab-pane').forEach(p=>p.style.display=p.dataset.pane===activeTab?'':'none')
-  if(activeTab==='live'&&!headlinesLoaded)loadHeadlines()
+  if(activeTab==='trend'&&!trendsLoaded)loadTrends()
   updateGenBtn()
 })
-const pasteInput=document.getElementById('pasteInput'),topicInput=document.getElementById('topicInput')
-pasteInput.addEventListener('input',()=>{document.getElementById('pasteCount').textContent=pasteInput.value.length+' characters';updateGenBtn()})
+const topicInput=document.getElementById('topicInput')
 topicInput.addEventListener('input',updateGenBtn)
 
+let selectedTrend=null
 function currentInput(){
-  if(activeTab==='topic')return topicInput.value.trim()
-  return pasteInput.value.trim()
+  if(activeTab==='trend'){
+    if(!selectedTrend)return ''
+    return selectedTrend.title + (selectedTrend.description?'\n\nContext: '+selectedTrend.description:'') + '\n\n(Source: '+selectedTrend.source+')'
+  }
+  return topicInput.value.trim()
 }
 
-// ── Live headlines ──
-let headlinesLoaded=false
-async function loadHeadlines(){
-  const box=document.getElementById('headlinesList')
-  box.innerHTML='<div class="hl-card" style="opacity:.5">Loading headlines...</div>'.repeat(3)
+// ── Market trend suggestions (from the scraped feed cache) ──
+let trendsLoaded=false, trendItems=[]
+function timeAgo(iso){const t=Date.parse(iso);if(!t)return '';const s=(Date.now()-t)/1000;if(s<3600)return Math.max(1,Math.floor(s/60))+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago'}
+async function loadTrends(){
+  const box=document.getElementById('trendList')
+  box.innerHTML='<div class="hl-card" style="opacity:.5">Finding the latest market trends...</div>'.repeat(4)
   try{
-    const r=await fetch('/api/headlines');const d=await r.json()
-    const hl=d.headlines||[]
-    headlinesLoaded=true
-    if(!hl.length){box.innerHTML='<div class="live-note">Could not load headlines right now. Try refresh.</div>';return}
-    box.innerHTML=hl.map(h=>`<div class="hl-card" data-t="${escAttr(h.title)}" data-s="${escAttr(h.source)}"><div class="hl-src">${escHtml(h.source)}${h.ts?' · '+timeAgo(h.ts):''}</div><div class="hl-title">${escHtml(h.title)}</div></div>`).join('')
+    const r=await fetch('/api/feed/trending');const d=await r.json()
+    trendItems=d.trends||[]
+    trendsLoaded=true
+    if(d.total)document.getElementById('trendTotal').textContent=d.total.toLocaleString()
+    if(!trendItems.length){box.innerHTML='<div class="live-note">Trends are being prepared. Try again in a minute.</div>';return}
+    box.innerHTML=trendItems.map((t,i)=>`<div class="hl-card" data-i="${i}"><div class="hl-src">${escHtml(t.source)}${t.category?' · '+escHtml(t.category):''}${t.pubDate?' · '+timeAgo(t.pubDate):''}</div><div class="hl-title">${escHtml(t.title)}</div></div>`).join('')
     box.querySelectorAll('.hl-card').forEach(c=>c.addEventListener('click',()=>{
-      pasteInput.value=c.dataset.t+'\n\n(via '+c.dataset.s+')'
-      document.getElementById('pasteCount').textContent=pasteInput.value.length+' characters'
-      // switch to paste tab so user can edit
-      document.querySelector('#inputTabs .tab[data-tab="paste"]').click()
-      pasteInput.focus()
+      selectedTrend=trendItems[parseInt(c.dataset.i)]
+      box.querySelectorAll('.hl-card').forEach(x=>x.classList.remove('sel'))
+      c.classList.add('sel')
+      updateGenBtn()
     }))
-  }catch(e){box.innerHTML='<div class="live-note">Could not load headlines right now. Try refresh.</div>'}
+  }catch(e){box.innerHTML='<div class="live-note">Could not load trends right now. Try again.</div>'}
 }
-function timeAgo(ts){const s=(Date.now()-ts)/1000;if(s<3600)return Math.max(1,Math.floor(s/60))+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago'}
-document.getElementById('refreshHeadlines').addEventListener('click',()=>{headlinesLoaded=false;loadHeadlines()})
+document.getElementById('refreshTrends').addEventListener('click',()=>{selectedTrend=null;loadTrends();updateGenBtn()})
 
 // ── Settings ──
 document.getElementById('genPlatform').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;document.querySelectorAll('#genPlatform [data-val]').forEach(x=>x.classList.remove('active'));b.classList.add('active');gen.platform=b.dataset.val})
