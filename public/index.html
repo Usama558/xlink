@@ -811,16 +811,6 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
           </div>
 
           <div class="set-row">
-            <span class="lbl">Number of Posts</span>
-            <div class="count-grp" id="genCount">
-              <button class="count-btn" data-val="1" type="button">1</button>
-              <button class="count-btn" data-val="2" type="button">2</button>
-              <button class="count-btn active-mono" data-val="3" type="button">3</button>
-              <button class="count-btn" data-val="5" type="button">5</button>
-            </div>
-          </div>
-
-          <div class="set-row">
             <span class="lbl">Output</span>
             <div class="tgl" id="genOutput">
               <button class="tgl-btn active" data-val="full" type="button">Full post</button>
@@ -830,7 +820,7 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
 
           <button class="btn-primary" id="genBtn" disabled>
             <div class="spinner" id="genSpin"></div>
-            <span id="genLabel">Generate Posts</span>
+            <span id="genLabel">Generate Post</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
           <div class="err" id="genErr"></div>
@@ -945,7 +935,7 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function escAttr(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 
-const gen={platform:'x-post',tone:'Contrarian',cta:'DM me',count:3,output:'full'}
+const gen={platform:'x-post',tone:'Contrarian',cta:'DM me',count:1,output:'full'}
 let activeTab='topic', prefillAngle='', lastRun=null
 
 // ── Positioning ──
@@ -1018,7 +1008,6 @@ document.getElementById('refreshTrends').addEventListener('click',()=>{selectedT
 // ── Settings ──
 document.getElementById('genPlatform').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;document.querySelectorAll('#genPlatform [data-val]').forEach(x=>x.classList.remove('active'));b.classList.add('active');gen.platform=b.dataset.val})
 document.getElementById('genOutput').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;document.querySelectorAll('#genOutput [data-val]').forEach(x=>x.classList.remove('active'));b.classList.add('active');gen.output=b.dataset.val})
-document.getElementById('genCount').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;document.querySelectorAll('#genCount [data-val]').forEach(x=>x.classList.remove('active-mono'));b.classList.add('active-mono');gen.count=Number(b.dataset.val)})
 document.getElementById('genTone').addEventListener('change',e=>{gen.tone=e.target.value})
 document.getElementById('genCta').addEventListener('change',e=>{gen.cta=e.target.value})
 
@@ -1084,7 +1073,7 @@ async function runGenerate(){
     document.getElementById('postsGrid').style.display='none'
     document.getElementById('postsResultsLabel').textContent='Error: '+e.message
   }finally{
-    btn.disabled=false;sp.style.display='none';lbl.textContent='Generate Posts';updateGenBtn()
+    btn.disabled=false;sp.style.display='none';lbl.textContent='Generate Post';updateGenBtn()
   }
 }
 function showSkel(n){const g=document.getElementById('skelGrid');g.innerHTML='';for(let i=0;i<n;i++)g.innerHTML+=`<div class="skel-card"><div class="skel-ln" style="width:30%;height:9px;margin-bottom:14px"></div><div class="skel-ln" style="width:100%"></div><div class="skel-ln" style="width:90%"></div><div class="skel-ln" style="width:95%"></div><div class="skel-ln" style="width:62%;margin-top:14px"></div></div>`}
