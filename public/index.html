@@ -810,14 +810,6 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
             </div>
           </div>
 
-          <div class="set-row">
-            <span class="lbl">Output</span>
-            <div class="tgl" id="genOutput">
-              <button class="tgl-btn active" data-val="full" type="button">Full post</button>
-              <button class="tgl-btn" data-val="hook" type="button">Hook only</button>
-            </div>
-          </div>
-
           <button class="btn-primary" id="genBtn" disabled>
             <div class="spinner" id="genSpin"></div>
             <span id="genLabel">Generate Post</span>
@@ -1007,7 +999,6 @@ document.getElementById('refreshTrends').addEventListener('click',()=>{selectedT
 
 // ── Settings ──
 document.getElementById('genPlatform').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;document.querySelectorAll('#genPlatform [data-val]').forEach(x=>x.classList.remove('active'));b.classList.add('active');gen.platform=b.dataset.val})
-document.getElementById('genOutput').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;document.querySelectorAll('#genOutput [data-val]').forEach(x=>x.classList.remove('active'));b.classList.add('active');gen.output=b.dataset.val})
 document.getElementById('genTone').addEventListener('change',e=>{gen.tone=e.target.value})
 document.getElementById('genCta').addEventListener('change',e=>{gen.cta=e.target.value})
 

@@ -637,8 +637,27 @@ function buildGenPrompt(o) {
   const platLabel = { 'x-post': 'X Post', 'x-thread': 'X Thread', 'linkedin': 'LinkedIn' }[o.platform] || 'X Post'
   const p = o.positioning || {}
   const voice = o.voiceProfile ? (typeof o.voiceProfile === 'string' ? o.voiceProfile : JSON.stringify(o.voiceProfile)) : 'direct, punchy, short sentences'
-  const outputRule = o.output === 'hook' ? 'Hook only mode: return only the first 1 to 2 lines, nothing else.' : 'Full post: complete from hook to close.'
-  const ctaRule = ctaInstruction(o.cta)
+  const isHook = o.output === 'hook'
+  const ctaRule = isHook ? '' : ctaInstruction(o.cta)
+
+  const taskBlock = isHook
+    ? `TASK: Write ${o.count} scroll-stopping HOOK(s) only — the opening 1 to 2 lines of a post and NOTHING ELSE.
+- A hook is ONLY the opening line(s). Do NOT write the body. Do NOT explain. Do NOT add a CTA. Do NOT add a closing line.
+- Maximum 2 short lines per hook. Often one line is best.
+- Each hook must take a strong, specific stance on the topic below and make the reader stop and need to read more.
+- Lead with STIMULATED (a curiosity trigger or strong reaction) and ANTICIPATION (the sense something important is coming).
+- The "text" field must contain the hook ONLY — never a full post.`
+    : `TASK: Write ${o.count} post(s) that take a strong, specific stance on the trend/topic below, from the worldview above. Each post must feel like it was written by a real person with a real opinion, not a content tool. ${ctaRule}
+
+VIRAL FRAMEWORK — weave all 6 into every post:
+- STIMULATED: first line triggers curiosity or a strong reaction
+- CAPTIVATED: middle creates tension or contrast that keeps reading
+- ANTICIPATION: reader feels something important is coming
+- VALIDATION: reader feels seen and understood
+- AFFECTION: warmth or realness toward the writer
+- REVELATION: final insight feels surprising yet obvious`
+
+  const textFieldDesc = isHook ? 'the hook ONLY, 1 to 2 lines, no body and no CTA' : 'full post text'
 
   const system = `You are a world-class ghostwriter for ${p.what || 'a creator'}.
 
@@ -650,23 +669,15 @@ VOICE PROFILE: ${voice}
 PLATFORM: ${platLabel}
 ${platformMap[o.platform] || platformMap['x-post']}
 TONE: ${o.tone || 'Contrarian'}
-FORMAT: ${o.output === 'hook' ? 'Hook only' : 'Full post'}
-CTA: ${o.cta || 'No CTA'}
+FORMAT: ${isHook ? 'HOOK ONLY — opening line(s), never a full post' : 'Full post'}
+CTA: ${isHook ? 'None — hooks never include a CTA' : (o.cta || 'No CTA')}
 
-TASK: Write ${o.count} post(s) that take a strong, specific stance on the trend/topic below, from the worldview above. Each post must feel like it was written by a real person with a real opinion, not a content tool. ${ctaRule} ${outputRule}
-
-VIRAL FRAMEWORK — weave all 6 into every post:
-- STIMULATED: first line triggers curiosity or a strong reaction
-- CAPTIVATED: middle creates tension or contrast that keeps reading
-- ANTICIPATION: reader feels something important is coming
-- VALIDATION: reader feels seen and understood
-- AFFECTION: warmth or realness toward the writer
-- REVELATION: final insight feels surprising yet obvious
+${taskBlock}
 
 ${GLOBAL_WRITING_RULES}
 
 Return ONLY valid JSON, no markdown, no backticks:
-{ "posts": [ { "id": "uuid", "text": "full post text", "platform": "${platLabel}", "tone": "${o.tone || 'Contrarian'}", "source_preview": "first 60 chars of the trend input", "hook": "first line only" } ] }`
+{ "posts": [ { "id": "uuid", "text": "${textFieldDesc}", "platform": "${platLabel}", "tone": "${o.tone || 'Contrarian'}", "source_preview": "first 60 chars of the trend input", "hook": "first line only" } ] }`
 
   const user = `THE TREND/TOPIC TO REACT TO:
 """
