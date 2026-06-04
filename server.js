@@ -1437,30 +1437,36 @@ Return ONLY valid JSON, no markdown, no backticks:
   }
 
   const prior = (existing && Array.isArray(existing.ideas)) ? existing.ideas : []
-  // Bootstrap: when the library is sparse, generate several batches now to reach hundreds.
+  // Bootstrap: when the library is sparse, generate several batches to reach hundreds.
   const batches = prior.length < 100 ? 4 : 1
   const now = new Date().toISOString()
   let fresh = []
+  let lastCache = existing
+
+  function mergeAndWrite() {
+    const merged = [...prior, ...fresh]
+    const seenH = new Set(), dedup = []
+    for (const it of merged) { const k = (it.headline || '').toLowerCase().slice(0, 40); if (!k || seenH.has(k)) continue; seenH.add(k); dedup.push(it) }
+    const cut = Date.now() - 30 * 24 * 60 * 60 * 1000
+    let kept = dedup.filter(it => !it.addedAt || Date.parse(it.addedAt) > cut)
+    if (kept.length > 400) kept = kept.slice(-400)
+    const cache = { generatedAt: now, ideas: kept }
+    try { fs.writeFileSync(DAILY_IDEAS_FILE, JSON.stringify(cache)) } catch (e) {}
+    lastCache = cache
+    return cache
+  }
+
   for (let b = 0; b < batches; b++) {
     const got = await oneBatch(prior.map(i => i.headline).concat(fresh.map(i => i.headline)))
-    fresh.push(...got)
+    fresh.push(...got.map((x, i) => Object.assign({ id: 'idea_' + Date.now() + '_' + b8(b * 50 + i) }, x, { addedAt: now })))
+    // write incrementally so the first batch shows on the page within seconds
+    if (fresh.length) mergeAndWrite()
+    console.log(`[ideas] batch ${b + 1}/${batches}: +${got.length} (library ${lastCache && lastCache.ideas ? lastCache.ideas.length : 0})`)
     if (prior.length + fresh.length >= 160) break
   }
-  fresh = fresh.map((x, i) => Object.assign({ id: 'idea_' + Date.now() + '_' + b8(i) }, x, { addedAt: now }))
-  if (!fresh.length && prior.length) { console.warn('[ideas] no new ideas, keeping archive'); return existing }
-
-  // merge archive + new, dedupe by headline, prune 30 days, cap 400
-  const merged = [...prior, ...fresh]
-  const seenH = new Set(), dedup = []
-  for (const it of merged) { const k = (it.headline || '').toLowerCase().slice(0, 40); if (!k || seenH.has(k)) continue; seenH.add(k); dedup.push(it) }
-  const cut = Date.now() - 30 * 24 * 60 * 60 * 1000
-  let kept = dedup.filter(it => !it.addedAt || Date.parse(it.addedAt) > cut)
-  if (kept.length > 400) kept = kept.slice(-400)
-
-  const cache = { generatedAt: now, ideas: kept }
-  try { fs.writeFileSync(DAILY_IDEAS_FILE, JSON.stringify(cache)) } catch (e) {}
-  console.log(`[ideas] added ${fresh.length}, library now ${kept.length}`)
-  return cache
+  if (!fresh.length) { console.warn('[ideas] no new ideas, keeping archive'); return existing }
+  console.log(`[ideas] done, library now ${lastCache.ideas.length}`)
+  return lastCache
 }
 function b8(i) { return i.toString(36) + Math.random().toString(36).slice(2, 5) }
 
@@ -1475,13 +1481,17 @@ async function ensureDailyIdeas(force) {
   return fresh || cache
 }
 
-// GET /api/ideas/daily
+// GET /api/ideas/daily — non-blocking: kicks off generation in the background and
+// returns whatever exists right now (the page polls + shows a progress bar).
 app.get('/api/ideas/daily', async (_req, res) => {
   const cache = readIdeasCache()
-  if (ideasFresh(cache)) return res.json(cache)
-  const fresh = await ensureDailyIdeas(false)
-  if (fresh) return res.json(fresh)
-  res.json({ generatedAt: cache ? cache.generatedAt : null, ideas: cache ? cache.ideas : [], preparing: true })
+  if (ideasFresh(cache) && cache.ideas && cache.ideas.length) return res.json(cache)
+  ensureDailyIdeas(false).catch(() => {})   // fire and forget; writes incrementally
+  res.json({
+    generatedAt: cache ? cache.generatedAt : null,
+    ideas: cache ? cache.ideas : [],
+    preparing: ideasGenerating || !(cache && cache.ideas && cache.ideas.length),
+  })
 })
 
 // GET /api/feed/cache — cache metadata (counts only, no article bodies)

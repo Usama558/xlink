@@ -801,12 +801,11 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
             <span class="lbl">Call to Action</span>
             <div class="sel-wrap">
               <select id="genCta">
-                <option>Follow me for more</option>
-                <option>DM me</option>
-                <option>Comment your thoughts</option>
-                <option>Save this</option>
+                <option selected>DM me</option>
+                <option>Comment Below</option>
+                <option>Save this for Later</option>
                 <option>Share this</option>
-                <option selected>No CTA</option>
+                <option>Apply Now</option>
               </select>
             </div>
           </div>
@@ -946,7 +945,7 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function escAttr(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 
-const gen={platform:'x-post',tone:'Contrarian',cta:'No CTA',count:3,output:'full'}
+const gen={platform:'x-post',tone:'Contrarian',cta:'DM me',count:3,output:'full'}
 let activeTab='topic', prefillAngle='', lastRun=null
 
 // ── Positioning ──

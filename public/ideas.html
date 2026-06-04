@@ -25,7 +25,13 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:900;letter-spacing:-1px;margin-bot
 .updated{font-size:12px;color:var(--t4)}
 .refresh{margin-left:auto;background:rgba(var(--ink-rgb),0.05);border:1px solid var(--b2);border-radius:9px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--t1);cursor:pointer;font-family:'Inter',sans-serif;position:relative}
 .refresh:hover{background:rgba(var(--ink-rgb),0.09)}
-.tip{position:absolute;top:calc(100% + 8px);right:0;background:#1c1c25;border:1px solid var(--b2);border-radius:9px;padding:8px 12px;font-size:11px;color:var(--t2);white-space:nowrap;box-shadow:0 12px 30px rgba(0,0,0,.5);display:none;z-index:5}
+.tip{position:absolute;bottom:calc(100% + 8px);right:0;background:#1c1c25;border:1px solid var(--b2);border-radius:9px;padding:8px 12px;font-size:11px;color:var(--t2);white-space:nowrap;box-shadow:0 12px 30px rgba(0,0,0,.5);display:none;z-index:50}
+/* progress bar while ideas are being prepared */
+.prep{display:none;margin:8px 0 22px}
+.prep.show{display:block}
+.prep-label{font-size:12.5px;color:var(--t3);margin-bottom:8px}
+.prep-track{height:6px;background:rgba(var(--ink-rgb),0.06);border-radius:99px;overflow:hidden}
+.prep-fill{height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);border-radius:99px;transition:width .4s ease}
 .tip.show{display:block}
 .pills{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:22px}
 .pill{flex-shrink:0;background:none;border:1px solid var(--b2);border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--t2);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
@@ -81,6 +87,11 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
   </div>
 
   <div class="pills" id="pills"></div>
+
+  <div class="prep" id="prep">
+    <div class="prep-label" id="prepLabel">Scraping the internet and writing today's ideas...</div>
+    <div class="prep-track"><div class="prep-fill" id="prepFill"></div></div>
+  </div>
 
   <div id="content"></div>
 
@@ -185,17 +196,54 @@ function showSkeletons(){
   document.getElementById('content').innerHTML='<div class="grid">'+Array(4).fill(0).map(()=>`<div class="skel"><div class="skel-ln" style="width:30%;height:9px;margin-bottom:14px"></div><div class="skel-ln" style="width:90%;height:16px"></div><div class="skel-ln" style="width:100%"></div><div class="skel-ln" style="width:80%"></div><div class="skel-ln" style="width:50%;margin-top:12px"></div></div>`).join('')+'</div>'
 }
 
+let prepTimer=null,prepPct=0,polls=0
+function showPrep(on){
+  const prep=document.getElementById('prep')
+  if(on){
+    prep.classList.add('show')
+    if(!prepTimer){
+      prepPct=8;document.getElementById('prepFill').style.width=prepPct+'%'
+      prepTimer=setInterval(()=>{prepPct=Math.min(92,prepPct+Math.random()*9+3);document.getElementById('prepFill').style.width=prepPct+'%'},1200)
+    }
+  }else{
+    if(prepTimer){clearInterval(prepTimer);prepTimer=null}
+    document.getElementById('prepFill').style.width='100%'
+    setTimeout(()=>{prep.classList.remove('show');document.getElementById('prepFill').style.width='0%'},400)
+  }
+}
+async function fetchIdeas(){
+  const r=await fetch('/api/ideas/daily');const d=await r.json()
+  ideas=d.ideas||[];generatedAt=d.generatedAt
+  return d
+}
 async function load(force){
   showSkeletons()
+  polls=0
   try{
-    const r=await fetch('/api/ideas/daily');const d=await r.json()
-    ideas=d.ideas||[];generatedAt=d.generatedAt
-    document.getElementById('updated').textContent=generatedAt?('Last updated '+ago(generatedAt)):'Preparing ideas...'
-    if(generatedAt)XL.markIdeasSeen(generatedAt)
-    renderIdeas();renderSaved()
+    const d=await fetchIdeas()
+    if(ideas.length){
+      document.getElementById('updated').textContent='Last updated '+ago(generatedAt)
+      if(generatedAt)XL.markIdeasSeen(generatedAt)
+      renderIdeas();renderSaved();return
+    }
+    // still preparing — show progress bar and poll (target < 30s for first batch)
+    document.getElementById('updated').textContent='Preparing fresh ideas...'
+    showPrep(true)
+    const poll=async()=>{
+      polls++
+      try{ await fetchIdeas() }catch(e){}
+      if(ideas.length){
+        showPrep(false)
+        document.getElementById('updated').textContent='Last updated '+ago(generatedAt)
+        if(generatedAt)XL.markIdeasSeen(generatedAt)
+        renderIdeas();renderSaved();return
+      }
+      if(polls>=24){ showPrep(false);renderIdeas();return } // ~72s safety stop
+      setTimeout(poll,3000)
+    }
+    setTimeout(poll,3000)
   }catch(e){
-    document.getElementById('updated').textContent=''
-    ideas=[];renderIdeas()
+    showPrep(false);document.getElementById('updated').textContent='';ideas=[];renderIdeas()
   }
 }
 
