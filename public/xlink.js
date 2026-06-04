@@ -305,6 +305,13 @@
     const add = (finalText + interim).replace(/\s+/g, ' ').trim()
     activeField.value = baseValue + (baseValue && add ? ' ' : '') + add
     activeField.dispatchEvent(new Event('input', { bubbles: true }))
+    // follow the latest words as they are written
+    try {
+      const end = activeField.value.length
+      activeField.selectionStart = activeField.selectionEnd = end
+      activeField.scrollTop = activeField.scrollHeight   // textarea: scroll to newest line
+      activeField.scrollLeft = activeField.scrollWidth   // input: keep caret in view
+    } catch (e) {}
   }
   function startSession() {
     if (!SR) { showTip(activeField); return }
