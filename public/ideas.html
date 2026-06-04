@@ -134,7 +134,7 @@ function ideaCard(it,saved){
     ${it.why_it_works?`<div class="why">${esc(it.why_it_works)}</div>`:''}
     <div class="src">Via ${esc(it.source_name||it.source||'the web')}</div>
     <div class="acts">
-      <button class="act primary write-btn" data-id="${esc(it.id)}">Write this post →</button>
+      <button class="act primary write-btn" data-id="${esc(it.id)}">Create post →</button>
       ${saved
         ? `<button class="act del remove-btn" data-id="${esc(it.id)}">Remove</button>`
         : `<button class="act save-btn${isSaved?' saved':''}" data-id="${esc(it.id)}">${isSaved?'Saved ✓':'Save idea'}</button>`}
@@ -145,9 +145,11 @@ function ideaCard(it,saved){
 
 function wireCards(scope){
   scope.querySelectorAll('.write-btn').forEach(b=>b.addEventListener('click',()=>{
-    const it=findIdea(b.dataset.id)
-    try{localStorage.setItem('contento_prefill',JSON.stringify({headline:it.headline,angle:it.angle,category:it.category,source:it.source_name||''}))}catch(e){}
-    window.location.href='/#app'
+    const it=findIdea(b.dataset.id);if(!it)return
+    XL.openVariants({
+      headline:it.headline,angle:it.angle,why_it_works:it.why_it_works,
+      category:it.category,source:it.source_name||it.source||'',suggested_platform:it.suggested_platform||''
+    })
   }))
   scope.querySelectorAll('.save-btn').forEach(b=>b.addEventListener('click',()=>{
     const it=findIdea(b.dataset.id);if(!it)return

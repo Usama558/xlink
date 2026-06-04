@@ -135,7 +135,6 @@ function render(){
 
   c.innerHTML='<div class="grid">'+rows.map(p=>{
     const sk=statusKey(p.status)
-    const long=(p.text||'').length>180
     return `<div class="card" data-id="${esc(p.id)}">
       <div class="badges">
         <span class="badge b-${sk}">${STATUS[sk]}</span>
@@ -143,8 +142,7 @@ function render(){
         ${p.niche?`<span class="badge b-niche">${esc(p.niche)}</span>`:''}
       </div>
       ${p.topic?`<div class="topic">Topic: ${esc(p.topic)}</div>`:''}
-      <div class="ptext${long?' clamp':''}">${esc(p.text)}</div>
-      ${long?'<button class="readmore">Read more</button>':''}
+      <div class="post-mock" style="margin:2px 0 12px">${XL.platformMock({platform:p.platform,text:p.text})}</div>
       <div class="date">${esc(fmtDate(p.timestamp))}</div>
       <div class="actions">
         <button class="act copy" data-text="${escAttr(p.text)}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
@@ -155,11 +153,6 @@ function render(){
   }).join('')+'</div>'
 
   // wire actions
-  c.querySelectorAll('.readmore').forEach(b=>b.addEventListener('click',function(){
-    const t=this.previousElementSibling
-    if(t.classList.contains('clamp')){t.classList.remove('clamp');this.textContent='Show less'}
-    else{t.classList.add('clamp');this.textContent='Read more'}
-  }))
   c.querySelectorAll('.act.copy').forEach(b=>b.addEventListener('click',function(){
     navigator.clipboard.writeText(this.dataset.text).then(()=>{
       this.classList.add('copied');const o=this.innerHTML

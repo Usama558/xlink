@@ -803,8 +803,8 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
               <select id="genCta">
                 <option selected>DM me</option>
                 <option>Comment Below</option>
+                <option>Repost</option>
                 <option>Save this for Later</option>
-                <option>Share this</option>
                 <option>Apply Now</option>
               </select>
             </div>
@@ -1116,7 +1116,7 @@ function renderPosts(posts,input){
         <span class="tone-badge">${escHtml(post.tone||gen.tone)}</span>
       </div></div>
       <div class="post-source">Based on: ${escHtml(src)}</div>
-      <div class="post-text">${escHtml(post.text)}</div>
+      <div class="post-mock" style="margin:12px 0">${XL.platformMock({platform:gen.platform,text:post.text})}</div>
       <div class="pc-badges" style="margin:12px 0;gap:4px;display:flex;flex-wrap:wrap">${fwPills}</div>
       <div class="pc-actions">
         <button class="pc-btn copy-btn" data-text="${escAttr(post.text)}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>

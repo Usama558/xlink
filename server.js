@@ -36,6 +36,28 @@ const GLOBAL_WRITING_RULES = `STRICT WRITING RULES — follow these without exce
 - Direct, punchy, operator voice.
 - No academic or corporate language.`
 
+// Rich, specific guidance per CTA so the closing line is a real ask, not a label.
+const CTA_GUIDE = {
+  'DM me': `CALL TO ACTION — DM ME:
+End with a clear, specific invitation to DM you. Name ONE short keyword and say EXACTLY what you will send back. The keyword and the offer must fit THIS post's topic. Put it on its own line(s).
+Example shape (do not copy verbatim): "Want the exact framework? DM me the word SYSTEM and I will send it over."`,
+  'Comment Below': `CALL TO ACTION — COMMENT:
+End by asking the reader to comment ONE specific keyword, and tell them exactly what you will send or share in return. The keyword and the offer must fit THIS post's topic. Put it on its own line(s).
+Example shape (do not copy verbatim): "Comment PLAYBOOK below and I will send you the full step by step."`,
+  'Repost': `CALL TO ACTION — REPOST:
+End with a short, confident closing line that explicitly asks the reader to repost this so more people see it. Tie it to who in their network needs to read it. Keep it natural, never needy. Put it on its own line.
+Example shape (do not copy verbatim): "Repost this so the next founder about to make this mistake sees it in time."`,
+  'Save this for Later': `CALL TO ACTION — SAVE:
+End by telling the reader to save this post and give them a concrete reason future-them will need it. Put it on its own line.
+Example shape (do not copy verbatim): "Save this. You will want it the next time you sit down to write."`,
+  'Apply Now': `CALL TO ACTION — APPLY:
+End with a direct, low-friction invitation to take the next step, framed around the outcome they get, not the action itself. One or two lines on their own line.`,
+}
+function ctaInstruction(cta) {
+  if (!cta || cta === 'No CTA') return 'Do not add any call to action. End on the strongest insight line of the post.'
+  return CTA_GUIDE[cta] || `End with this call to action intent: ${cta}.`
+}
+
 function voiceLine(voiceProfile) {
   if (!voiceProfile) return ''
   let json = typeof voiceProfile === 'string' ? voiceProfile : JSON.stringify(voiceProfile)
@@ -616,7 +638,7 @@ function buildGenPrompt(o) {
   const p = o.positioning || {}
   const voice = o.voiceProfile ? (typeof o.voiceProfile === 'string' ? o.voiceProfile : JSON.stringify(o.voiceProfile)) : 'direct, punchy, short sentences'
   const outputRule = o.output === 'hook' ? 'Hook only mode: return only the first 1 to 2 lines, nothing else.' : 'Full post: complete from hook to close.'
-  const ctaRule = (!o.cta || o.cta === 'No CTA') ? 'No CTA.' : `End with this call to action intent: ${o.cta}.`
+  const ctaRule = ctaInstruction(o.cta)
 
   const system = `You are a world-class ghostwriter for ${p.what || 'a creator'}.
 
@@ -707,6 +729,108 @@ app.post('/api/generate', async (req, res) => {
     console.error('[generate] API error:', err.message)
     if (err.status)  console.error('  status:', err.status)
     if (err.error)   console.error('  body:', JSON.stringify(err.error))
+    res.status(500).json({ error: 'API error: ' + (err.message || 'unknown') })
+  }
+})
+
+// ─── POST /api/ideas/variants ─────────────────────────────────────────────────
+// Turns ONE daily idea into 3 distinct, complete, ready-to-publish post variants,
+// personalized with the user's positioning + voice. Used by the Ideas page popup.
+function buildVariantsPrompt(o) {
+  const platformMap = {
+    'x-post':   'X Post — one punchy single post under 280 characters.',
+    'x-thread': 'X Thread — 5 to 8 short tweets, each under 280 characters, first tweet is the hook. Separate tweets with a blank line.',
+    'linkedin': 'LinkedIn — longer narrative allowed, punchy short paragraphs, line breaks between ideas, zero hashtags.',
+  }
+  const platLabel = { 'x-post': 'X Post', 'x-thread': 'X Thread', 'linkedin': 'LinkedIn' }[o.platform] || 'X Post'
+  const p = o.positioning || {}
+  const hasPos = !!(p.what || p.who || p.result || p.belief)
+  const voice = o.voiceProfile ? (typeof o.voiceProfile === 'string' ? o.voiceProfile : JSON.stringify(o.voiceProfile)) : 'direct, punchy, short sentences'
+  const idea = o.idea || {}
+  const ctaRule = ctaInstruction(o.cta)
+
+  const positioningBlock = hasPos
+    ? `WHO THIS IS FOR: ${p.who || 'their audience'}
+THEIR AUTHORITY: ${p.result || 'the real results they deliver'}
+THEIR WORLDVIEW: ${p.belief || 'a strong, specific point of view'}
+THEY HELP WITH: ${p.what || 'their craft'}`
+    : `No positioning was provided. Write in a credible, specific operator voice for the audience this idea naturally speaks to. Take real, opinionated stances — never generic.`
+
+  const system = `You are a world-class ghostwriter${hasPos && p.what ? ' for ' + p.what : ''}.
+
+${positioningBlock}
+VOICE PROFILE: ${voice}
+
+PLATFORM: ${platLabel}
+${platformMap[o.platform] || platformMap['x-post']}
+
+TASK: Write EXACTLY 3 DISTINCT variants of a post for the SAME idea below. Each variant must be a COMPLETE, ready-to-publish ${platLabel} post — full text from hook to close, NOT an outline or summary. The reader will pick their favorite, so the three must take genuinely different angles:
+- Variant 1 — "Contrarian": a bold, myth-busting take that challenges what most people believe about this.
+- Variant 2 — "Story": a personal, lesson-learned narrative that earns the same point through experience.
+- Variant 3 — "Tactical": a concrete, educational "here is exactly how" breakdown.
+
+Every variant must honor the FULL intent of the idea below — its angle and why it works — not just rephrase the headline. ${ctaRule}
+
+VIRAL FRAMEWORK — weave all 6 into every variant:
+- STIMULATED: first line triggers curiosity or a strong reaction
+- CAPTIVATED: middle creates tension or contrast that keeps reading
+- ANTICIPATION: reader feels something important is coming
+- VALIDATION: reader feels seen and understood
+- AFFECTION: warmth or realness toward the writer
+- REVELATION: final insight feels surprising yet obvious
+
+${GLOBAL_WRITING_RULES}
+
+Return ONLY valid JSON, no markdown, no backticks:
+{ "variants": [ { "label": "Contrarian", "text": "full post text", "platform": "${platLabel}" }, { "label": "Story", "text": "...", "platform": "${platLabel}" }, { "label": "Tactical", "text": "...", "platform": "${platLabel}" } ] }`
+
+  const user = `THE IDEA TO WRITE ABOUT:
+Headline: ${idea.headline || ''}
+Angle to take: ${idea.angle || ''}
+Why this resonates: ${idea.why_it_works || ''}
+Category: ${idea.category || ''}
+Source/context: ${idea.source || ''}
+
+Write the 3 complete, distinct post variants now.`
+  return { system, user }
+}
+
+app.post('/api/ideas/variants', async (req, res) => {
+  const b = req.body || {}
+  const idea = b.idea || {}
+  if (!idea.headline && !idea.angle) return res.status(400).json({ error: 'Missing idea' })
+
+  let client
+  try { client = getClient() }
+  catch (e) { return res.status(500).json({ error: e.message }) }
+
+  const { system, user } = buildVariantsPrompt({
+    idea, platform: b.platform || 'linkedin', cta: b.cta || 'No CTA',
+    positioning: b.positioning || null, voiceProfile: b.voiceProfile || null,
+  })
+  console.log(`[variants] platform=${b.platform} cta=${b.cta} idea="${String(idea.headline || '').slice(0, 50)}"`)
+
+  try {
+    const message = await client.messages.create({
+      model:      'claude-sonnet-4-5',
+      max_tokens: 4096,
+      system,
+      messages:   [{ role: 'user', content: user }],
+    })
+    const cleaned = stripFences(message.content[0].text.trim())
+    let parsed, variants
+    try {
+      parsed = JSON.parse(cleaned)
+      variants = Array.isArray(parsed) ? parsed : parsed.variants || parsed.posts || Object.values(parsed)[0]
+      if (!Array.isArray(variants)) throw new Error('not an array')
+    } catch (e) {
+      console.error('[variants] parse error:', e.message, '\n', cleaned.slice(0, 500))
+      return res.status(500).json({ error: 'Model returned invalid JSON: ' + e.message })
+    }
+    console.log('[variants] success, variants:', variants.length)
+    res.json({ variants })
+  } catch (err) {
+    console.error('[variants] API error:', err.message)
     res.status(500).json({ error: 'API error: ' + (err.message || 'unknown') })
   }
 })

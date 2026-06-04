@@ -90,6 +90,56 @@
   @media(max-width:420px){
     .nav-wordmark{display:none}
   }
+
+  /* ── Platform post mockups (LinkedIn / X) — reused on ideas, generator, posts ── */
+  .xl-mock{border-radius:14px;overflow:hidden;text-align:left;max-width:100%;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .xl-mock *{box-sizing:border-box}
+  .xl-mock-head{display:flex;align-items:flex-start;gap:10px;padding:14px 16px 6px}
+  .xl-mock-av{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;letter-spacing:.3px}
+  .xl-mock-meta{flex:1;min-width:0;padding-top:1px}
+  .xl-mock-name{display:flex;align-items:center;gap:4px;font-weight:700;font-size:14.5px;flex-wrap:wrap}
+  .xl-mock-sub{font-size:12px;opacity:.6;margin-top:1px;display:flex;align-items:center;gap:5px}
+  .xl-mock-more{font-weight:800;opacity:.45;font-size:18px;line-height:1;padding:2px 4px}
+  .xl-mock-body{padding:4px 16px 12px;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere}
+  .xl-mock-foot{padding:9px 16px;font-size:12.5px;opacity:.6;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .xl-mock-bar{display:flex;border-top:1px solid}
+  .xl-mock-act{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 4px;font-size:12.5px;font-weight:600;opacity:.65}
+  .xl-mock-act svg{width:17px;height:17px}
+  .xl-mock-li{background:#fff;color:#1d2226;border:1px solid #dcdcdc}
+  .xl-mock-li .xl-mock-name,.xl-mock-li .xl-mock-act{color:#1d2226}
+  .xl-mock-li .xl-mock-bar{border-color:#ececec}
+  .xl-mock-li .xl-mock-foot{border-bottom:1px solid #ececec}
+  .xl-mock-x{background:#000;color:#e7e9ea;border:1px solid #2f3336}
+  .xl-mock-x .xl-mock-name{color:#e7e9ea}
+  .xl-mock-x .xl-mock-handle{color:#71767b;font-weight:400}
+  .xl-mock-x .xl-mock-bar{border-color:#2f3336}
+  .xl-mock-x .xl-mock-act{opacity:1;color:#71767b}
+
+  /* ── Variants popup (Ideas page "Create post") ── */
+  .xl-modal.xl-var{max-width:640px}
+  .xl-var-sub{font-size:13px;color:rgba(255,255,255,.55);margin:-10px 0 16px;line-height:1.5}
+  .xl-var-nudge{font-size:12px;color:#fcd34d;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:9px 12px;margin-bottom:14px;line-height:1.5}
+  .xl-var-nudge a{color:#fcd34d;font-weight:700}
+  .xl-var-ctrls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:15px}
+  .xl-seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:3px}
+  .xl-seg button{background:none;border:none;color:rgba(255,255,255,.55);font-family:inherit;font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all .15s}
+  .xl-seg button.active{background:#2563eb;color:#fff}
+  .xl-var-sel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;padding:8px 11px;cursor:pointer;outline:none}
+  .xl-var-sel option{background:#16161d;color:#fff}
+  .xl-var-tabs{display:flex;gap:8px;margin-bottom:14px}
+  .xl-var-tab{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 6px;cursor:pointer;text-align:center;transition:all .15s}
+  .xl-var-tab:hover{border-color:rgba(37,99,235,.5)}
+  .xl-var-tab.active{border-color:#2563eb;background:rgba(37,99,235,.12)}
+  .xl-var-tab-n{font-size:11px;font-weight:800;color:#60a5fa;display:block}
+  .xl-var-tab-l{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.72);margin-top:2px;display:block}
+  .xl-var-stage{margin-bottom:16px;min-height:120px}
+  .xl-var-foot{display:flex;gap:9px;flex-wrap:wrap}
+  .xl-var-btn{flex:1;min-width:130px;border:none;border-radius:10px;padding:11px 14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .15s}
+  .xl-var-btn.primary{background:#2563eb;color:#fff}
+  .xl-var-btn.primary:hover{background:#1d4ed8}
+  .xl-var-btn.ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.8)}
+  .xl-var-btn.ghost:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+  .xl-var-btn.ok{background:rgba(34,197,94,.15);color:#86efac}
   `
   const style = document.createElement('style')
   style.textContent = css
@@ -481,6 +531,203 @@
 
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
 
+  // ─── Platform mockups (LinkedIn / X preview cards) ────────────────────────
+  const LEAD_KEY = 'contento_lead_v1'
+  const AV_COLORS = ['#2563eb', '#7c3aed', '#db2777', '#0891b2', '#ea580c', '#16a34a', '#d97706', '#dc2626', '#0d9488', '#4f46e5']
+  function getLead() { try { return JSON.parse(localStorage.getItem(LEAD_KEY) || 'null') } catch (e) { return null } }
+  function getIdentity() {
+    const lead = getLead() || {}
+    let name = (lead.name || '').trim()
+    let handle = (lead.twitter || '').trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?(x|twitter)\.com\//i, '').replace(/[/?].*$/, '')
+    if (!name && lead.linkedin) {
+      const m = String(lead.linkedin).match(/\/in\/([^/?]+)/i)
+      if (m) name = decodeURIComponent(m[1]).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    }
+    if (!name && handle) name = handle
+    if (!name) { const e = getEmail(); if (e) name = e.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }
+    if (!name) name = 'Your Name'
+    if (!handle) handle = (name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'you').slice(0, 15)
+    const parts = name.trim().split(/\s+/)
+    const initials = ((parts[0] || '')[0] || '') + (parts.length > 1 ? (parts[parts.length - 1][0] || '') : '')
+    let hash = 0; for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0
+    const color = AV_COLORS[hash % AV_COLORS.length]
+    const pos = getPositioning() || {}
+    let tagline = (pos.what || '').trim()
+    tagline = tagline ? tagline.charAt(0).toUpperCase() + tagline.slice(1) : 'Founder & Creator'
+    if (tagline.length > 56) tagline = tagline.slice(0, 53) + '...'
+    return { name, handle, initials: (initials || 'Y').toUpperCase(), color, tagline }
+  }
+  function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+  function fmtNum(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n) }
+  function liIcon(label, path) {
+    return `<div class="xl-mock-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>${label}</div>`
+  }
+  function xIcon(path, num) {
+    return `<div class="xl-mock-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${path}"/></svg>${fmtNum(num)}</div>`
+  }
+  // platform: 'linkedin' | 'x'
+  function platformMock(opts) {
+    opts = opts || {}
+    const id = getIdentity()
+    const text = esc(opts.text || '')
+    const plat = (opts.platform === 'x' || opts.platform === 'x-post' || opts.platform === 'x-thread') ? 'x' : 'linkedin'
+    const av = `<div class="xl-mock-av" style="background:${id.color}">${esc(id.initials)}</div>`
+    if (plat === 'linkedin') {
+      const reactions = rnd(80, 540), comments = rnd(8, 90), reposts = rnd(3, 40)
+      const globe = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="opacity:.55"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 6H16a15 15 0 0 0-1.3-3.6A8 8 0 0 1 18.9 8zM12 4c.8 1.2 1.4 2.5 1.8 4h-3.6c.4-1.5 1-2.8 1.8-4zM4.3 14a8 8 0 0 1 0-4h3.3a16 16 0 0 0 0 4zm.8 2H8c.3 1.3.8 2.5 1.3 3.6A8 8 0 0 1 5.1 16zm2.9-8H5.1a8 8 0 0 1 4.2-3.6A15 15 0 0 0 8 8zm4 12c-.8-1.2-1.4-2.5-1.8-4h3.6c-.4 1.5-1 2.8-1.8 4zm2.2-6H9.8a14 14 0 0 1 0-4h4.4a14 14 0 0 1 0 4zm.7 5.6c.5-1.1 1-2.3 1.3-3.6h2.9a8 8 0 0 1-4.2 3.6zm1.7-5.6a16 16 0 0 0 0-4h3.3a8 8 0 0 1 0 4z"/></svg>`
+      return `<div class="xl-mock xl-mock-li">
+        <div class="xl-mock-head">${av}
+          <div class="xl-mock-meta">
+            <div class="xl-mock-name">${esc(id.name)}</div>
+            <div class="xl-mock-sub">${esc(id.tagline)}</div>
+            <div class="xl-mock-sub">${rnd(1, 9)}h · ${globe}</div>
+          </div>
+          <div class="xl-mock-more">···</div>
+        </div>
+        <div class="xl-mock-body">${text}</div>
+        <div class="xl-mock-foot"><span>👍 ❤️ 💡 ${fmtNum(reactions)}</span><span>${comments} comments · ${reposts} reposts</span></div>
+        <div class="xl-mock-bar">
+          ${liIcon('Like', 'M7 10v12M2 12h5v10H4a2 2 0 0 1-2-2zM7 10l4.5-7.5a2.5 2.5 0 0 1 4.5 2L15 8h4.5a2 2 0 0 1 2 2.4l-1.8 9A2 2 0 0 1 17.7 21H7')}
+          ${liIcon('Comment', 'M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z')}
+          ${liIcon('Repost', 'M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3')}
+          ${liIcon('Send', 'M22 2 11 13M22 2l-7 20-4-9-9-4z')}
+        </div>
+      </div>`
+    }
+    const replies = rnd(5, 120), rts = rnd(10, 320), likes = rnd(60, 2400), views = rnd(4000, 95000)
+    const verified = `<svg width="17" height="17" viewBox="0 0 24 24" fill="#1d9bf0" style="flex-shrink:0"><path d="M22.5 12.5c0-1.6-.9-3-2.1-3.6.1-.4.2-.9.2-1.4 0-2.2-1.7-4-3.8-4-.5 0-.9.1-1.3.2C14.8 2.4 13.5 1.5 12 1.5s-2.8.9-3.4 2.2c-.4-.1-.9-.2-1.3-.2-2.1 0-3.8 1.8-3.8 4 0 .5.1 1 .2 1.4-1.2.6-2.1 2-2.1 3.6 0 1.5.8 2.8 1.9 3.5 0 .2 0 .3-.0.5 0 2.2 1.7 4 3.8 4 .5 0 .9-.1 1.3-.2.6 1.3 1.9 2.2 3.4 2.2s2.8-.9 3.4-2.2c.4.1.9.2 1.3.2 2.1 0 3.8-1.8 3.8-4 0-.2 0-.3-.0-.5 1.2-.7 2-2 2-3.5zm-6.6-3.3-4.3 6.5c-.1.2-.4.3-.6.3-.2 0-.3 0-.4-.1l-.1-.1-2.4-2.4c-.3-.3-.3-.8 0-1.1s.8-.3 1.1 0l1.8 1.8 3.8-5.7c.2-.3.7-.4 1-.2.3.2.4.7.2 1z"/></svg>`
+    return `<div class="xl-mock xl-mock-x">
+      <div class="xl-mock-head">${av}
+        <div class="xl-mock-meta">
+          <div class="xl-mock-name">${esc(id.name)} ${verified}<span class="xl-mock-handle">@${esc(id.handle)} · ${rnd(1, 9)}h</span></div>
+        </div>
+        <div class="xl-mock-more">···</div>
+      </div>
+      <div class="xl-mock-body">${text}</div>
+      <div class="xl-mock-bar">
+        ${xIcon('M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.4 8.4 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z', replies)}
+        ${xIcon('M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3', rts)}
+        ${xIcon('M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z', likes)}
+        ${xIcon('M3 3v18h18M7 14l4-4 4 4 5-6', views)}
+      </div>
+    </div>`
+  }
+
+  // ─── Variants popup — turns one Idea into 3 complete post variants ─────────
+  let vIdea = null, vPlatform = 'linkedin', vCta = 'Comment Below', vVariants = [], vActive = 0, vBusy = false
+  function platLabelForMock() { return vPlatform.indexOf('x') === 0 ? 'x' : 'linkedin' }
+  function buildVariantsModal() {
+    if (document.getElementById('xlVarOverlay')) return
+    const ov = document.createElement('div')
+    ov.className = 'xl-modal-overlay'
+    ov.id = 'xlVarOverlay'
+    ov.innerHTML = `
+      <div class="xl-modal xl-var">
+        <button class="xl-modal-close" id="xlVarClose" aria-label="Close">&times;</button>
+        <div class="xl-modal-title">Create post</div>
+        <div class="xl-var-sub" id="xlVarSub"></div>
+        <div id="xlVarNudge"></div>
+        <div class="xl-var-ctrls">
+          <div class="xl-seg" id="xlVarPlat">
+            <button data-p="linkedin">LinkedIn</button>
+            <button data-p="x-post">X</button>
+          </div>
+          <select class="xl-var-sel" id="xlVarCta">
+            <option>Comment Below</option>
+            <option>DM me</option>
+            <option>Repost</option>
+            <option>Save this for Later</option>
+            <option>Apply Now</option>
+            <option value="No CTA">No CTA</option>
+          </select>
+        </div>
+        <div class="xl-var-tabs" id="xlVarTabs"></div>
+        <div class="xl-var-stage" id="xlVarStage"></div>
+        <div class="xl-var-foot" id="xlVarFoot"></div>
+      </div>`
+    document.body.appendChild(ov)
+    ov.addEventListener('click', e => { if (e.target === ov) closeVariants() })
+    document.getElementById('xlVarClose').addEventListener('click', closeVariants)
+    ov.querySelectorAll('#xlVarPlat button').forEach(b => b.addEventListener('click', () => {
+      if (vBusy || b.dataset.p === vPlatform) return
+      vPlatform = b.dataset.p; syncVarControls(); generateVariants()
+    }))
+    document.getElementById('xlVarCta').addEventListener('change', e => { vCta = e.target.value; generateVariants() })
+  }
+  function syncVarControls() {
+    document.querySelectorAll('#xlVarPlat button').forEach(b => b.classList.toggle('active', b.dataset.p === vPlatform))
+    const sel = document.getElementById('xlVarCta'); if (sel) sel.value = vCta
+  }
+  function openVariants(idea) {
+    buildVariantsModal()
+    vIdea = idea || {}
+    vVariants = []; vActive = 0
+    const sp = String(vIdea.suggested_platform || '')
+    vPlatform = /x|twitter/i.test(sp) && !/linkedin/i.test(sp) ? 'x-post' : 'linkedin'
+    document.getElementById('xlVarSub').textContent = vIdea.headline || ''
+    const nudge = document.getElementById('xlVarNudge')
+    nudge.innerHTML = getPositioning()
+      ? ''
+      : `<div class="xl-var-nudge">These are written from a generic voice. <a href="/#app">Set up your positioning</a> so every post sounds like you.</div>`
+    syncVarControls()
+    document.getElementById('xlVarTabs').innerHTML = ''
+    document.getElementById('xlVarFoot').innerHTML = ''
+    document.getElementById('xlVarOverlay').classList.add('open')
+    generateVariants()
+  }
+  function closeVariants() { const ov = document.getElementById('xlVarOverlay'); if (ov) ov.classList.remove('open') }
+  async function generateVariants() {
+    const stage = document.getElementById('xlVarStage')
+    const tabs = document.getElementById('xlVarTabs')
+    const foot = document.getElementById('xlVarFoot')
+    tabs.innerHTML = ''; foot.innerHTML = ''
+    vBusy = true; vActive = 0
+    stage.innerHTML = '<div class="xl-rp-loading"><div class="xl-rp-ring"></div>Writing 3 post variants in your voice...</div>'
+    try {
+      const r = await fetch('/api/ideas/variants', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idea: { headline: vIdea.headline, angle: vIdea.angle, why_it_works: vIdea.why_it_works, category: vIdea.category, source: vIdea.source || vIdea.source_name },
+          platform: vPlatform, cta: vCta,
+          positioning: getPositioning(), voiceProfile: getVoiceProfileRaw(),
+        }),
+      })
+      const d = await r.json()
+      if (!r.ok || d.error) throw new Error(d.error || 'Failed')
+      vVariants = (d.variants || []).filter(v => v && v.text)
+      if (!vVariants.length) throw new Error('No variants returned')
+      renderVariants()
+    } catch (e) {
+      stage.innerHTML = `<div class="xl-rp-err">${esc(e.message)}</div>`
+    } finally { vBusy = false }
+  }
+  function renderVariants() {
+    const tabs = document.getElementById('xlVarTabs')
+    tabs.innerHTML = vVariants.map((v, i) =>
+      `<div class="xl-var-tab${i === vActive ? ' active' : ''}" data-i="${i}"><span class="xl-var-tab-n">Variant ${i + 1}</span><span class="xl-var-tab-l">${esc(v.label || '')}</span></div>`
+    ).join('')
+    tabs.querySelectorAll('.xl-var-tab').forEach(t => t.addEventListener('click', () => { vActive = Number(t.dataset.i); renderVariants() }))
+    document.getElementById('xlVarStage').innerHTML = platformMock({ platform: platLabelForMock(), text: vVariants[vActive].text })
+    const foot = document.getElementById('xlVarFoot')
+    foot.innerHTML = `
+      <button class="xl-var-btn primary" id="xlVarCopy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy this post</button>
+      <button class="xl-var-btn ghost" id="xlVarSave">Save to my posts</button>
+      <button class="xl-var-btn ghost" id="xlVarRegen">Rewrite</button>`
+    document.getElementById('xlVarCopy').addEventListener('click', function () {
+      navigator.clipboard.writeText(vVariants[vActive].text).then(() => {
+        this.classList.add('ok'); this.classList.remove('primary')
+        this.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied'
+      })
+    })
+    document.getElementById('xlVarSave').addEventListener('click', function () {
+      const v = vVariants[vActive]
+      const rec = { id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), text: v.text, platform: vPlatform, tone: v.label || '', topic: String(vIdea.headline || '').slice(0, 80), niche: vIdea.category || '', timestamp: Date.now(), status: 'unsaved' }
+      upsertPost(rec); syncPost(rec)
+      this.classList.add('ok'); this.textContent = 'Saved ✓'
+    })
+    document.getElementById('xlVarRegen').addEventListener('click', generateVariants)
+  }
+
   // ─── "New" ideas badge on the nav link ────────────────────────────────────
   function markIdeasSeen(genAt) { try { localStorage.setItem(IDEAS_SEEN_KEY, genAt || new Date().toISOString()) } catch (e) {} }
   async function checkIdeasBadge() {
@@ -507,6 +754,7 @@
     getVoiceProfile, getVoiceProfileRaw, setVoiceProfile, clearVoiceProfile, renderVoiceBadge,
     getPosts, savePosts, upsertPost, clearPosts,
     addHints, openRepurpose, esc,
+    platformMock, getIdentity, openVariants,
     setTheme, toggleTheme, currentTheme,
     getEmail, setEmail, fetchProfile, fetchProfilePosts, saveProfile, saveVoiceToAccount, syncPost, deletePost,
     getPositioning, setPositioning, clearPositioning, markIdeasSeen,
