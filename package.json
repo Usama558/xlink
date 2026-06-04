@@ -1,7 +1,7 @@
 {
-  "name": "xlink",
+  "name": "contento",
   "version": "1.0.0",
-  "description": "XLink — X and LinkedIn viral post generator",
+  "description": "Contento — X and LinkedIn viral post generator",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

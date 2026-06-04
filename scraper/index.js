@@ -58,7 +58,7 @@ function pickLink(entry) {
 async function fetchRSSFeed(feed) {
   try {
     const res = await fetch(feed.url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; XLinkBot/1.0; +https://xlink.app)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ContentoBot/1.0; +https://contento.app)' },
       signal: AbortSignal.timeout(8000),
     })
     if (!res.ok) return []
@@ -99,7 +99,7 @@ async function fetchNewsAPI(query, category) {
   if (!key) return []
   try {
     const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=en&sortBy=publishedAt&pageSize=100&apiKey=${key}`
-    const res = await fetch(url, { headers: { 'User-Agent': 'XLinkBot/1.0' }, signal: AbortSignal.timeout(9000) })
+    const res = await fetch(url, { headers: { 'User-Agent': 'ContentoBot/1.0' }, signal: AbortSignal.timeout(9000) })
     if (!res.ok) return []
     const data = await res.json()
     const now = Date.now()

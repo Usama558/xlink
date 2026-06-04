@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(function(){try{if(localStorage.getItem("xlink_theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}})();</script>
+<script>(function(){try{if(localStorage.getItem("contento_theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}})();</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>XLink — Lead Magnet Builder</title>
+<title>Contento — Lead Magnet Builder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700;800&family=Lora:wght@400;500;600&family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Sora:wght@400;600;700;800&family=Archivo:wght@500;700;900&display=swap" rel="stylesheet"/>
@@ -116,7 +116,7 @@ select.fld option{background:var(--s1);color:var(--t1)}
 .stage{background:#0a0a0e;border:1px solid var(--b1);border-radius:16px;padding:24px;overflow-x:auto;display:flex;justify-content:center}
 .stage-inner{transform-origin:top center}
 
-/* ═══════ LEAD MAGNET DOCUMENT (no XLink branding) ═══════ */
+/* ═══════ LEAD MAGNET DOCUMENT (no Contento branding) ═══════ */
 .lm-doc{width:794px;background:var(--lm-bg);color:var(--lm-fg);box-shadow:0 10px 40px rgba(0,0,0,.4)}
 .lm-cover{min-height:1123px;padding:96px 76px;display:flex;flex-direction:column;background:var(--lm-cover-bg);color:var(--lm-cover-fg);page-break-after:always}
 .lm-kicker{font-size:14px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--lm-cover-kicker);margin-bottom:auto}
@@ -163,12 +163,12 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
     <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="34" height="34" rx="9" fill="url(#lg)"/>
       <defs><linearGradient id="lg" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient></defs>
-      <line x1="10" y1="10" x2="24" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
-      <line x1="24" y1="10" x2="10" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="10" cy="10" r="2.5" fill="white"/><circle cx="24" cy="24" r="2.5" fill="white"/><circle cx="24" cy="10" r="2.5" fill="white"/><circle cx="10" cy="24" r="2.5" fill="white"/>
-      <circle cx="17" cy="17" r="3.5" fill="none" stroke="rgba(var(--ink-rgb),0.5)" stroke-width="1.5"/>
+      <path d="M23 11.5a7 7 0 1 0 0 11" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+      
+      
+      
     </svg>
-    <span class="nav-wordmark">XLink</span>
+    <span class="nav-wordmark">Contento</span>
   </a>
   <div style="display:flex;align-items:center;gap:16px">
     <span id="voiceBadgeSlot"></span>
@@ -293,19 +293,19 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
 
 </div>
 
-<div class="foot">Your lead magnet. Your name. No watermarks. — built with XLink</div>
+<div class="foot">Your lead magnet. Your name. No watermarks. — built with Contento</div>
 
 <script>
 // ─── User id (drives the weekly limit) ───────────────────────────────────────
 function getUid(){
-  let id=localStorage.getItem('xlink_uid')
-  if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'u-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('xlink_uid',id) }
+  let id=localStorage.getItem('contento_uid')
+  if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'u-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('contento_uid',id) }
   return id
 }
 const UID=getUid()
 
 // Prefill byline from a captured lead if present
-try{const l=JSON.parse(localStorage.getItem('xlink_lead_v1')||'null'); if(l&&l.name)document.getElementById('mByline').value=l.name; if(l&&l.email)document.getElementById('mEmail').value=l.email}catch(e){}
+try{const l=JSON.parse(localStorage.getItem('contento_lead_v1')||'null'); if(l&&l.name)document.getElementById('mByline').value=l.name; if(l&&l.email)document.getElementById('mEmail').value=l.email}catch(e){}
 
 // ─── 10 design templates ─────────────────────────────────────────────────────
 const TEMPLATES=[
@@ -525,6 +525,6 @@ document.getElementById('dlPrint').addEventListener('click',()=>{
   setTimeout(()=>{inner.style.transform=prev;fitStage()},300)
 })
 </script>
-<script src="/xlink.js"></script>
+<script src="/contento.js"></script>
 </body>
 </html>

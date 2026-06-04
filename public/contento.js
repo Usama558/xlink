@@ -1,13 +1,13 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   XLink shared module — voice profile, voice input, speak hints,
+   Contento shared module — voice profile, voice input, speak hints,
    post tracking storage, and the repurpose modal. Used on every page.
    Exposes window.XL
 ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
-  const VOICE_KEY = 'xlink_voice_profile'
-  const POSTS_KEY = 'xlink_posts'
-  const POS_KEY = 'xlink_positioning'
-  const IDEAS_SEEN_KEY = 'xlink_ideas_seen'
+  const VOICE_KEY = 'contento_voice_profile'
+  const POSTS_KEY = 'contento_posts'
+  const POS_KEY = 'contento_positioning'
+  const IDEAS_SEEN_KEY = 'contento_ideas_seen'
 
   // ─── Injected CSS (keeps page files clean, consistent black/white design) ──
   const css = `
@@ -96,7 +96,7 @@
   document.head.appendChild(style)
 
   // ─── Theme (dark default / light) ─────────────────────────────────────────
-  const THEME_KEY = 'xlink_theme'
+  const THEME_KEY = 'contento_theme'
   function applyTheme(t) {
     if (t === 'light') document.documentElement.setAttribute('data-theme', 'light')
     else document.documentElement.removeAttribute('data-theme')
@@ -197,7 +197,7 @@
   function clearPosts() { localStorage.removeItem(POSTS_KEY) }
 
   // ─── Email-based profile sync (silent, never blocks the user) ─────────────
-  const EMAIL_KEY = 'xlink_current_email'
+  const EMAIL_KEY = 'contento_current_email'
   function getEmail() { try { return localStorage.getItem(EMAIL_KEY) || '' } catch (e) { return '' } }
   function setEmail(e) { try { if (e) localStorage.setItem(EMAIL_KEY, e) } catch (err) {} }
 

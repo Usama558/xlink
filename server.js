@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.get('/lead-magnet', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'lead-magnet.html')))
 
 // ─── Startup diagnostics ──────────────────────────────────────────────────────
-console.log('--- XLink startup ---')
+console.log('--- Contento startup ---')
 console.log('Node version :', process.version)
 console.log('PORT         :', PORT)
 console.log('API key set  :', !!process.env.ANTHROPIC_API_KEY)
@@ -261,7 +261,7 @@ async function fetchReddit(subreddits, timeWindow) {
     try {
       const url = `https://www.reddit.com/r/${sub}/top.json?t=${t}&limit=8`
       const res = await fetch(url, {
-        headers: { 'User-Agent': 'XLink/2.0 (content research tool)' },
+        headers: { 'User-Agent': 'Contento/2.0 (content research tool)' },
         signal: AbortSignal.timeout(8000),
       })
       if (!res.ok) continue
@@ -349,7 +349,7 @@ const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000
 async function redditSearchRecent(query) {
   try {
     const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&sort=top&t=month&limit=25`
-    const res = await fetch(url, { headers: { 'User-Agent': 'XLink/3.0 research' }, signal: AbortSignal.timeout(9000) })
+    const res = await fetch(url, { headers: { 'User-Agent': 'Contento/3.0 research' }, signal: AbortSignal.timeout(9000) })
     if (!res.ok) return []
     const data = await res.json()
     return (data?.data?.children || []).filter(c => c.data && c.data.title && !c.data.stickied).map(c => ({
@@ -1136,7 +1136,7 @@ function newAdminSession() {
   return t
 }
 function validAdminSession(req) {
-  const t = getCookie(req, 'xlink_admin_session')
+  const t = getCookie(req, 'contento_admin_session')
   if (!t) return false
   const exp = adminSessions.get(t)
   if (!exp) return false
@@ -1149,7 +1149,7 @@ function requireAdmin(req, res, next) {
 }
 function setSessionCookie(req, res, token, maxAge) {
   const secure = req.secure ? '; Secure' : ''
-  res.setHeader('Set-Cookie', `xlink_admin_session=${token}; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}`)
+  res.setHeader('Set-Cookie', `contento_admin_session=${token}; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}`)
 }
 
 // profile aggregation helpers
@@ -1215,7 +1215,7 @@ app.post('/api/admin/login', (req, res) => {
 
 // POST /api/admin/logout
 app.post('/api/admin/logout', (req, res) => {
-  const t = getCookie(req, 'xlink_admin_session')
+  const t = getCookie(req, 'contento_admin_session')
   if (t) adminSessions.delete(t)
   setSessionCookie(req, res, '', 0)
   res.json({ ok: true })
@@ -1305,7 +1305,7 @@ app.get('/api/admin/export', requireAdmin, (_req, res) => {
   const lines = [header.join(',')]
   rows.forEach(r => lines.push([r.userId, r.joined, r.lastActive, r.niche, r.postsGenerated, r.published, r.skipped, r.voiceProfile ? 'Yes' : 'No', r.topPlatform].map(esc).join(',')))
   res.setHeader('Content-Type', 'text/csv')
-  res.setHeader('Content-Disposition', 'attachment; filename="xlink-users.csv"')
+  res.setHeader('Content-Disposition', 'attachment; filename="contento-users.csv"')
   res.send(lines.join('\n'))
 })
 
@@ -1338,7 +1338,7 @@ function ideasFresh(cache) {
 // Generic RSS fetch → [{title, source, ts, link}]
 async function rssItems(url, source, limit) {
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'XLink/3.0' }, signal: AbortSignal.timeout(9000) })
+    const res = await fetch(url, { headers: { 'User-Agent': 'Contento/3.0' }, signal: AbortSignal.timeout(9000) })
     if (!res.ok) return []
     const xml = await res.text()
     const out = []
@@ -1358,7 +1358,7 @@ async function rssItems(url, source, limit) {
 }
 async function redditHot(sub, limit) {
   try {
-    const res = await fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=${limit}`, { headers: { 'User-Agent': 'XLink/3.0' }, signal: AbortSignal.timeout(9000) })
+    const res = await fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=${limit}`, { headers: { 'User-Agent': 'Contento/3.0' }, signal: AbortSignal.timeout(9000) })
     if (!res.ok) return []
     const data = await res.json()
     return (data?.data?.children || []).filter(c => c.data && c.data.title && !c.data.stickied)
@@ -1562,7 +1562,7 @@ setInterval(() => { ensureDailyIdeas(false).catch(() => {}) }, 60 * 60 * 1000)
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ ok: true, keySet: !!process.env.ANTHROPIC_API_KEY, sheetHook: !!process.env.GOOGLE_SHEET_WEBHOOK_URL, node: process.version }))
 
-app.listen(PORT, () => console.log(`XLink running on port ${PORT}`))
+app.listen(PORT, () => console.log(`Contento running on port ${PORT}`))
 
 // ─── Background feed refresher (every 6 hours) ────────────────────────────────
 async function startFeedRefresher() {
