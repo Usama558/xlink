@@ -259,7 +259,8 @@
 
   // ─── Speak hints under text fields ────────────────────────────────────────
   function addHints() {
-    document.querySelectorAll('textarea, input[type=text]').forEach(el => {
+    document.querySelectorAll('textarea, input').forEach(el => {
+      if (!isTextField(el)) return
       if (el.hasAttribute('data-no-hint') || el.dataset.xlHinted) return
       el.dataset.xlHinted = '1'
       const hint = document.createElement('div')
@@ -279,7 +280,7 @@
     recognition.lang = 'en-US'
     recognition.maxAlternatives = 1
   }
-  const HOLD_MS = 450                    // short hold so it feels instant
+  const HOLD_MS = 350                    // short, deliberate hold so it feels instant
   let holdTimer = null
   let isRecording = false               // a session is active (key held)
   let activeField = null
@@ -287,7 +288,17 @@
   let baseValue = ''                    // field text when the session started
   let finalText = ''                    // committed transcript this session
 
-  function isTextField(el) { return el && el.matches && el.matches('input[type=text], textarea') }
+  function isTextField(el) {
+    if (!el || !el.tagName) return false
+    if (el.tagName === 'TEXTAREA') return true
+    if (el.isContentEditable) return true
+    if (el.tagName === 'INPUT') {
+      const t = (el.getAttribute('type') || 'text').toLowerCase()
+      // text-like inputs only — never email/number/password/checkbox
+      return t === 'text' || t === 'search' || t === '' || t === 'url' || t === 'tel'
+    }
+    return false
+  }
 
   function writeField(interim) {
     if (!activeField) return
@@ -368,7 +379,10 @@
     recognition.onerror = ev => {
       // 'no-speech' / transient errors: ignore and let onend handle restart
       if (ev && (ev.error === 'not-allowed' || ev.error === 'service-not-allowed')) {
-        isRecording = false; hidePill()
+        isRecording = false
+        const f = activeField
+        hidePill()
+        if (f) { const p = makePill(); p.className = 'xl-pill tip'; p.innerHTML = 'Allow microphone access to use voice'; positionPill(f); setTimeout(hidePill, 2600) }
       }
     }
     recognition.onend = () => {
