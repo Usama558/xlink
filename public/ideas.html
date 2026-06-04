@@ -83,7 +83,7 @@ html[data-theme="light"]{--bg:#f4f6f9;--bg-rgb:244,246,249;--s1:#ffffff;--s2:#ec
 
   <div class="topbar">
     <span class="updated" id="updated">Loading...</span>
-    <button class="refresh" id="refreshBtn">Refresh<span class="tip" id="tip"></span></button>
+    <button class="refresh" id="refreshBtn"><span id="refreshLabel">Refresh</span></button>
   </div>
 
   <div class="pills" id="pills"></div>
@@ -247,16 +247,19 @@ async function load(force){
   }
 }
 
-document.getElementById('refreshBtn').addEventListener('click',()=>{
-  const tip=document.getElementById('tip')
-  if(generatedAt){
-    const hrsLeft=Math.ceil((24*3600000-(Date.now()-Date.parse(generatedAt)))/3600000)
-    if(hrsLeft>0){
-      tip.textContent='Ideas refresh every 24 hours. Come back in '+hrsLeft+' hour'+(hrsLeft!==1?'s':'')+'.'
-      tip.classList.add('show');setTimeout(()=>tip.classList.remove('show'),3000);return
-    }
-  }
-  load(true)
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+document.getElementById('refreshBtn').addEventListener('click',async()=>{
+  const lbl=document.getElementById('refreshLabel')
+  lbl.textContent='Refreshing...'
+  try{
+    await fetchIdeas()
+    if(!ideas.length){lbl.textContent='Refresh';return load(true)} // none yet → show progress + poll
+    shuffle(ideas)  // resurface different ideas to the top each refresh
+    document.getElementById('updated').textContent='Last updated '+ago(generatedAt)
+    if(generatedAt)XL.markIdeasSeen(generatedAt)
+    renderIdeas();renderSaved()
+  }catch(e){}
+  lbl.textContent='Refresh'
 })
 
 renderPills()
