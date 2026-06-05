@@ -91,7 +91,14 @@
       "Bash(node -e \"try{require\\('sharp'\\);console.log\\('sharp available'\\)}catch\\(e\\){console.log\\('no sharp'\\)}\")",
       "Bash(ls /System/Library/Fonts/Supplemental/ 2>/dev/null | grep -iE \"arial|helvet\" ; echo \"---\"; ls /System/Library/Fonts/ | grep -iE \"SFNS|Helvet\" ; echo \"---inter?---\"; find ~/Library/Fonts /Library/Fonts -iname \"*inter*\" 2>/dev/null | head; find . -iname \"*.ttf\" 2>/dev/null | grep -v node_modules | head)",
       "Bash(cat)",
-      "Bash(python3 /tmp/make_og.py)"
+      "Bash(python3 /tmp/make_og.py)",
+      "Bash(node -e \"console.log\\('ADMIN_EMAIL set:', !!process.env.ADMIN_EMAIL, process.env.ADMIN_EMAIL?\\('len='+process.env.ADMIN_EMAIL.length\\):''\\); console.log\\('ADMIN_PASSWORD set:', !!process.env.ADMIN_PASSWORD\\)\")",
+      "Bash(PORT=3199 ADMIN_EMAIL=a@b.com ADMIN_PASSWORD=pw node server.js)",
+      "Bash(echo \"started pid $!\")",
+      "Bash(curl -s -b /tmp/cj.txt __TRACKED_VAR__/api/admin/user?hash=94ca3e54c4fad1881ba48806d32b20a6885ac8d98f68edcbe4006dfa709bce6c)",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\('contact:',d.get\\('contact'\\)\\)\")",
+      "Bash(kill 75005)",
+      "Bash(cd /Users/usamaashraf/xlink *)"
     ]
   }
 }

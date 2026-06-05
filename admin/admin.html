@@ -45,7 +45,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:16px;pa
 
 .table-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:16px;overflow:hidden}
 .table-scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:920px}
+table{width:100%;border-collapse:collapse;min-width:1120px}
 th,td{text-align:left;padding:12px 14px;font-size:13px;white-space:nowrap}
 th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t4);border-bottom:1px solid var(--b1);cursor:pointer;user-select:none;position:sticky;top:0;background:var(--s1)}
 th:hover{color:var(--t2)}
@@ -129,7 +129,7 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 
   <div class="toolbar">
-    <input class="search" id="search" placeholder="Search by User ID or niche..."/>
+    <input class="search" id="search" placeholder="Search by name, email, LinkedIn, X, or niche..."/>
     <span class="refreshed" id="count"></span>
   </div>
 
@@ -149,15 +149,17 @@ tbody tr:last-child td{border-bottom:none}
 <script>
 const COLS=[
   {key:'_n',label:'#',sortable:false},
-  {key:'userId',label:'User ID'},
+  {key:'name',label:'Name'},
+  {key:'email',label:'Email'},
+  {key:'linkedin',label:'LinkedIn'},
+  {key:'twitter',label:'X'},
   {key:'joined',label:'Joined'},
   {key:'lastActive',label:'Last Active'},
   {key:'niche',label:'Niche'},
   {key:'postsGenerated',label:'Posts'},
   {key:'published',label:'Published'},
-  {key:'skipped',label:'Skipped'},
   {key:'voiceProfile',label:'Voice'},
-  {key:'topPlatform',label:'Top Platform'},
+  {key:'userId',label:'User ID'},
 ]
 const PLAT={'x-post':'X Post','x-thread':'X Thread','linkedin':'LinkedIn'}
 let users=[],sortKey='lastActive',sortDir=-1
@@ -167,6 +169,10 @@ function fmtDate(iso){if(!iso)return '—';const d=new Date(iso);if(isNaN(d))ret
 function ago(iso){if(!iso)return '—';const t=Date.parse(iso);if(!t)return '—';const s=(Date.now()-t)/1000;if(s<60)return 'just now';const m=s/60;if(m<60)return Math.floor(m)+'m ago';const h=m/60;if(h<24)return Math.floor(h)+'h ago';const d=h/24;if(d<30)return Math.floor(d)+' day'+(Math.floor(d)!==1?'s':'')+' ago';return fmtDate(iso)}
 function platLabel(p){return PLAT[p]||p||'—'}
 function num(n){n=Number(n)||0;return n>=1000?(n/1000).toFixed(1).replace(/\.0$/,'')+'K':String(n)}
+function shorten(s,n){s=String(s||'');return s.length>(n||34)?s.slice(0,(n||34)-1)+'…':s}
+function emailCell(e){return e?`<a href="mailto:${esc(e)}" onclick="event.stopPropagation()" style="color:var(--accent-l)">${esc(e)}</a>`:'<span style="color:var(--t4)">—</span>'}
+function liCell(u){if(!u)return '<span style="color:var(--t4)">—</span>';const href=/^https?:/i.test(u)?u:'https://'+u.replace(/^\/+/,'');return `<a href="${esc(href)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent-l)">${esc(shorten(u.replace(/^https?:\/\/(www\.)?/i,''),28))}</a>`}
+function xCell(u){if(!u)return '<span style="color:var(--t4)">—</span>';const handle=u.replace(/^@/,'').replace(/^https?:\/\/(www\.)?(x|twitter)\.com\//i,'').replace(/[/?].*$/,'');const href=/^https?:/i.test(u)?u:'https://x.com/'+handle;return `<a href="${esc(href)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--accent-l)">@${esc(shorten(handle,18))}</a>`}
 
 async function api(path){
   const r=await fetch(path)
@@ -219,7 +225,7 @@ function renderHead(){
     if(th.dataset.s==='false')return
     th.addEventListener('click',()=>{
       const k=th.dataset.k
-      if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=(k==='userId'||k==='niche'||k==='topPlatform')?1:-1}
+      if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=['userId','niche','topPlatform','name','email','linkedin','twitter'].includes(k)?1:-1}
       renderTable()
     })
   })
@@ -228,7 +234,7 @@ function renderHead(){
 function renderTable(){
   renderHead()
   const q=document.getElementById('search').value.trim().toLowerCase()
-  let rows=users.filter(u=>!q||(u.userId||'').toLowerCase().includes(q)||(u.niche||'').toLowerCase().includes(q))
+  let rows=users.filter(u=>!q||['userId','niche','name','email','linkedin','twitter'].some(k=>(u[k]||'').toLowerCase().includes(q)))
   rows.sort((a,b)=>{
     let av=a[sortKey],bv=b[sortKey]
     if(sortKey==='lastActive'||sortKey==='joined'){av=Date.parse(av)||0;bv=Date.parse(bv)||0}
@@ -239,19 +245,21 @@ function renderTable(){
   const tb=document.getElementById('tbody')
   document.getElementById('count').textContent=rows.length+' user'+(rows.length!==1?'s':'')
   if(!rows.length){tb.innerHTML=`<tr><td colspan="${COLS.length}"><div class="empty">No users found.</div></td></tr>`;return}
-  tb.innerHTML=rows.map((u,i)=>`<tr data-hash="${esc(u.hash)}">
+  tb.innerHTML=rows.map((u,i)=>`<tr data-hash="${esc(u.hash||'')}">
     <td>${i+1}</td>
-    <td class="uid">${esc(u.userId)}</td>
+    <td style="color:var(--t1);font-weight:600">${esc(u.name||'')||'<span style="color:var(--t4)">—</span>'}${u.signupOnly?' <span class="badge b-gray" style="font-size:9px">signup</span>':''}</td>
+    <td>${emailCell(u.email)}</td>
+    <td>${liCell(u.linkedin)}</td>
+    <td>${xCell(u.twitter)}</td>
     <td>${fmtDate(u.joined)}</td>
     <td>${esc(ago(u.lastActive))}</td>
     <td>${esc(u.niche||'—')}</td>
     <td>${u.postsGenerated}</td>
     <td>${u.published}</td>
-    <td>${u.skipped}</td>
     <td>${u.voiceProfile?'<span class="badge b-green">Yes</span>':'<span class="badge b-gray">No</span>'}</td>
-    <td>${esc(platLabel(u.topPlatform))}</td>
+    <td class="uid">${esc(u.userId||'—')}</td>
   </tr>`).join('')
-  tb.querySelectorAll('tr[data-hash]').forEach(tr=>tr.addEventListener('click',()=>openUser(tr.dataset.hash)))
+  tb.querySelectorAll('tr[data-hash]').forEach(tr=>{if(tr.dataset.hash)tr.addEventListener('click',()=>openUser(tr.dataset.hash))})
 }
 
 // ── Detail panel ──
@@ -297,7 +305,20 @@ function renderDetail(d){
     </div>`
   }).join(''):'<div class="tl-meta">No posts yet.</div>'
 
+  const ct=d.contact||{}
+  const hasContact=ct.name||ct.email||ct.linkedin||ct.twitter
+  const contactHtml=hasContact?`<div class="kv">
+      <div class="kv-item"><div class="k">Name</div><div class="v" style="text-transform:none">${esc(ct.name||'—')}</div></div>
+      <div class="kv-item"><div class="k">Email</div><div class="v" style="text-transform:none">${emailCell(ct.email)}</div></div>
+      <div class="kv-item"><div class="k">LinkedIn</div><div class="v" style="text-transform:none">${liCell(ct.linkedin)}</div></div>
+      <div class="kv-item"><div class="k">X / Twitter</div><div class="v" style="text-transform:none">${xCell(ct.twitter)}</div></div>
+    </div>`:'<span class="pill gray">No contact captured</span>'
+
   body.innerHTML=`
+    <div class="psec">
+      <div class="psec-h">Contact</div>
+      ${contactHtml}
+    </div>
     <div class="psec">
       <div class="psec-h">Last Settings</div>
       <div class="kv">${settingsFields}</div>

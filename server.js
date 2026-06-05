@@ -1001,6 +1001,23 @@ app.post('/api/lead', async (req, res) => {
     console.warn('[lead] local append failed:', e.message)
   }
 
+  // Persist contact onto the user's profile so it shows in the admin Users view
+  if (email) {
+    try {
+      const prof = readProfile(email) || blankProfile(email)
+      const prev = prof.contact || {}
+      prof.contact = {
+        name:      name     || prev.name     || '',
+        email:     email    || prev.email    || '',
+        linkedin:  linkedin || prev.linkedin || '',
+        twitter:   twitter  || prev.twitter  || '',
+        updatedAt: new Date().toISOString(),
+      }
+      prof.updatedAt = new Date().toISOString()
+      writeProfile(email, prof)
+    } catch (e) { console.warn('[lead] profile contact merge failed:', e.message) }
+  }
+
   // Forward to Google Sheet via Apps Script web app webhook
   const hook = process.env.GOOGLE_SHEET_WEBHOOK_URL
   if (hook) {
@@ -1304,11 +1321,62 @@ function topPlatform(posts) {
   for (const k in c) if (c[k] > n) { n = c[k]; best = k }
   return best
 }
+
+// Read every signup row from leads.jsonl
+function readLeads() {
+  const out = []
+  try {
+    const txt = fs.readFileSync(path.join(__dirname, 'leads.jsonl'), 'utf8')
+    txt.split('\n').forEach(line => {
+      line = line.trim(); if (!line) return
+      try { out.push(JSON.parse(line)) } catch (e) {}
+    })
+  } catch (e) {}
+  return out
+}
+// Collapse leads into one contact per identity; index by identity key and by email hash
+function buildLeadIndex() {
+  const byKey = new Map()
+  for (const l of readLeads()) {
+    const email = (l.email || '').trim().toLowerCase()
+    const linkedin = (l.linkedin || '').trim()
+    const twitter = (l.twitter || '').trim()
+    const key = email ? 'em:' + email
+      : linkedin ? 'li:' + linkedin.toLowerCase()
+      : twitter ? 'tw:' + twitter.toLowerCase()
+      : (l.name ? 'nm:' + l.name.toLowerCase() : null)
+    if (!key) continue
+    const c = byKey.get(key) || { name: '', email: '', linkedin: '', twitter: '', firstSeen: '', lastSeen: '' }
+    if (l.name) c.name = l.name
+    if (l.email) c.email = l.email
+    if (l.linkedin) c.linkedin = l.linkedin
+    if (l.twitter) c.twitter = l.twitter
+    if (l.timestamp && (!c.firstSeen || l.timestamp < c.firstSeen)) c.firstSeen = l.timestamp
+    if (l.timestamp && (!c.lastSeen || l.timestamp > c.lastSeen)) c.lastSeen = l.timestamp
+    byKey.set(key, c)
+  }
+  const byHash = new Map()
+  for (const c of byKey.values()) if (c.email) byHash.set(hashEmail(c.email), c)
+  return { byKey, byHash }
+}
+function contactKey(c) {
+  const email = (c.email || '').trim().toLowerCase()
+  if (email) return 'em:' + email
+  if (c.linkedin) return 'li:' + c.linkedin.toLowerCase()
+  if (c.twitter) return 'tw:' + c.twitter.toLowerCase()
+  return c.name ? 'nm:' + c.name.toLowerCase() : null
+}
+
 function summarizeProfile(p) {
   const posts = Array.isArray(p.posts) ? p.posts : []
+  const c = p.contact || {}
   return {
     userId:         (p.emailHash || '').slice(0, 8),
     hash:           p.emailHash || '',
+    name:           c.name || '',
+    email:          c.email || '',
+    linkedin:       c.linkedin || '',
+    twitter:        c.twitter || '',
     joined:         p.createdAt || '',
     lastActive:     p.updatedAt || '',
     niche:          (p.lastSettings && p.lastSettings.niche) || '',
@@ -1317,7 +1385,39 @@ function summarizeProfile(p) {
     skipped:        posts.filter(x => x.status === 'skipped').length,
     voiceProfile:   !!p.voiceProfile,
     topPlatform:    topPlatform(posts),
+    signupOnly:     false,
   }
+}
+
+// Merge profile-backed users with contact-only signups so every signup is visible
+function buildAdminUsers() {
+  const profiles = loadAllProfiles()
+  const { byKey, byHash } = buildLeadIndex()
+  const used = new Set()
+  const users = profiles.map(p => {
+    const row = summarizeProfile(p)
+    // Enrich from leads.jsonl when the profile has no stored contact (older signups)
+    if (!row.email && !row.name && !row.linkedin && !row.twitter && p.emailHash && byHash.has(p.emailHash)) {
+      const c = byHash.get(p.emailHash)
+      row.name = c.name || ''; row.email = c.email || ''
+      row.linkedin = c.linkedin || ''; row.twitter = c.twitter || ''
+    }
+    const k = contactKey(row)
+    if (k) used.add(k)
+    return row
+  })
+  // Add signups that never created an email-based profile (e.g. LinkedIn/X only)
+  for (const [key, c] of byKey.entries()) {
+    if (used.has(key)) continue
+    users.push({
+      userId: '', hash: '',
+      name: c.name || '', email: c.email || '', linkedin: c.linkedin || '', twitter: c.twitter || '',
+      joined: c.firstSeen || '', lastActive: c.lastSeen || '',
+      niche: '', postsGenerated: 0, published: 0, skipped: 0,
+      voiceProfile: false, topPlatform: '', signupOnly: true,
+    })
+  }
+  return users
 }
 
 // POST /api/admin/login
@@ -1406,7 +1506,7 @@ app.post('/api/admin/feed-refresh', requireAdmin, async (_req, res) => {
 
 // GET /api/admin/users
 app.get('/api/admin/users', requireAdmin, (_req, res) => {
-  const users = loadAllProfiles().map(summarizeProfile)
+  const users = buildAdminUsers()
   users.sort((a, b) => (Date.parse(b.lastActive) || 0) - (Date.parse(a.lastActive) || 0))
   res.json({ users })
 })
@@ -1422,8 +1522,11 @@ app.get('/api/admin/user', requireAdmin, (req, res) => {
   const posts = Array.isArray(p.posts) ? p.posts : []
   const published = posts.filter(x => x.status === 'published' || x.status === 'edited').length
   const skipped = posts.filter(x => x.status === 'skipped').length
+  let contact = p.contact || null
+  if (!contact) { const { byHash } = buildLeadIndex(); if (byHash.has(hash)) contact = byHash.get(hash) }
   res.json({
     userId:       (p.emailHash || '').slice(0, 8),
+    contact:      contact || {},
     lastSettings: p.lastSettings || {},
     voiceProfile: p.voiceProfile || null,
     posts:        posts.slice(-10).reverse(),
@@ -1431,14 +1534,14 @@ app.get('/api/admin/user', requireAdmin, (req, res) => {
   })
 })
 
-// GET /api/admin/export  (CSV — table columns only, no content)
+// GET /api/admin/export  (CSV — includes contact details)
 app.get('/api/admin/export', requireAdmin, (_req, res) => {
-  const rows = loadAllProfiles().map(summarizeProfile)
+  const rows = buildAdminUsers()
   rows.sort((a, b) => (Date.parse(b.lastActive) || 0) - (Date.parse(a.lastActive) || 0))
-  const header = ['User ID', 'Joined', 'Last Active', 'Niche', 'Posts Generated', 'Published', 'Skipped', 'Voice Profile', 'Top Platform']
+  const header = ['Name', 'Email', 'LinkedIn', 'X / Twitter', 'Joined', 'Last Active', 'Niche', 'Posts Generated', 'Published', 'Skipped', 'Voice Profile', 'Top Platform', 'User ID']
   const esc = v => { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v }
   const lines = [header.join(',')]
-  rows.forEach(r => lines.push([r.userId, r.joined, r.lastActive, r.niche, r.postsGenerated, r.published, r.skipped, r.voiceProfile ? 'Yes' : 'No', r.topPlatform].map(esc).join(',')))
+  rows.forEach(r => lines.push([r.name, r.email, r.linkedin, r.twitter, r.joined, r.lastActive, r.niche, r.postsGenerated, r.published, r.skipped, r.voiceProfile ? 'Yes' : 'No', r.topPlatform, r.userId].map(esc).join(',')))
   res.setHeader('Content-Type', 'text/csv')
   res.setHeader('Content-Disposition', 'attachment; filename="contento-users.csv"')
   res.send(lines.join('\n'))
