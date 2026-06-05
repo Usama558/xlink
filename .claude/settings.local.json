@@ -86,7 +86,12 @@
       "Bash(node -e \"new Function\\(require\\('fs'\\).readFileSync\\('public/contento.js','utf8'\\)\\);console.log\\('contento.js OK'\\)\")",
       "Bash(node -e \"console.log\\(require\\('./package.json'\\).name\\)\")",
       "Bash(node -c server.js)",
-      "Bash(node -e \"require\\('fs'\\).readFileSync\\('public/contento.js','utf8'\\); new Function\\(require\\('fs'\\).readFileSync\\('public/contento.js','utf8'\\)\\); console.log\\('contento.js parse OK'\\)\")"
+      "Bash(node -e \"require\\('fs'\\).readFileSync\\('public/contento.js','utf8'\\); new Function\\(require\\('fs'\\).readFileSync\\('public/contento.js','utf8'\\)\\); console.log\\('contento.js parse OK'\\)\")",
+      "Bash(python3 -c \"import PIL; print\\('Pillow', PIL.__version__\\)\")",
+      "Bash(node -e \"try{require\\('sharp'\\);console.log\\('sharp available'\\)}catch\\(e\\){console.log\\('no sharp'\\)}\")",
+      "Bash(ls /System/Library/Fonts/Supplemental/ 2>/dev/null | grep -iE \"arial|helvet\" ; echo \"---\"; ls /System/Library/Fonts/ | grep -iE \"SFNS|Helvet\" ; echo \"---inter?---\"; find ~/Library/Fonts /Library/Fonts -iname \"*inter*\" 2>/dev/null | head; find . -iname \"*.ttf\" 2>/dev/null | grep -v node_modules | head)",
+      "Bash(cat)",
+      "Bash(python3 /tmp/make_og.py)"
     ]
   }
 }
