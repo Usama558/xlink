@@ -1559,6 +1559,112 @@ app.get('/api/admin/export', requireAdmin, (_req, res) => {
   res.send(lines.join('\n'))
 })
 
+// ─── Admin: backfill signups from a Google Sheet (published CSV URL or pasted CSV)
+// Minimal CSV parser (handles quotes, commas and newlines inside fields)
+function parseCSVText(text) {
+  const rows = []
+  let row = [], field = '', q = false
+  text = String(text).replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++ } else q = false } else field += c }
+    else if (c === '"') q = true
+    else if (c === ',') { row.push(field); field = '' }
+    else if (c === '\n') { row.push(field); rows.push(row); row = []; field = '' }
+    else field += c
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row) }
+  return rows.filter(r => r.some(c => String(c).trim() !== ''))
+}
+function classifyHeader(h) {
+  h = String(h).trim().toLowerCase()
+  if (h.includes('email')) return 'email'
+  if (h.includes('linkedin')) return 'linkedin'
+  if (h === 'x' || h.includes('twitter') || h.includes('x /') || h.includes('x/') || h === 'handle') return 'twitter'
+  if (h.includes('name')) return 'name'
+  if (h.includes('time') || h.includes('date') || h.includes('joined') || h.includes('created')) return 'timestamp'
+  if (h.includes('niche')) return 'niche'
+  if (h.includes('topic')) return 'topic'
+  if (h.includes('starting')) return 'startingOut'
+  return null
+}
+function rowsFromCSVText(text) {
+  const grid = parseCSVText(text)
+  if (!grid.length) return []
+  const headers = grid[0].map(classifyHeader)
+  const hasHeader = headers.some(Boolean)
+  const out = []
+  for (let r = hasHeader ? 1 : 0; r < grid.length; r++) {
+    const cells = grid[r], rec = {}
+    if (hasHeader) headers.forEach((k, i) => { if (k && cells[i] != null) rec[k] = String(cells[i]).trim() })
+    else ['timestamp', 'name', 'email', 'linkedin', 'twitter'].forEach((k, i) => { if (cells[i] != null) rec[k] = String(cells[i]).trim() })
+    out.push(rec)
+  }
+  return out
+}
+function leadIdentity(r) {
+  const email = (r.email || '').trim().toLowerCase()
+  if (email) return 'em:' + email
+  const li = (r.linkedin || '').trim().toLowerCase(); if (li) return 'li:' + li
+  const tw = (r.twitter || '').trim().toLowerCase(); if (tw) return 'tw:' + tw
+  const nm = (r.name || '').trim().toLowerCase(); return nm ? 'nm:' + nm : null
+}
+// Append only NEW signups to leads.jsonl and merge contact onto each email profile
+function importSignups(rawRows) {
+  const existing = new Set()
+  for (const l of readLeads()) { const k = leadIdentity(l); if (k) existing.add(k) }
+  const seen = new Set()
+  const append = []
+  let added = 0, profilesMerged = 0, skipped = 0
+  for (const raw of rawRows) {
+    const r = {
+      timestamp: raw.timestamp || raw.date || new Date().toISOString(),
+      name: raw.name || '', email: raw.email || '', linkedin: raw.linkedin || '', twitter: raw.twitter || '',
+      startingOut: raw.startingOut || '', niche: raw.niche || '', topic: raw.topic || '',
+    }
+    const k = leadIdentity(r)
+    if (!k) { skipped++; continue }
+    if (existing.has(k) || seen.has(k)) { skipped++; continue }
+    seen.add(k); append.push(JSON.stringify(r)); added++
+    if (r.email) {
+      try {
+        const prof = readProfile(r.email) || blankProfile(r.email)
+        const prev = prof.contact || {}
+        prof.contact = {
+          name: r.name || prev.name || '', email: r.email || prev.email || '',
+          linkedin: r.linkedin || prev.linkedin || '', twitter: r.twitter || prev.twitter || '',
+          updatedAt: new Date().toISOString(),
+        }
+        if (r.timestamp && (!prof.createdAt || r.timestamp < prof.createdAt)) prof.createdAt = r.timestamp
+        writeProfile(r.email, prof)
+        profilesMerged++
+      } catch (e) { console.warn('[import] profile merge failed:', e.message) }
+    }
+  }
+  if (append.length) { try { fs.appendFileSync(LEADS_FILE, append.join('\n') + '\n') } catch (e) { console.warn('[import] append failed:', e.message) } }
+  return { parsed: rawRows.length, added, profilesMerged, skipped }
+}
+
+// POST /api/admin/import  { url?: "published sheet CSV url", csv?: "raw csv text" }
+app.post('/api/admin/import', requireAdmin, async (req, res) => {
+  const b = req.body || {}
+  let text = (b.csv || '').trim()
+  try {
+    if (!text && b.url) {
+      const r = await fetch(String(b.url), { signal: AbortSignal.timeout(15000) })
+      if (!r.ok) return res.status(400).json({ error: 'Could not fetch the URL (HTTP ' + r.status + '). Make sure the sheet is published to the web as CSV.' })
+      text = await r.text()
+    }
+    if (!text) return res.status(400).json({ error: 'Paste CSV text or provide a published Google Sheet CSV URL.' })
+    if (/^\s*</.test(text)) return res.status(400).json({ error: 'That URL returned a web page, not CSV. Use File → Share → Publish to web → CSV, and paste that link.' })
+    const result = importSignups(rowsFromCSVText(text))
+    console.log('[import]', result)
+    res.json({ ok: true, ...result })
+  } catch (e) {
+    res.status(500).json({ error: e.message || 'Import failed' })
+  }
+})
+
 // Admin pages (served from /admin dir, NOT public, so the gate cannot be bypassed)
 app.get('/adminlogin', (_req, res) => res.sendFile(path.join(ADMIN_DIR, 'adminlogin.html')))
 app.get('/admin', (req, res) => {
