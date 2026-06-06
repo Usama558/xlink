@@ -8,6 +8,17 @@ const { refreshCache, getCachedFeed, isCacheStale, fetchAllFeeds } = require('./
 const app = express()
 const PORT = process.env.PORT || 3000
 
+// ─── Persistent data root ─────────────────────────────────────────────────────
+// IMPORTANT: on Railway the app filesystem is EPHEMERAL — it is wiped on every
+// deploy and restart. Set DATA_DIR to a mounted Railway Volume path (e.g. /data)
+// so user profiles, signups/leads and usage survive deploys. Falls back to the
+// repo directory for local development (identical behaviour to before).
+// Railway auto-sets RAILWAY_VOLUME_MOUNT_PATH when a Volume is attached, so simply
+// attaching a volume makes data persist with zero extra config. DATA_DIR overrides it.
+const DATA_ROOT = process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || __dirname
+try { fs.mkdirSync(DATA_ROOT, { recursive: true }) } catch (e) {}
+const LEADS_FILE = path.join(DATA_ROOT, 'leads.jsonl')
+
 app.set('trust proxy', 1) // Railway terminates TLS; trust x-forwarded-* for req.ip / req.secure
 app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')))
@@ -20,6 +31,7 @@ console.log('--- Contento startup ---')
 console.log('Node version :', process.version)
 console.log('PORT         :', PORT)
 console.log('API key set  :', !!process.env.ANTHROPIC_API_KEY)
+console.log('DATA_ROOT    :', DATA_ROOT, process.env.DATA_DIR ? '(persistent volume)' : '(ephemeral — set DATA_DIR for a Railway volume)')
 
 function getClient() {
   const key = process.env.ANTHROPIC_API_KEY
@@ -847,7 +859,7 @@ app.post('/api/ideas/variants', async (req, res) => {
 })
 
 // ─── Lead magnet: weekly rate limit (server-enforced, keyed by user id) ───────
-const MAGNET_USAGE_FILE = path.join(__dirname, 'magnet_usage.json')
+const MAGNET_USAGE_FILE = path.join(DATA_ROOT, 'magnet_usage.json')
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 function readMagnetUsage() {
@@ -959,7 +971,7 @@ app.post('/api/lead-magnet', async (req, res) => {
       name: byline || '', email: email || '', linkedin: '', twitter: '',
       startingOut: '', niche: audience || '', topic: '[Lead Magnet] ' + topic,
     }
-    try { fs.appendFileSync(path.join(__dirname, 'leads.jsonl'), JSON.stringify(rec) + '\n') } catch (e) {}
+    try { fs.appendFileSync(LEADS_FILE, JSON.stringify(rec) + '\n') } catch (e) {}
     const hook = process.env.GOOGLE_SHEET_WEBHOOK_URL
     if (hook) {
       try { await fetch(hook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rec), signal: AbortSignal.timeout(8000) }) }
@@ -996,7 +1008,7 @@ app.post('/api/lead', async (req, res) => {
 
   // Local fallback (ephemeral on Railway, but useful in dev / before redeploy)
   try {
-    fs.appendFileSync(path.join(__dirname, 'leads.jsonl'), JSON.stringify(lead) + '\n')
+    fs.appendFileSync(LEADS_FILE, JSON.stringify(lead) + '\n')
   } catch (e) {
     console.warn('[lead] local append failed:', e.message)
   }
@@ -1164,7 +1176,7 @@ app.post('/api/repurpose', async (req, res) => {
 })
 
 // ─── Email-based profile store (file-based, hashed email as key) ──────────────
-const PROFILES_DIR = path.join(__dirname, 'profiles')
+const PROFILES_DIR = path.join(DATA_ROOT, 'profiles')
 try { fs.mkdirSync(PROFILES_DIR, { recursive: true }) } catch (e) {}
 
 function hashEmail(email) {
@@ -1326,7 +1338,7 @@ function topPlatform(posts) {
 function readLeads() {
   const out = []
   try {
-    const txt = fs.readFileSync(path.join(__dirname, 'leads.jsonl'), 'utf8')
+    const txt = fs.readFileSync(LEADS_FILE, 'utf8')
     txt.split('\n').forEach(line => {
       line = line.trim(); if (!line) return
       try { out.push(JSON.parse(line)) } catch (e) {}
@@ -1561,7 +1573,7 @@ app.get('/results', (_req, res) => res.sendFile(path.join(__dirname, 'public', '
 // ══════════════════════════════════════════════════════════════════════════
 // DAILY IDEAS + LIVE HEADLINES
 // ══════════════════════════════════════════════════════════════════════════
-const DATA_DIR = path.join(__dirname, 'data')
+const DATA_DIR = path.join(DATA_ROOT, 'data')
 try { fs.mkdirSync(DATA_DIR, { recursive: true }) } catch (e) {}
 const DAILY_IDEAS_FILE = path.join(DATA_DIR, 'daily-ideas.json')
 const DAY_MS = 24 * 60 * 60 * 1000
